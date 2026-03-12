@@ -671,6 +671,152 @@
       0%, 100% { transform: translateY(0); }
       50%       { transform: translateY(8px); }
     }
+
+    /* ── Section 01–03 shared ──────────────────────────────────────────────── */
+    .section-header {
+      margin-bottom: 28px;
+    }
+
+    .section-number {
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--accent-blue);
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .section-title {
+      font-family: 'Inter', sans-serif;
+      font-weight: 800;
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      margin: 0;
+      line-height: 1.15;
+    }
+
+    .section-body-text {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      line-height: 1.75;
+      max-width: 680px;
+      margin: 0 0 20px;
+    }
+
+    /* ── Lens canvas ───────────────────────────────────────────────────────── */
+    #lensCanvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 8px;
+    }
+
+    /* ── Bayer demo ────────────────────────────────────────────────────────── */
+    .bayer-demo-wrap {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    #bayerCanvas {
+      flex: 0 0 auto;
+      max-width: 100%;
+      cursor: crosshair;
+      border-radius: 6px;
+      image-rendering: pixelated;
+    }
+
+    .bayer-callout {
+      flex: 1;
+      min-width: 160px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 0.88rem;
+      line-height: 1.7;
+      color: var(--text-primary);
+      display: none;
+    }
+
+    .bayer-callout.visible {
+      display: block;
+    }
+
+    .bayer-callout-hint {
+      flex: 1;
+      min-width: 160px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      padding-top: 8px;
+    }
+
+    /* ── Raw pixel inspector ───────────────────────────────────────────────── */
+    .raw-dual {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 680px) {
+      .raw-dual { grid-template-columns: 1fr; }
+    }
+
+    .raw-panel-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 8px;
+    }
+
+    #rawSrcCanvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      cursor: crosshair;
+      border-radius: 6px;
+    }
+
+    #rawZoomCanvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 6px;
+      image-rendering: pixelated;
+      cursor: default;
+    }
+
+    .raw-rgb-tooltip {
+      margin-top: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      min-height: 1.4em;
+    }
+
+    .stats-callout {
+      margin-top: 24px;
+      background: var(--bg-accent);
+      border: 1px solid var(--accent-blue-tint);
+      border-radius: 10px;
+      padding: 16px 20px;
+    }
+
+    .stats-callout p {
+      margin: 4px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--text-primary);
+    }
+
+    .stats-callout p strong {
+      color: var(--accent-blue);
+    }
   </style>
 </head>
 <body>
@@ -709,13 +855,88 @@
     </section>
   </div>
   <div class="section-wrapper section-wrapper--alt">
-    <section id="s-lens" class="section"><!-- Phase 04 --></section>
+    <section id="s-lens" class="section">
+      <div class="section-header reveal">
+        <span class="section-number">01</span>
+        <h2 class="section-title">Light Enters the Lens</h2>
+      </div>
+      <p class="section-body-text reveal">
+        When you press the shutter button, light reflected from the scene enters through the camera lens.
+        The lens is a curved piece of glass that bends (refracts) incoming light rays, focusing them
+        onto a single point — the focal point.
+      </p>
+      <p class="section-body-text reveal">
+        Think of the lens as a funnel for light. Millions of photons stream through, each carrying color
+        information from whatever they bounced off. The lens collects all these scattered rays and directs
+        them precisely onto the tiny sensor chip waiting behind it.
+      </p>
+      <div class="demo-card reveal">
+        <canvas id="lensCanvas" width="700" height="240"></canvas>
+      </div>
+    </section>
   </div>
   <div class="section-wrapper">
-    <section id="s-bayer" class="section"><!-- Phase 04 --></section>
+    <section id="s-bayer" class="section">
+      <div class="section-header reveal">
+        <span class="section-number">02</span>
+        <h2 class="section-title">The Image Sensor &amp; Bayer Mosaic</h2>
+      </div>
+      <p class="section-body-text reveal">
+        Behind the lens sits the image sensor — a grid of millions of tiny light-sensitive cells called
+        photosites. Each photosite can only measure the brightness of light, not its color.
+        So how does a camera capture color?
+      </p>
+      <p class="section-body-text reveal">
+        The answer is the Bayer filter — a mosaic of red, green, and blue color filters placed over the
+        sensor. Each photosite sees only one color. Notice there are twice as many green filters as red
+        or blue — that's because human eyes are most sensitive to green, so the camera dedicates extra
+        resolution to it.
+      </p>
+      <div class="demo-card reveal">
+        <p class="raw-panel-label">Interactive Bayer grid — click any cell to inspect</p>
+        <div class="bayer-demo-wrap">
+          <canvas id="bayerCanvas"></canvas>
+          <div id="bayerCallout" class="bayer-callout"></div>
+          <div id="bayerHint" class="bayer-callout-hint">Click a cell to see photosite details.</div>
+        </div>
+      </div>
+    </section>
   </div>
   <div class="section-wrapper section-wrapper--alt">
-    <section id="s-raw" class="section"><!-- Phase 04 --></section>
+    <section id="s-raw" class="section">
+      <div class="section-header reveal">
+        <span class="section-number">03</span>
+        <h2 class="section-title">Raw Pixel Data</h2>
+      </div>
+      <p class="section-body-text reveal">
+        After demosaicing — a clever algorithm that fills in the missing color values for each
+        photosite — every pixel now has a full set of three numbers: Red, Green, and Blue. These three
+        values, each ranging from 0 to 255, mix together to create the final color you see.
+      </p>
+      <p class="section-body-text reveal">
+        At this point, your photo is just a massive grid of numbers. Each pixel takes 3 bytes of storage
+        (one per channel). For a typical 12-megapixel photo, that's over 36 million bytes — about 36 MB
+        of raw data. JPEG's job is to shrink this dramatically without ruining the image.
+      </p>
+      <div class="demo-card reveal">
+        <div class="raw-dual">
+          <div>
+            <p class="raw-panel-label">Click image to inspect pixels</p>
+            <canvas id="rawSrcCanvas"></canvas>
+          </div>
+          <div>
+            <p class="raw-panel-label">Zoomed pixel grid</p>
+            <canvas id="rawZoomCanvas"></canvas>
+            <div class="raw-rgb-tooltip" id="rawRGBTooltip"></div>
+          </div>
+        </div>
+        <div class="stats-callout" id="rawStats">
+          <p><strong id="rawStatsPixels">Upload a photo to see stats</strong></p>
+          <p id="rawStatsSize"></p>
+          <p id="rawStatsRatio"></p>
+        </div>
+      </div>
+    </section>
   </div>
   <div class="section-wrapper">
     <section id="s-rgb" class="section"><!-- Phase 05 --></section>
@@ -989,7 +1210,7 @@
   // Section metadata: id, bar label, nav label, icon, base size (MB at 12MP), bar %
   const SECTION_DATA = [
     { id: 'hero',      stageLabel: 'Raw sensor data',         shortLabel: 'Upload Your Photo',  icon: '📷', mobileLabel: 'Raw',     rawMB: 36,   pct: 100 },
-    { id: 's-lens',    stageLabel: 'After demosaicing',        shortLabel: 'Light & Lens',       icon: '🔆', mobileLabel: 'Lens',     rawMB: 36,   pct: 100 },
+    { id: 's-lens',    stageLabel: 'Raw sensor data',          shortLabel: 'Light & Lens',       icon: '🔆', mobileLabel: 'Lens',     rawMB: 36,   pct: 100 },
     { id: 's-bayer',   stageLabel: 'Full RGB pixels',          shortLabel: 'Bayer Sensor',       icon: '🟩', mobileLabel: 'Bayer',    rawMB: 36,   pct: 100 },
     { id: 's-raw',     stageLabel: 'Full RGB pixels',          shortLabel: 'Raw Pixels',         icon: '🔍', mobileLabel: 'Raw',      rawMB: 36,   pct: 100 },
     { id: 's-rgb',     stageLabel: 'RGB channels',             shortLabel: 'RGB Channels',       icon: '🎨', mobileLabel: 'RGB',      rawMB: 36,   pct: 100 },
@@ -1283,6 +1504,443 @@
 
   // Init sidebar DOM (independent of image upload)
   initSidebar();
+
+  // ─── Section 01: Light Enters the Lens ──────────────────────────────────────
+  (function () {
+    let animId = null;
+
+    function initSection01() {
+      if (!S.img) return;
+      const canvas = document.getElementById('lensCanvas');
+      if (!canvas) return;
+
+      const W = 700, H = 240;
+      canvas.width = W;
+      canvas.height = H;
+      const ctx = canvas.getContext('2d');
+
+      // Layout
+      const midY = H / 2;
+      const thumbW = 56, thumbH = 56;
+      const thumbX = 18, thumbY = midY - thumbH / 2;
+      const lensX = W * 0.43, lensHalfH = 66, lensHalfW = 18;
+      const focalX = W * 0.71;
+      const sensorX = W - 38, sensorHalfH = 52, sensorW = 12;
+
+      // Create thumbnail from uploaded image
+      const thumbCanvas = document.createElement('canvas');
+      thumbCanvas.width = thumbW; thumbCanvas.height = thumbH;
+      thumbCanvas.getContext('2d').drawImage(S.origCanvas, 0, 0, thumbW, thumbH);
+
+      // Sample ray colors from image
+      const RAY_COUNT = 7;
+      const rayColors = [];
+      for (let i = 0; i < RAY_COUNT; i++) {
+        const px = Math.floor(S.w * 0.5);
+        const py = Math.floor(S.h * (i / (RAY_COUNT - 1)) * 0.7 + S.h * 0.15);
+        const idx = (Math.min(py, S.h - 1) * S.w + Math.min(px, S.w - 1)) * 4;
+        const d = S.img.data;
+        rayColors.push([d[idx], d[idx + 1], d[idx + 2]]);
+      }
+
+      // Get point along ray path at t (0–1)
+      function getRayPoint(i, t) {
+        const y0 = thumbY + (thumbH / (RAY_COUNT - 1)) * i;
+        const x0 = thumbX + thumbW;
+        const yEnd = midY + (i - (RAY_COUNT - 1) / 2) * (sensorHalfH / ((RAY_COUNT - 1) / 2)) * 0.75;
+
+        const seg1 = lensX - x0;
+        const seg2 = Math.hypot(focalX - lensX, midY - y0);
+        const seg3 = sensorX - focalX;
+        const total = seg1 + seg2 + seg3;
+        const t1 = seg1 / total, t2 = (seg1 + seg2) / total;
+
+        if (t <= t1) {
+          const s = t / t1;
+          return { x: x0 + s * seg1, y: y0 };
+        } else if (t <= t2) {
+          const s = (t - t1) / (t2 - t1);
+          return { x: lensX + s * (focalX - lensX), y: y0 + s * (midY - y0) };
+        } else {
+          const s = (t - t2) / (1 - t2);
+          return { x: focalX + s * (sensorX - focalX), y: midY + s * (yEnd - midY) };
+        }
+      }
+
+      function draw(ts) {
+        ctx.clearRect(0, 0, W, H);
+
+        // Background
+        ctx.fillStyle = '#f8f9fb';
+        ctx.fillRect(0, 0, W, H);
+
+        // Draw thumbnail
+        ctx.save();
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(thumbX - 1, thumbY - 1, thumbW + 2, thumbH + 2);
+        ctx.drawImage(thumbCanvas, thumbX, thumbY);
+        ctx.restore();
+
+        // Draw static ray lines (faint)
+        for (let i = 0; i < RAY_COUNT; i++) {
+          const [r, g, b] = rayColors[i];
+          const y0 = thumbY + (thumbH / (RAY_COUNT - 1)) * i;
+          const x0 = thumbX + thumbW;
+          const yEnd = midY + (i - (RAY_COUNT - 1) / 2) * (sensorHalfH / ((RAY_COUNT - 1) / 2)) * 0.75;
+          ctx.save();
+          ctx.globalAlpha = 0.12;
+          ctx.strokeStyle = `rgb(${r},${g},${b})`;
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([4, 5]);
+          ctx.beginPath();
+          ctx.moveTo(x0, y0);
+          ctx.lineTo(lensX, y0);
+          ctx.lineTo(focalX, midY);
+          ctx.lineTo(sensorX, yEnd);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Draw convex lens
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(lensX, midY - lensHalfH);
+        ctx.quadraticCurveTo(lensX + lensHalfW * 2.2, midY, lensX, midY + lensHalfH);
+        ctx.quadraticCurveTo(lensX - lensHalfW * 2.2, midY, lensX, midY - lensHalfH);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(37,99,235,0.07)';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(37,99,235,0.45)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+
+        // Focal point marker
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(focalX, midY, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(37,99,235,0.35)';
+        ctx.fill();
+        ctx.restore();
+
+        // Sensor
+        ctx.save();
+        ctx.fillStyle = 'rgba(15,23,42,0.08)';
+        ctx.fillRect(sensorX, midY - sensorHalfH, sensorW, sensorHalfH * 2);
+        ctx.strokeStyle = 'rgba(15,23,42,0.25)';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(sensorX, midY - sensorHalfH, sensorW, sensorHalfH * 2);
+        ctx.restore();
+
+        // Labels
+        ctx.save();
+        ctx.fillStyle = 'rgba(100,116,139,0.8)';
+        ctx.font = '10px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('lens', lensX, midY + lensHalfH + 16);
+        ctx.fillText('focal point', focalX, midY + 16);
+        ctx.fillText('sensor', sensorX + sensorW / 2, midY + sensorHalfH + 16);
+        ctx.restore();
+
+        // Animated photon dots
+        const animT = ts / 1000;
+        for (let i = 0; i < RAY_COUNT; i++) {
+          const [r, g, b] = rayColors[i];
+          const phase = i / RAY_COUNT;
+          const t = ((animT * 0.35 + phase) % 1);
+          const pt = getRayPoint(i, t);
+          const grd = ctx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, 7);
+          grd.addColorStop(0, `rgba(${r},${g},${b},0.95)`);
+          grd.addColorStop(0.5, `rgba(${r},${g},${b},0.4)`);
+          grd.addColorStop(1, 'transparent');
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, 7, 0, Math.PI * 2);
+          ctx.fillStyle = grd;
+          ctx.fill();
+        }
+
+        animId = requestAnimationFrame(draw);
+      }
+
+      if (animId) cancelAnimationFrame(animId);
+      animId = requestAnimationFrame(draw);
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          if (animId) { cancelAnimationFrame(animId); animId = null; }
+        } else if (!animId) {
+          animId = requestAnimationFrame(draw);
+        }
+      });
+
+      window.addEventListener('resize', () => {});
+    }
+
+    document.addEventListener('imageReady', initSection01);
+  }());
+
+  // ─── Section 02: Bayer Mosaic ────────────────────────────────────────────────
+  (function () {
+    function initSection02() {
+      if (!S.img) return;
+      const canvas = document.getElementById('bayerCanvas');
+      if (!canvas) return;
+
+      const GRID = 16, CELL = 26;
+      canvas.width = GRID * CELL;
+      canvas.height = GRID * CELL;
+      canvas.style.width = Math.min(GRID * CELL, 420) + 'px';
+      const ctx = canvas.getContext('2d');
+
+      const startX = Math.floor(S.w / 2 - GRID / 2);
+      const startY = Math.floor(S.h / 2 - GRID / 2);
+
+      function bayerFilter(row, col) {
+        if (row % 2 === 0) return col % 2 === 0 ? 'R' : 'G';
+        return col % 2 === 0 ? 'G' : 'B';
+      }
+
+      function filterRGB(f) {
+        if (f === 'R') return [220, 50, 50];
+        if (f === 'G') return [40, 180, 60];
+        return [50, 80, 220];
+      }
+
+      function getPixel(row, col) {
+        const px = Math.max(0, Math.min(startX + col, S.w - 1));
+        const py = Math.max(0, Math.min(startY + row, S.h - 1));
+        const i = (py * S.w + px) * 4;
+        return { r: S.img.data[i], g: S.img.data[i + 1], b: S.img.data[i + 2] };
+      }
+
+      let hovered = null, selected = null;
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let row = 0; row < GRID; row++) {
+          for (let col = 0; col < GRID; col++) {
+            const px = getPixel(row, col);
+            const f = bayerFilter(row, col);
+            const [fr, fg, fb] = filterRGB(f);
+            const x = col * CELL, y = row * CELL;
+
+            // Pixel color base
+            ctx.fillStyle = `rgb(${px.r},${px.g},${px.b})`;
+            ctx.fillRect(x, y, CELL, CELL);
+
+            // Filter color overlay
+            ctx.fillStyle = `rgba(${fr},${fg},${fb},0.32)`;
+            ctx.fillRect(x, y, CELL, CELL);
+
+            // Hover
+            if (hovered && hovered.row === row && hovered.col === col && !(selected && selected.row === row && selected.col === col)) {
+              ctx.fillStyle = 'rgba(255,255,255,0.18)';
+              ctx.fillRect(x, y, CELL, CELL);
+            }
+
+            // Selected
+            if (selected && selected.row === row && selected.col === col) {
+              ctx.strokeStyle = '#fff';
+              ctx.lineWidth = 2;
+              ctx.strokeRect(x + 1, y + 1, CELL - 2, CELL - 2);
+            }
+
+            // Grid line
+            ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+            ctx.lineWidth = 0.5;
+            ctx.strokeRect(x, y, CELL, CELL);
+
+            // Filter letter
+            ctx.fillStyle = 'rgba(255,255,255,0.75)';
+            ctx.font = `bold 8px JetBrains Mono, monospace`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(f, x + CELL / 2, y + CELL / 2);
+          }
+        }
+      }
+
+      function showCallout(row, col) {
+        const f = bayerFilter(row, col);
+        const px = getPixel(row, col);
+        const intensity = f === 'R' ? px.r : f === 'G' ? px.g : px.b;
+        const name = f === 'R' ? 'Red' : f === 'G' ? 'Green' : 'Blue';
+        const hex = f === 'R' ? '#ef4444' : f === 'G' ? '#22c55e' : '#3b82f6';
+        const callout = document.getElementById('bayerCallout');
+        const hint = document.getElementById('bayerHint');
+        callout.innerHTML =
+          `<strong>Photosite (${row}, ${col})</strong><br>` +
+          `Filter: <span style="color:${hex};font-weight:700">${name}</span><br>` +
+          `Raw intensity: <code>${intensity}</code><br>` +
+          `<em style="color:var(--text-muted)">This photosite only sees ${name.toLowerCase()} light.</em>`;
+        callout.classList.add('visible');
+        hint.style.display = 'none';
+      }
+
+      function getCellFromEvent(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const col = Math.floor((e.clientX - rect.left) * scaleX / CELL);
+        const row = Math.floor((e.clientY - rect.top) * scaleY / CELL);
+        if (col >= 0 && col < GRID && row >= 0 && row < GRID) return { row, col };
+        return null;
+      }
+
+      canvas.addEventListener('mousemove', e => {
+        hovered = getCellFromEvent(e);
+        draw();
+      });
+      canvas.addEventListener('mouseleave', () => { hovered = null; draw(); });
+      canvas.addEventListener('click', e => {
+        const cell = getCellFromEvent(e);
+        if (cell) { selected = cell; showCallout(cell.row, cell.col); draw(); }
+      });
+
+      draw();
+    }
+
+    document.addEventListener('imageReady', initSection02);
+  }());
+
+  // ─── Section 03: Raw Pixel Data ──────────────────────────────────────────────
+  (function () {
+    function initSection03() {
+      if (!S.img) return;
+
+      // Stats
+      const pixels = S.w * S.h;
+      const rawMB = (pixels * 3 / 1_000_000).toFixed(1);
+      const ratio = Math.round(pixels * 3 / 300_000);
+      document.getElementById('rawStatsPixels').textContent =
+        `Your photo: ${S.w} × ${S.h} = ${pixels.toLocaleString()} pixels`;
+      document.getElementById('rawStatsSize').textContent =
+        `Uncompressed: ${rawMB} MB`;
+      document.getElementById('rawStatsRatio').textContent =
+        `That's ~${ratio}× larger than the final JPEG`;
+
+      // Source canvas
+      const srcCanvas = document.getElementById('rawSrcCanvas');
+      const srcCtx = srcCanvas.getContext('2d', { willReadFrequently: true });
+      srcCanvas.width = S.w;
+      srcCanvas.height = S.h;
+      srcCtx.drawImage(S.origCanvas, 0, 0);
+
+      // Zoom canvas
+      const zoomCanvas = document.getElementById('rawZoomCanvas');
+      const zoomCtx = zoomCanvas.getContext('2d');
+      const ZOOM = 10, CELL = 28;
+      zoomCanvas.width = ZOOM * CELL;
+      zoomCanvas.height = ZOOM * CELL;
+
+      let clickX = Math.floor(S.w / 2);
+      let clickY = Math.floor(S.h / 2);
+      let hoveredCell = null;
+
+      function getPixelAt(px, py) {
+        const x = Math.max(0, Math.min(px, S.w - 1));
+        const y = Math.max(0, Math.min(py, S.h - 1));
+        const i = (y * S.w + x) * 4;
+        return { r: S.img.data[i], g: S.img.data[i + 1], b: S.img.data[i + 2] };
+      }
+
+      function drawSrc() {
+        srcCtx.drawImage(S.origCanvas, 0, 0);
+        const half = Math.floor(ZOOM / 2);
+        const boxX = Math.max(0, Math.min(clickX - half, S.w - ZOOM));
+        const boxY = Math.max(0, Math.min(clickY - half, S.h - ZOOM));
+
+        // Crosshair
+        srcCtx.save();
+        srcCtx.strokeStyle = 'rgba(255,255,255,0.6)';
+        srcCtx.lineWidth = 1;
+        srcCtx.setLineDash([3, 3]);
+        srcCtx.beginPath();
+        srcCtx.moveTo(clickX, 0); srcCtx.lineTo(clickX, S.h);
+        srcCtx.moveTo(0, clickY); srcCtx.lineTo(S.w, clickY);
+        srcCtx.stroke();
+
+        // Selection box
+        srcCtx.setLineDash([]);
+        srcCtx.strokeStyle = '#3b82f6';
+        srcCtx.lineWidth = 2;
+        srcCtx.strokeRect(boxX, boxY, ZOOM, ZOOM);
+        srcCtx.restore();
+      }
+
+      function drawZoom() {
+        zoomCtx.clearRect(0, 0, zoomCanvas.width, zoomCanvas.height);
+        const half = Math.floor(ZOOM / 2);
+        const startX = Math.max(0, Math.min(clickX - half, S.w - ZOOM));
+        const startY = Math.max(0, Math.min(clickY - half, S.h - ZOOM));
+
+        for (let row = 0; row < ZOOM; row++) {
+          for (let col = 0; col < ZOOM; col++) {
+            const px = getPixelAt(startX + col, startY + row);
+            const x = col * CELL, y = row * CELL;
+
+            zoomCtx.fillStyle = `rgb(${px.r},${px.g},${px.b})`;
+            zoomCtx.fillRect(x, y, CELL, CELL);
+
+            if (hoveredCell && hoveredCell.row === row && hoveredCell.col === col) {
+              zoomCtx.fillStyle = 'rgba(255,255,255,0.25)';
+              zoomCtx.fillRect(x, y, CELL, CELL);
+            }
+
+            // Center marker
+            if (row === half && col === half) {
+              zoomCtx.strokeStyle = 'rgba(255,255,255,0.9)';
+              zoomCtx.lineWidth = 2;
+              zoomCtx.strokeRect(x + 1, y + 1, CELL - 2, CELL - 2);
+            }
+
+            zoomCtx.strokeStyle = 'rgba(255,255,255,0.12)';
+            zoomCtx.lineWidth = 0.5;
+            zoomCtx.strokeRect(x, y, CELL, CELL);
+          }
+        }
+      }
+
+      srcCanvas.addEventListener('click', e => {
+        const rect = srcCanvas.getBoundingClientRect();
+        clickX = Math.round((e.clientX - rect.left) * (S.w / rect.width));
+        clickY = Math.round((e.clientY - rect.top) * (S.h / rect.height));
+        drawSrc();
+        drawZoom();
+      });
+
+      zoomCanvas.addEventListener('mousemove', e => {
+        const rect = zoomCanvas.getBoundingClientRect();
+        const col = Math.floor((e.clientX - rect.left) * (zoomCanvas.width / rect.width) / CELL);
+        const row = Math.floor((e.clientY - rect.top) * (zoomCanvas.height / rect.height) / CELL);
+        const half = Math.floor(ZOOM / 2);
+        const startX = Math.max(0, Math.min(clickX - half, S.w - ZOOM));
+        const startY = Math.max(0, Math.min(clickY - half, S.h - ZOOM));
+        if (col >= 0 && col < ZOOM && row >= 0 && row < ZOOM) {
+          hoveredCell = { row, col };
+          const px = getPixelAt(startX + col, startY + row);
+          document.getElementById('rawRGBTooltip').textContent =
+            `R: ${px.r}  G: ${px.g}  B: ${px.b}`;
+        } else {
+          hoveredCell = null;
+          document.getElementById('rawRGBTooltip').textContent = '';
+        }
+        drawZoom();
+      });
+
+      zoomCanvas.addEventListener('mouseleave', () => {
+        hoveredCell = null;
+        document.getElementById('rawRGBTooltip').textContent = '';
+        drawZoom();
+      });
+
+      drawSrc();
+      drawZoom();
+    }
+
+    document.addEventListener('imageReady', initSection03);
+  }());
 </script>
 </body>
 </html>
