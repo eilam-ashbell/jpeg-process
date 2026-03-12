@@ -303,6 +303,322 @@
       0%, 100% { transform: translateY(0); }
       50%       { transform: translateY(8px); }
     }
+
+    /* ── Data Size Bar ────────────────────────────────────────────────────── */
+    #dataSizeBar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 52px;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      display: none;
+      align-items: center;
+      gap: 12px;
+      padding: 0 20px;
+      transition: height 0.2s ease;
+    }
+
+    #dataSizeBar.show {
+      display: flex;
+    }
+
+    #dataSizeBar:hover {
+      height: 72px;
+    }
+
+    #dsbStageLabel {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      min-width: 140px;
+    }
+
+    #dsbBarTrack {
+      flex-grow: 1;
+      height: 8px;
+      background: var(--bg-secondary);
+      border-radius: 4px;
+      overflow: hidden;
+      min-width: 100px;
+    }
+
+    #dsbBarFill {
+      height: 100%;
+      background: #22c55e;
+      transition: width 800ms cubic-bezier(0.4, 0, 0.2, 1), background-color 800ms cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 4px;
+    }
+
+    #dsbSizeLabel {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      min-width: 70px;
+      text-align: right;
+    }
+
+    #dsbRatioBadge {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      min-width: 80px;
+      text-align: right;
+    }
+
+    /* Tooltip */
+    #dsbTooltip {
+      position: fixed;
+      bottom: 62px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(12px);
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: #fff;
+      z-index: 999;
+      font-size: 0.85rem;
+    }
+
+    #dsbTooltipList {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    #dsbTooltipList li {
+      padding: 4px 0;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    #dsbTooltipList li.current {
+      color: #eab308;
+      font-weight: 600;
+    }
+
+    /* Mobile */
+    @media (max-width: 680px) {
+      #dataSizeBar {
+        height: 40px;
+      }
+
+      #dataSizeBar:hover {
+        height: 48px;
+      }
+
+      #dsbStageLabel {
+        min-width: 90px;
+        font-size: 0.75rem;
+      }
+
+      #dsbSizeLabel {
+        min-width: 60px;
+        font-size: 0.8rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #dataSizeBar {
+        transition: none;
+      }
+
+      #dsbBarFill {
+        transition: none;
+      }
+    }
+
+    /* ── Sidebar Navigation ───────────────────────────────────────────────── */
+    #sidebarToggle {
+      position: fixed;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      z-index: 900;
+      background: var(--accent-blue);
+      color: #fff;
+      border-radius: 14px 0 0 14px;
+      border: none;
+      padding: 14px 8px;
+      cursor: pointer;
+      display: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      transition: background 0.2s;
+    }
+
+    #sidebarToggle:hover {
+      background: var(--accent-blue-dark);
+    }
+
+    #sidebarToggle.show {
+      display: block;
+    }
+
+    #sidebarPanel {
+      position: fixed;
+      right: 0;
+      top: 0;
+      height: 100vh;
+      width: 220px;
+      z-index: 950;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(16px);
+      border-left: 1px solid var(--border);
+      border-radius: 14px 0 0 14px;
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      box-shadow: -1px 0 12px rgba(0, 0, 0, 0.08);
+    }
+
+    #sidebarPanel.open {
+      transform: translateX(0);
+    }
+
+    #sidebarHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 14px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    #sidebarClose {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-primary);
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      transition: background 0.2s;
+    }
+
+    #sidebarClose:hover {
+      background: var(--bg-secondary);
+    }
+
+    #sidebarProgress {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 4px;
+      height: 0%;
+      background: var(--accent-blue);
+      transition: height 0.15s ease;
+      z-index: 1;
+    }
+
+    #sidebarList {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-left: 4px;
+      padding-right: 8px;
+      padding-top: 8px;
+    }
+
+    #sidebarList li {
+      padding: 0;
+      margin: 0;
+    }
+
+    #sidebarList button {
+      width: 100%;
+      background: none;
+      border: none;
+      text-align: left;
+      padding: 10px 12px;
+      cursor: pointer;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      transition: background 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #sidebarList button:hover {
+      background: var(--bg-secondary);
+    }
+
+    #sidebarList button.active {
+      background: var(--accent-blue);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    #sidebarList button:focus-visible {
+      outline: 2px solid var(--accent-blue);
+      outline-offset: -2px;
+    }
+
+    .sidebar-indicator {
+      font-size: 0.8rem;
+      min-width: 14px;
+    }
+
+    .sidebar-label {
+      flex: 1;
+    }
+
+    /* Mobile */
+    @media (max-width: 680px) {
+      #sidebarToggle {
+        padding: 12px 6px;
+        font-size: 0.75rem;
+      }
+
+      #sidebarPanel {
+        width: 100vw;
+        border-radius: 0;
+      }
+
+      #sidebarList button {
+        padding: 14px 14px;
+        height: 48px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #sidebarToggle {
+        transition: none;
+      }
+
+      #sidebarPanel {
+        transition: none;
+      }
+
+      #sidebarProgress {
+        transition: none;
+      }
+
+      #sidebarList button {
+        transition: none;
+      }
+    }
   </style>
 </head>
 <body>
@@ -389,6 +705,29 @@
     <section id="s-summary" class="section"><!-- Phase 08 --></section>
   </div>
 </main>
+
+<!-- Data Size Bar -->
+<div id="dataSizeBar" role="status" aria-live="polite">
+  <span id="dsbStageLabel">Raw sensor data</span>
+  <div id="dsbBarTrack"><div id="dsbBarFill"></div></div>
+  <span id="dsbSizeLabel">36.0 MB</span>
+  <span id="dsbRatioBadge" hidden>—</span>
+</div>
+
+<!-- Data Size Bar Tooltip -->
+<div id="dsbTooltip" hidden>
+  <ul id="dsbTooltipList"></ul>
+</div>
+
+<!-- Sidebar Toggle -->
+<div id="sidebarToggle" aria-label="Toggle sections navigation">≡ Sections</div>
+
+<!-- Sidebar Navigation Panel -->
+<nav id="sidebarPanel" aria-label="Sections navigation" hidden>
+  <div id="sidebarHeader"><span>§ Sections</span><button id="sidebarClose">×</button></div>
+  <div id="sidebarProgress"></div>
+  <ul id="sidebarList" role="list"></ul>
+</nav>
 
 <script>
   // ─── Global State ──────────────────────────────────────────────────────────
@@ -584,6 +923,405 @@
       };
       img.src = dataURL;
     }
+  }());
+
+  // ─── Phase 3: Persistent UI Components ────────────────────────────────────
+
+  // Section configuration with compression data
+  const SECTION_CONFIG = {
+    hero:       { label: 'Raw sensor data',           pct: 1.00, color: '#22c55e' },
+    's-lens':   { label: 'After demosaicing',        pct: 1.00, color: '#22c55e' },
+    's-bayer':  { label: 'Full RGB pixels',          pct: 1.00, color: '#22c55e' },
+    's-raw':    { label: 'Full RGB pixels',          pct: 1.00, color: '#22c55e' },
+    's-rgb':    { label: 'RGB channels',             pct: 1.00, color: '#22c55e' },
+    's-ycbcr':  { label: 'After YCbCr conversion',   pct: 1.00, color: '#22c55e' },
+    's-chroma': { label: 'After 4:2:0 subsampling',  pct: 0.50, color: '#eab308' },
+    's-blocks': { label: 'Divided into blocks',      pct: 0.50, color: '#eab308' },
+    's-dct':    { label: 'After DCT',                pct: 0.50, color: '#eab308' },
+    's-quant':  { label: 'After quantization',       pct: 0.08, color: '#f97316' },
+    's-zigzag': { label: 'After zigzag scan',        pct: 0.08, color: '#f97316' },
+    's-rle':    { label: 'After RLE',                pct: 0.022, color: '#ef4444' },
+    's-huffman':{ label: 'After Huffman coding',     pct: 0.008, color: '#ef4444' },
+    's-quality':{ label: 'Live (quality-adjusted)',  pct: 0.008, color: '#ef4444' },
+    's-compare':{ label: 'Compressed vs. original', pct: 0.008, color: '#ef4444' },
+    's-undo':   { label: 'Decoding (rebuilding)',    pct: 1.00, color: '#22c55e' },
+    's-summary':{ label: 'Final JPEG on disk',       pct: 0.008, color: '#ef4444' },
+  };
+
+  const SECTIONS_LIST = [
+    { id: 'hero',       label: 'Upload Your Photo', icon: '📷' },
+    { id: 's-lens',     label: 'Light & Lens',      icon: '🔆' },
+    { id: 's-bayer',    label: 'Bayer Sensor',      icon: '🟩' },
+    { id: 's-raw',      label: 'Raw Pixels',        icon: '🔍' },
+    { id: 's-rgb',      label: 'RGB Channels',      icon: '🎨' },
+    { id: 's-ycbcr',    label: 'YCbCr Space',       icon: '🌈' },
+    { id: 's-chroma',   label: 'Chroma Subsampling',icon: '⬇️' },
+    { id: 's-blocks',   label: '8×8 Blocks',        icon: '🧩' },
+    { id: 's-dct',      label: 'DCT Transform',     icon: '〰️' },
+    { id: 's-quant',    label: 'Quantization',      icon: '✂️' },
+    { id: 's-zigzag',   label: 'Zigzag Scan',       icon: '↗️' },
+    { id: 's-rle',      label: 'Run-Length Enc.',   icon: '🗜️' },
+    { id: 's-huffman',  label: 'Huffman Coding',    icon: '🌳' },
+    { id: 's-quality',  label: 'Live Quality',      icon: '🎛️' },
+    { id: 's-compare',  label: 'Comparison',        icon: '⟺' },
+    { id: 's-undo',     label: 'Undo JPEG',         icon: '🔄' },
+    { id: 's-summary',  label: 'Full Pipeline',     icon: '★' },
+  ];
+
+  // ─── Data Size Bar ────────────────────────────────────────────────────────
+  (function() {
+    const dataSizeBar = document.getElementById('dataSizeBar');
+    const dsbStageLabel = document.getElementById('dsbStageLabel');
+    const dsbBarFill = document.getElementById('dsbBarFill');
+    const dsbSizeLabel = document.getElementById('dsbSizeLabel');
+    const dsbRatioBadge = document.getElementById('dsbRatioBadge');
+    const dsbTooltip = document.getElementById('dsbTooltip');
+    const dsbTooltipList = document.getElementById('dsbTooltipList');
+
+    let currentSectionId = 'hero';
+    let isTooltipOpen = false;
+    let sizeAnimationId = null;
+    let displayedSize = 0;
+    let targetSize = 0;
+    const basePixels = 12_000_000;
+    const baseSizes = {
+      hero:       36000000, 's-lens':36000000, 's-bayer':36000000, 's-raw':36000000,
+      's-rgb':    36000000, 's-ycbcr':36000000, 's-chroma':18000000, 's-blocks':18000000,
+      's-dct':    18000000, 's-quant':3000000, 's-zigzag':3000000, 's-rle':800000,
+      's-huffman':300000, 's-quality':300000, 's-compare':300000, 's-undo':36000000,
+      's-summary':300000
+    };
+
+    function formatSize(bytes) {
+      if (bytes >= 1000000) return (bytes / 1000000).toFixed(1) + ' MB';
+      if (bytes >= 1000) return (bytes / 1000).toFixed(0) + ' KB';
+      return Math.round(bytes) + ' B';
+    }
+
+    function animateSizeCounter(targetVal) {
+      targetSize = targetVal;
+      const startTime = performance.now();
+      const duration = 600;
+      const startVal = displayedSize;
+
+      function animate(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        displayedSize = startVal + (targetVal - startVal) * progress;
+        dsbSizeLabel.textContent = formatSize(displayedSize);
+
+        if (progress < 1) {
+          sizeAnimationId = requestAnimationFrame(animate);
+        }
+      }
+
+      cancelAnimationFrame(sizeAnimationId);
+      sizeAnimationId = requestAnimationFrame(animate);
+    }
+
+    function updateDataBar(sectionId) {
+      if (currentSectionId === sectionId) return;
+      currentSectionId = sectionId;
+
+      const config = SECTION_CONFIG[sectionId];
+      if (!config) return;
+
+      dsbStageLabel.textContent = config.label;
+      dsbBarFill.style.backgroundColor = config.color;
+      dsbBarFill.style.width = (config.pct * 100) + '%';
+
+      const scaleFactor = (S.w * S.h) / basePixels;
+      const sectionSize = (baseSizes[sectionId] || 300000) * scaleFactor;
+      animateSizeCounter(sectionSize);
+
+      // Compression ratio (only show if < 50% of original)
+      if (config.pct < 0.5) {
+        const ratio = Math.round(1 / config.pct);
+        dsbRatioBadge.textContent = ratio + '× smaller';
+        dsbRatioBadge.removeAttribute('hidden');
+      } else {
+        dsbRatioBadge.setAttribute('hidden', '');
+      }
+    }
+
+    function findActiveSectionId() {
+      let maxProgress = -1;
+      let activeId = 'hero';
+      for (const [id, progress] of Object.entries(S.sectionProgress)) {
+        if (progress > 0.1 && progress < 0.95 && progress > maxProgress) {
+          maxProgress = progress;
+          activeId = id;
+        }
+      }
+      return activeId;
+    }
+
+    function toggleTooltip() {
+      isTooltipOpen = !isTooltipOpen;
+      if (isTooltipOpen) showTooltip();
+      else dsbTooltip.setAttribute('hidden', '');
+    }
+
+    function showTooltip() {
+      dsbTooltip.removeAttribute('hidden');
+      dsbTooltipList.innerHTML = '';
+      const scaleFactor = (S.w * S.h) / basePixels;
+
+      for (const [sectionId, config] of Object.entries(SECTION_CONFIG)) {
+        const li = document.createElement('li');
+        if (sectionId === currentSectionId) li.classList.add('current');
+
+        const sectionSize = (baseSizes[sectionId] || 300000) * scaleFactor;
+        li.innerHTML = `<span>${config.label}</span><span>${formatSize(sectionSize)}</span>`;
+        dsbTooltipList.appendChild(li);
+      }
+    }
+
+    function hideTooltip() {
+      isTooltipOpen = false;
+      dsbTooltip.setAttribute('hidden', '');
+    }
+
+    // Update on scroll using rAF
+    function updateDataBarOnScroll() {
+      const activeId = findActiveSectionId();
+      if (dataSizeBar.classList.contains('show')) {
+        updateDataBar(activeId);
+      }
+      requestAnimationFrame(updateDataBarOnScroll);
+    }
+
+    // Tooltip click handlers
+    dataSizeBar.addEventListener('click', toggleTooltip);
+    document.addEventListener('click', (e) => {
+      if (isTooltipOpen && !dataSizeBar.contains(e.target) && !dsbTooltip.contains(e.target)) {
+        hideTooltip();
+      }
+    });
+
+    // Show on imageReady
+    document.addEventListener('imageReady', () => {
+      dataSizeBar.classList.add('show');
+      const activeId = findActiveSectionId();
+      updateDataBar(activeId);
+      updateDataBarOnScroll();
+    });
+
+    // Hide when changing photo
+    document.addEventListener('change-photo', () => {
+      dataSizeBar.classList.remove('show');
+      hideTooltip();
+    });
+  }());
+
+  // ─── Sidebar Navigation ───────────────────────────────────────────────────
+  (function() {
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebarPanel = document.getElementById('sidebarPanel');
+    const sidebarClose = document.getElementById('sidebarClose');
+    const sidebarList = document.getElementById('sidebarList');
+    const sidebarProgress = document.getElementById('sidebarProgress');
+    const sidebarHeader = document.getElementById('sidebarHeader');
+
+    let isOpen = false;
+    let visitedSections = new Set();
+    let currentActiveSectionId = null;
+    let focusedItemIndex = 0;
+    const items = [];
+
+    // Build sidebar items
+    function buildSidebarItems() {
+      sidebarList.innerHTML = '';
+      items.length = 0;
+
+      SECTIONS_LIST.forEach((section, idx) => {
+        const li = document.createElement('li');
+        const button = document.createElement('button');
+        button.setAttribute('data-section-id', section.id);
+        button.setAttribute('role', 'menuitem');
+
+        const indicator = document.createElement('span');
+        indicator.className = 'sidebar-indicator';
+        indicator.textContent = '○';
+
+        const label = document.createElement('span');
+        label.className = 'sidebar-label';
+        label.textContent = section.label;
+
+        const icon = document.createElement('span');
+        icon.textContent = section.icon;
+
+        button.appendChild(indicator);
+        button.appendChild(icon);
+        button.appendChild(label);
+
+        button.addEventListener('click', () => {
+          const target = document.getElementById(section.id);
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth' });
+            visitedSections.add(section.id);
+            updateSidebarItems();
+            close();
+          }
+        });
+
+        button.addEventListener('keydown', (e) => {
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            focusedItemIndex = (focusedItemIndex + 1) % items.length;
+            items[focusedItemIndex].button.focus();
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            focusedItemIndex = (focusedItemIndex - 1 + items.length) % items.length;
+            items[focusedItemIndex].button.focus();
+          } else if (e.key === 'Enter') {
+            e.preventDefault();
+            button.click();
+          }
+        });
+
+        li.appendChild(button);
+        sidebarList.appendChild(li);
+
+        items.push({
+          id: section.id,
+          button: button,
+          indicator: indicator,
+          element: document.getElementById(section.id)
+        });
+      });
+    }
+
+    function updateSidebarItems() {
+      items.forEach((item) => {
+        if (item.id === currentActiveSectionId) {
+          item.button.classList.add('active');
+        } else {
+          item.button.classList.remove('active');
+        }
+
+        const indicator = item.indicator;
+        if (item.id === currentActiveSectionId) {
+          indicator.textContent = '●';
+        } else if (visitedSections.has(item.id)) {
+          indicator.textContent = '✓';
+        } else {
+          indicator.textContent = '○';
+        }
+      });
+
+      // Update progress bar
+      const visitedPercent = (visitedSections.size / items.length) * 100;
+      sidebarProgress.style.height = visitedPercent + '%';
+    }
+
+    function open() {
+      if (isOpen) return;
+      isOpen = true;
+      sidebarPanel.classList.add('open');
+      focusedItemIndex = items.findIndex(item => item.id === currentActiveSectionId);
+      if (focusedItemIndex >= 0) {
+        setTimeout(() => items[focusedItemIndex].button.focus(), 100);
+      }
+    }
+
+    function close() {
+      if (!isOpen) return;
+      isOpen = false;
+      sidebarPanel.classList.remove('open');
+      sidebarToggle.focus();
+    }
+
+    function toggle() {
+      if (isOpen) close();
+      else open();
+    }
+
+    // Setup active section observer
+    const sectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const sectionId = entry.target.id;
+          currentActiveSectionId = sectionId;
+          visitedSections.add(sectionId);
+          updateSidebarItems();
+        }
+      });
+    }, { threshold: 0.4 });
+
+    document.querySelectorAll('.section').forEach(section => {
+      sectionObserver.observe(section);
+    });
+
+    // Event listeners
+    sidebarToggle.addEventListener('click', toggle);
+    sidebarClose.addEventListener('click', close);
+
+    // Keyboard controls
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'n' || e.key === 'N') {
+        toggle();
+      } else if (e.key === 'Escape' && isOpen) {
+        close();
+      }
+    });
+
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+      if (isOpen && !sidebarPanel.contains(e.target) && !sidebarToggle.contains(e.target)) {
+        close();
+      }
+    });
+
+    // Focus trap in panel when open
+    document.addEventListener('keydown', (e) => {
+      if (!isOpen || e.key !== 'Tab') return;
+
+      const focusableElements = sidebarPanel.querySelectorAll('button');
+      if (focusableElements.length === 0) return;
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      const activeElement = document.activeElement;
+
+      if (e.shiftKey) {
+        if (activeElement === firstElement) {
+          e.preventDefault();
+          lastElement.focus();
+        }
+      } else {
+        if (activeElement === lastElement) {
+          e.preventDefault();
+          firstElement.focus();
+        }
+      }
+    });
+
+    // Show on imageReady
+    document.addEventListener('imageReady', () => {
+      sidebarToggle.classList.add('show');
+      buildSidebarItems();
+      currentActiveSectionId = 'hero';
+      visitedSections.add('hero');
+      updateSidebarItems();
+    });
+
+    // Hide when changing photo
+    document.addEventListener('change-photo', () => {
+      sidebarToggle.classList.remove('show');
+      sidebarPanel.classList.remove('open');
+      isOpen = false;
+      visitedSections.clear();
+    });
+  }());
+
+  // Dispatch change-photo event when changing photo
+  (function() {
+    const changeBtn = document.getElementById('changePhotoBtn');
+    const originalClickHandler = changeBtn.onclick;
+    changeBtn.addEventListener('click', () => {
+      document.dispatchEvent(new CustomEvent('change-photo'));
+    });
   }());
 </script>
 </body>
