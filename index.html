@@ -136,13 +136,209 @@
       }
       /* 3D transitions disabled — simple fade-in only */
     }
+
+    /* ── Hero ──────────────────────────────────────────────────────────── */
+    #hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding-top: 80px;
+      padding-bottom: 80px;
+    }
+
+    .hero-subtitle {
+      color: var(--text-secondary);
+      font-size: 1.15rem;
+      max-width: 560px;
+      margin: 12px auto 40px;
+    }
+
+    /* Upload zone */
+    .upload-zone {
+      width: 100%;
+      max-width: 400px;
+      min-height: 200px;
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s, transform 0.2s;
+      padding: 32px 24px;
+      user-select: none;
+    }
+
+    .upload-zone:hover {
+      border-color: var(--accent-blue);
+      background: var(--bg-accent);
+    }
+
+    .upload-zone.drag-over {
+      border-color: var(--accent-blue);
+      background: var(--bg-accent);
+      transform: scale(1.02);
+    }
+
+    .upload-zone.error {
+      border-color: #ef4444;
+      background: #fef2f2;
+    }
+
+    .upload-icon {
+      font-size: 2.2rem;
+      line-height: 1;
+    }
+
+    .upload-label {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .upload-sublabel {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .upload-error-msg {
+      color: #ef4444;
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: none;
+    }
+
+    .upload-zone.error .upload-error-msg {
+      display: block;
+    }
+
+    .upload-zone.error .upload-icon,
+    .upload-zone.error .upload-label,
+    .upload-zone.error .upload-sublabel {
+      display: none;
+    }
+
+    .privacy-note {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 12px;
+    }
+
+    /* Post-upload state */
+    .hero-upload-state,
+    .hero-result-state {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .hero-result-state {
+      display: none;
+    }
+
+    .result-image-card {
+      border: 3px solid #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      display: inline-block;
+      max-width: 100%;
+    }
+
+    .result-image-card canvas {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+
+    .result-dims {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .change-photo-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-secondary);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+      cursor: pointer;
+      padding: 6px 14px;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .change-photo-btn:hover {
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+
+    /* Scroll cue */
+    .scroll-cue {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      margin-top: 8px;
+      animation: scrollBounce 2s ease-in-out infinite;
+      transition: opacity 0.4s;
+    }
+
+    .scroll-cue.visible {
+      display: flex;
+    }
+
+    .scroll-cue-arrow {
+      font-size: 1.2rem;
+    }
+
+    @keyframes scrollBounce {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(8px); }
+    }
   </style>
 </head>
 <body>
 
 <main>
   <div class="section-wrapper">
-    <section id="hero" class="section"><!-- Phase 02 --></section>
+    <section id="hero" class="section">
+      <h1 class="title-page">Inside JPEG</h1>
+      <p class="hero-subtitle">Scroll through the journey of a JPEG, step by step — using your own photo.</p>
+
+      <!-- Upload state -->
+      <div class="hero-upload-state" id="heroUploadState">
+        <div class="upload-zone" id="uploadZone" role="button" tabindex="0" aria-label="Upload an image">
+          <span class="upload-icon">📷</span>
+          <span class="upload-label">Drop your photo here</span>
+          <span class="upload-sublabel">or click to browse</span>
+          <span class="upload-error-msg" id="uploadErrorMsg"></span>
+        </div>
+        <p class="privacy-note">Your photo never leaves your device. All processing happens in your browser.</p>
+      </div>
+
+      <!-- Result state (shown after upload) -->
+      <div class="hero-result-state" id="heroResultState">
+        <div class="result-image-card">
+          <canvas id="resultCanvas"></canvas>
+        </div>
+        <p class="result-dims" id="resultDims"></p>
+        <button class="change-photo-btn" id="changePhotoBtn">Change photo</button>
+        <div class="scroll-cue" id="scrollCue">
+          <span>Scroll down to begin</span>
+          <span class="scroll-cue-arrow">↓</span>
+        </div>
+      </div>
+
+      <input type="file" id="fileInput" accept="image/*" style="display:none">
+    </section>
   </div>
   <div class="section-wrapper section-wrapper--alt">
     <section id="s-lens" class="section"><!-- Phase 04 --></section>
@@ -262,6 +458,133 @@
   }, { threshold: 0.15 });
 
   document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+  // ─── Hero Upload ────────────────────────────────────────────────────────────
+  (function () {
+    const uploadZone   = document.getElementById('uploadZone');
+    const fileInput    = document.getElementById('fileInput');
+    const errorMsg     = document.getElementById('uploadErrorMsg');
+    const uploadState  = document.getElementById('heroUploadState');
+    const resultState  = document.getElementById('heroResultState');
+    const resultCanvas = document.getElementById('resultCanvas');
+    const resultDims   = document.getElementById('resultDims');
+    const changeBtn    = document.getElementById('changePhotoBtn');
+    const scrollCue    = document.getElementById('scrollCue');
+
+    // Open file picker on click / Enter / Space
+    uploadZone.addEventListener('click', () => fileInput.click());
+    uploadZone.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+    });
+
+    // Drag-and-drop
+    uploadZone.addEventListener('dragover', e => {
+      e.preventDefault();
+      uploadZone.classList.add('drag-over');
+    });
+    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+    uploadZone.addEventListener('drop', e => {
+      e.preventDefault();
+      uploadZone.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file) handleFile(file);
+    });
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files[0]) handleFile(fileInput.files[0]);
+    });
+
+    changeBtn.addEventListener('click', () => {
+      resultState.style.display = 'none';
+      uploadState.style.display = 'flex';
+      scrollCue.classList.remove('visible');
+      fileInput.value = '';
+    });
+
+    // Hide scroll cue when user scrolls past hero
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > window.innerHeight * 0.6) {
+        scrollCue.style.opacity = '0';
+      } else {
+        scrollCue.style.opacity = '1';
+      }
+    }, { passive: true });
+
+    function showError(msg) {
+      uploadZone.classList.add('error');
+      errorMsg.textContent = msg;
+    }
+
+    function clearError() {
+      uploadZone.classList.remove('error');
+      errorMsg.textContent = '';
+    }
+
+    function handleFile(file) {
+      clearError();
+      if (!file.type.startsWith('image/')) {
+        showError('That file isn\'t an image. Please choose a photo.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onerror = () => showError('Failed to read the file. Please try another image.');
+      reader.onload = e => processImage(e.target.result);
+      reader.readAsDataURL(file);
+    }
+
+    function processImage(dataURL) {
+      const img = new Image();
+      img.onerror = () => showError('Image failed to load. Please try another file.');
+      img.onload = () => {
+        // 1. Scale to fit within 480×480 maintaining aspect ratio
+        const MAX = 480;
+        let w = img.naturalWidth;
+        let h = img.naturalHeight;
+        const scale = Math.min(MAX / w, MAX / h, 1);
+        w = Math.round(w * scale);
+        h = Math.round(h * scale);
+
+        // 2. Pad to nearest 8×8 multiple
+        const pw = Math.ceil(w / 8) * 8;
+        const ph = Math.ceil(h / 8) * 8;
+
+        // 3. Draw to canvas
+        const canvas = document.createElement('canvas');
+        canvas.width  = pw;
+        canvas.height = ph;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, pw, ph);
+        ctx.drawImage(img, 0, 0, w, h);
+
+        // 4. Store in global state
+        S.img        = ctx.getImageData(0, 0, pw, ph);
+        S.w          = pw;
+        S.h          = ph;
+        S.origCanvas = canvas;
+
+        // 5. Default selected block = center block
+        S.selBx = Math.floor(pw / 16) * 8;
+        S.selBy = Math.floor(ph / 16) * 8;
+
+        // 6. Render result preview
+        resultCanvas.width  = pw;
+        resultCanvas.height = ph;
+        resultCanvas.getContext('2d').drawImage(canvas, 0, 0);
+        resultDims.textContent = `Your photo: ${pw} × ${ph} pixels`;
+
+        // 7. Transition UI
+        uploadState.style.display = 'none';
+        resultState.style.display = 'flex';
+        scrollCue.classList.add('visible');
+
+        // 8. Notify other sections
+        document.dispatchEvent(new CustomEvent('imageReady'));
+      };
+      img.src = dataURL;
+    }
+  }());
 </script>
 </body>
 </html>
