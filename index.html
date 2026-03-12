@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inside JPEG — How JPEG Compression Works</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script defer src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f8f9fb;
+      --bg-accent: #f0f4ff;
+      --text-primary: #0f172a;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+      --accent-blue: #2563eb;
+      --accent-blue-dark: #1d4ed8;
+      --accent-blue-tint: #dbeafe;
+      --border: #e2e8f0;
+      --radius: 14px;
+      --shadow-card: 0 1px 3px rgba(0,0,0,.06), 0 8px 32px rgba(0,0,0,.07);
+      --scene-bg: radial-gradient(#f0f4ff, #ffffff);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text-primary);
+      line-height: 1.6;
+      margin: 0;
+      overflow-x: hidden;
+    }
+
+    /* Typography */
+    .title-page {
+      font-family: 'Inter', sans-serif;
+      font-weight: 900;
+      font-size: clamp(2.6rem, 7vw, 5.2rem);
+    }
+
+    .title-section {
+      font-family: 'Inter', sans-serif;
+      font-weight: 800;
+      font-size: clamp(1.7rem, 3.5vw, 2.6rem);
+    }
+
+    .title-card {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 1.15rem;
+    }
+
+    .text-body {
+      font-family: 'Inter', sans-serif;
+      font-weight: 400;
+      font-size: 1rem;
+    }
+
+    .text-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 400;
+      font-size: 0.82em;
+    }
+
+    .text-code-bold {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      font-size: 0.82em;
+    }
+
+    /* Section layout */
+    .section-wrapper {
+      width: 100%;
+    }
+
+    .section-wrapper--alt {
+      background: var(--bg-secondary);
+    }
+
+    .section {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 96px 24px;
+      position: relative;
+    }
+
+    /* Demo card */
+    .demo-card {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-card);
+      padding: 24px;
+    }
+
+    /* Responsive grid */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 680px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Reveal animation */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+
+    .reveal.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reveal {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+      }
+      /* 3D transitions disabled — simple fade-in only */
+    }
+  </style>
+</head>
+<body>
+
+<main>
+  <div class="section-wrapper">
+    <section id="hero" class="section"><!-- Phase 02 --></section>
+  </div>
+  <div class="section-wrapper section-wrapper--alt">
+    <section id="s-lens" class="section"><!-- Phase 04 --></section>
+  </div>
+  <div class="section-wrapper">
+    <section id="s-bayer" class="section"><!-- Phase 04 --></section>
+  </div>
+  <div class="section-wrapper section-wrapper--alt">
+    <section id="s-raw" class="section"><!-- Phase 04 --></section>
+  </div>
+  <div class="section-wrapper">
+    <section id="s-rgb" class="section"><!-- Phase 05 --></section>
+  </div>
+  <div class="section-wrapper section-wrapper--alt">
+    <section id="s-ycbcr" class="section"><!-- Phase 05 --></section>
+  </div>
+  <div class="section-wrapper">
+    <section id="s-chroma" class="section"><!-- Phase 05 --></section>
+  </div>
+  <div class="section-wrapper section-wrapper--alt">
+    <section id="s-blocks" class="section"><!-- Phase 06 --></section>
+  </div>
+  <div class="section-wrapper">
+    <section id="s-dct" class="section"><!-- Phase 06 --></section>
+  </div>
+  <div class="section-wrapper section-wrapper--alt">
+    <section id="s-quant" class="section"><!-- Phase 06 --></section>
+  </div>
+  <div class="section-wrapper">
+    <section id="s-zigzag" class="section"><!-- Phase 07 --></section>
+  </div>
+  <div class="section-wrapper section-wrapper--alt">
+    <section id="s-rle" class="section"><!-- Phase 07 --></section>
+  </div>
+  <div class="section-wrapper">
+    <section id="s-huffman" class="section"><!-- Phase 07 --></section>
+  </div>
+  <div class="section-wrapper section-wrapper--alt">
+    <section id="s-quality" class="section"><!-- Phase 08 --></section>
+  </div>
+  <div class="section-wrapper">
+    <section id="s-compare" class="section"><!-- Phase 08 --></section>
+  </div>
+  <div class="section-wrapper section-wrapper--alt">
+    <section id="s-undo" class="section"><!-- Phase 08 --></section>
+  </div>
+  <div class="section-wrapper">
+    <section id="s-summary" class="section"><!-- Phase 08 --></section>
+  </div>
+</main>
+
+<script>
+  // ─── Global State ──────────────────────────────────────────────────────────
+  const S = {
+    img: null,           // ImageData — uploaded image (max 480px, padded to 8×8)
+    w: 0,                // Image width
+    h: 0,                // Image height
+    origCanvas: null,    // HTMLCanvasElement — original uploaded image
+    selBx: 0,            // Selected 8×8 block origin X (pixels)
+    selBy: 0,            // Selected 8×8 block origin Y (pixels)
+    block: null,         // { y: [], cb: [], cr: [] } — block channel arrays
+    dctC: null,          // Float32Array — DCT coefficients for selected block
+    quantC: null,        // Array — quantized coefficients
+    zzSeq: null,         // Array — zigzag-ordered quantized coefficients
+    rleSeq: null,        // Array — RLE-encoded sequence
+    quality: 75,         // Current quality setting (1–100)
+    scrollY: 0,          // Current window.scrollY
+    sectionProgress: {}, // { sectionId: 0–1 } scroll progress per section
+  };
+
+  // ─── Animation pause flag ──────────────────────────────────────────────────
+  let pageVisible = true;
+  document.addEventListener('visibilitychange', () => {
+    pageVisible = !document.hidden;
+  });
+
+  // ─── Scroll Progress ───────────────────────────────────────────────────────
+  function updateScrollProgress() {
+    S.scrollY = window.scrollY;
+    const vh = window.innerHeight;
+    document.querySelectorAll('.section-wrapper').forEach(wrapper => {
+      const rect = wrapper.getBoundingClientRect();
+      const section = wrapper.querySelector('.section');
+      if (!section) return;
+      const id = section.id;
+      const progress = Math.max(0, Math.min(1,
+        (vh - rect.top) / (vh + rect.height)
+      ));
+      S.sectionProgress[id] = progress;
+    });
+    requestAnimationFrame(updateScrollProgress);
+  }
+  requestAnimationFrame(updateScrollProgress);
+
+  // ─── Transition progress helper ────────────────────────────────────────────
+  function getTransitionProgress(fromId, toId) {
+    const from = S.sectionProgress[fromId] ?? 0;
+    const to = S.sectionProgress[toId] ?? 0;
+    // Overlap zone: bottom 30% of fromId, top 30% of toId
+    // from progress > 0.7 means we're in the bottom 30%
+    const t = Math.max(0, Math.min(1, (from - 0.7) / 0.3));
+    return t;
+  }
+
+  function lerp(a, b, t) { return a + (b - a) * t; }
+
+  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+  // ─── Scroll-triggered reveal ───────────────────────────────────────────────
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('revealed');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+</script>
+</body>
+</html>
