@@ -2098,6 +2098,40 @@
         transition: none !important;
       }
     }
+
+    /* ── Phase 10: Scroll-Connected Transitions ──────────────────────────── */
+
+    /* Allow translated elements to paint beyond section bounds */
+    .dct-demo,
+    #quantDemo,
+    #rgbGrid,
+    #ycbcrGrid {
+      overflow: visible;
+    }
+
+    /* Prevent clipping on demo-card for outgoing transitions */
+    .demo-card {
+      overflow: visible;
+    }
+
+    /* Channel panels need perspective preserved for RGB split */
+    #rgbGrid {
+      perspective: 1000px;
+      transform-style: preserve-3d;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      /* Phase 10: all inter-section transitions disabled */
+      .section-wrapper,
+      .three-container,
+      #rgbGrid .channel-panel,
+      #ycbcrGrid .channel-panel {
+        transition: none !important;
+        transform: none !important;
+        opacity: 1 !important;
+        clip-path: none !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -2767,6 +2801,13 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
   function lerp(a, b, t) { return a + (b - a) * t; }
 
   function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+  function easeInOutCubic(t) { return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2; }
+
+  function smoothstep(e0, e1, x) {
+    const t = Math.max(0, Math.min(1, (x - e0) / (e1 - e0)));
+    return t * t * (3 - 2 * t);
+  }
 
   // ─── Scroll-triggered reveal ───────────────────────────────────────────────
   const revealObserver = new IntersectionObserver((entries) => {
@@ -5967,6 +6008,565 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
     // Initialize scroll-driven loading
     setupScrollDrivenLoading();
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // PHASE 10 — Scroll-Connected Transitions & Final Polish
+    // ═══════════════════════════════════════════════════════════════════════
+    (function initScrollTransitions() {
+      // Skip all transitions if user prefers reduced motion
+      if (prefersReducedMotion) return;
+
+      // ── Additional easing utilities ──────────────────────────────────────
+      function easeInOutCubic(t) {
+        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      }
+      function smoothstep(e0, e1, x) {
+        const t = Math.max(0, Math.min(1, (x - e0) / (e1 - e0)));
+        return t * t * (3 - 2 * t);
+      }
+
+      // ── Transition progress using spec formula (overlap zone) ────────────
+      // Returns 0→1 as the viewport center moves through the overlap zone
+      // between the bottom 30% of "from" section and top 30% of "to" section.
+      function getTxProgress(fromId, toId) {
+        const fromEl = document.getElementById(fromId)?.closest('.section-wrapper');
+        const toEl   = document.getElementById(toId)?.closest('.section-wrapper');
+        if (!fromEl || !toEl) return 0;
+        const fromRect = fromEl.getBoundingClientRect();
+        const toRect   = toEl.getBoundingClientRect();
+        const vh = window.innerHeight;
+        const overlapStart = fromRect.bottom - fromRect.height * 0.3;
+        const overlapEnd   = toRect.top + toRect.height * 0.3;
+        if (overlapEnd <= overlapStart) return 0;
+        const progress = 1 - (overlapEnd - vh / 2) / (overlapEnd - overlapStart);
+        return Math.max(0, Math.min(1, progress));
+      }
+
+      // ── will-change & style reset helpers ───────────────────────────────
+      function txStart(el, props) {
+        if (el) el.style.willChange = props;
+      }
+      function txEnd(el) {
+        if (el) el.style.willChange = 'auto';
+      }
+      function txReset(el) {
+        if (!el) return;
+        el.style.transform  = '';
+        el.style.opacity    = '';
+        el.style.clipPath   = '';
+        el.style.transition = '';
+        el.style.willChange = 'auto';
+      }
+      function noTx(el) {
+        // Disable CSS transition so scroll-driven values apply immediately
+        if (el) el.style.transition = 'none';
+      }
+
+      // ══════════════════════════════════════════════════════════════════════
+      // TRANSITION IMPLEMENTATIONS
+      // Each fn(p) receives p ∈ [0,1].  p≤0 → reset to default. p≥1 → clean up.
+      // ══════════════════════════════════════════════════════════════════════
+
+      // 1. Hero → S01 (Lens) ─────────────────────────────────────────────────
+      // Photo card rotates on Y, scales down, fades; lens scene fades in.
+      function transitionHeroToLens(p) {
+        const heroCard   = document.getElementById('resultCanvas');
+        const heroCamera = document.getElementById('heroCameraContainer');
+        const lensWrap   = document.getElementById('lensContainer');
+
+        if (p <= 0) {
+          txReset(heroCard);
+          if (heroCamera) heroCamera.style.opacity = '';
+          if (lensWrap)   { lensWrap.style.opacity = ''; txEnd(lensWrap); }
+          return;
+        }
+
+        if (heroCard) {
+          txStart(heroCard, 'transform, opacity');
+          noTx(heroCard);
+          const ep = easeOutCubic(p);
+          heroCard.style.transform = `rotateY(${lerp(0, 15, ep)}deg) scale(${lerp(1, 0.3, ep)})`;
+          heroCard.style.opacity   = lerp(1, 0, smoothstep(0.7, 1, p));
+        }
+        if (heroCamera) {
+          heroCamera.style.opacity = lerp(1, 0, smoothstep(0.6, 1, p));
+        }
+        if (lensWrap) {
+          txStart(lensWrap, 'opacity');
+          lensWrap.style.opacity = lerp(0, 1, smoothstep(0.3, 0.8, p));
+        }
+        // Feed into the Three.js lens scene
+        if (sceneManagers['s-lens']) sceneManagers['s-lens'].txProgress = p;
+
+        if (p >= 1) {
+          txReset(heroCard);
+          if (heroCamera) heroCamera.style.opacity = '';
+          txEnd(lensWrap);
+        }
+      }
+
+      // 2. S01 (Lens) → S02 (Bayer) ──────────────────────────────────────────
+      // Lens zooms in (camera zooms to sensor plane); Bayer grid fades in.
+      function transitionLensToBayer(p) {
+        const lensWrap  = document.getElementById('lensContainer');
+        const bayerWrap = document.getElementById('bayerContainer');
+
+        if (p <= 0) {
+          if (lensWrap)  txReset(lensWrap);
+          if (bayerWrap) { bayerWrap.style.opacity = ''; txEnd(bayerWrap); }
+          return;
+        }
+
+        if (lensWrap) {
+          txStart(lensWrap, 'transform, opacity');
+          noTx(lensWrap);
+          const ep = easeInOutCubic(Math.min(p * 2, 1));
+          lensWrap.style.transform = `scale(${lerp(1, 1.4, ep)})`;
+          lensWrap.style.opacity   = lerp(1, 0, smoothstep(0.5, 1, p));
+        }
+        if (bayerWrap) {
+          txStart(bayerWrap, 'opacity');
+          bayerWrap.style.opacity = lerp(0, 1, smoothstep(0.45, 0.9, p));
+        }
+
+        if (p >= 1) {
+          txReset(lensWrap);
+          txEnd(bayerWrap);
+        }
+      }
+
+      // 3. S02 (Bayer) → S03 (Raw) ────────────────────────────────────────────
+      // Bayer grid perspective-flattens (3D → orthographic); raw grid fades in.
+      function transitionBayerToRaw(p) {
+        const bayerWrap = document.getElementById('bayerContainer');
+        const rawDual   = document.querySelector('#s-raw .raw-dual');
+
+        if (p <= 0) {
+          if (bayerWrap) txReset(bayerWrap);
+          if (rawDual)   { rawDual.style.opacity = ''; txEnd(rawDual); }
+          return;
+        }
+
+        if (bayerWrap) {
+          txStart(bayerWrap, 'transform, opacity');
+          noTx(bayerWrap);
+          const ep = easeInOutCubic(p);
+          bayerWrap.style.transform = `scale(${lerp(1, 0.85, ep)}) rotateX(${lerp(0, 18, ep)}deg)`;
+          bayerWrap.style.opacity   = lerp(1, 0, smoothstep(0.6, 1, p));
+        }
+        if (rawDual) {
+          txStart(rawDual, 'opacity');
+          rawDual.style.opacity = lerp(0, 1, smoothstep(0.35, 0.9, p));
+        }
+
+        if (p >= 1) {
+          txReset(bayerWrap);
+          if (rawDual) { rawDual.style.opacity = ''; txEnd(rawDual); }
+        }
+      }
+
+      // 4. S03 (Raw) → S04 (RGB) ─────────────────────────────────────────────
+      // Pixel grid splits into three RGB layers like pages of a book.
+      function transitionRawToRgb(p) {
+        const rgbGrid = document.getElementById('rgbGrid');
+        if (!rgbGrid) return;
+        const panels = rgbGrid.querySelectorAll('.channel-panel');
+        if (panels.length < 4) return;
+
+        if (p <= 0) {
+          panels.forEach(panel => { panel.style.transition = ''; panel.style.transform = ''; });
+          return;
+        }
+
+        const split = easeInOutCubic(Math.max(0, (p - 0.3) / 0.7));
+        // Red: slide left
+        panels[1].style.transition = 'none';
+        panels[1].style.transform  = `translateX(${lerp(0, -52, split)}px) translateZ(${lerp(0, 24, split)}px)`;
+        // Green: stay center, slight forward
+        panels[2].style.transition = 'none';
+        panels[2].style.transform  = `translateZ(${lerp(0, 12, split)}px)`;
+        // Blue: slide right
+        panels[3].style.transition = 'none';
+        panels[3].style.transform  = `translateX(${lerp(0, 52, split)}px) translateZ(${lerp(0, 24, split)}px)`;
+
+        if (p >= 1) {
+          panels.forEach(panel => { panel.style.transition = ''; panel.style.transform = ''; });
+        }
+      }
+
+      // 5. S04 (RGB) → S05 (YCbCr) ──────────────────────────────────────────
+      // RGB grid rotates 90° on Y-axis and fades; YCbCr grid fades in.
+      function transitionRgbToYcbcr(p) {
+        const rgbGrid   = document.getElementById('rgbGrid');
+        const ycbcrGrid = document.getElementById('ycbcrGrid');
+
+        if (p <= 0) {
+          if (rgbGrid)   txReset(rgbGrid);
+          if (ycbcrGrid) { ycbcrGrid.style.opacity = ''; txEnd(ycbcrGrid); }
+          return;
+        }
+
+        if (rgbGrid) {
+          txStart(rgbGrid, 'transform, opacity');
+          noTx(rgbGrid);
+          const ep = easeInOutCubic(Math.min(p * 2, 1));
+          rgbGrid.style.transform = `perspective(1000px) rotateY(${lerp(0, 90, ep)}deg)`;
+          rgbGrid.style.opacity   = lerp(1, 0, smoothstep(0.35, 0.65, p));
+        }
+        if (ycbcrGrid) {
+          txStart(ycbcrGrid, 'opacity');
+          ycbcrGrid.style.opacity = lerp(0, 1, smoothstep(0.5, 0.9, p));
+        }
+
+        if (p >= 1) {
+          txReset(rgbGrid);
+          if (ycbcrGrid) { ycbcrGrid.style.opacity = ''; txEnd(ycbcrGrid); }
+        }
+      }
+
+      // 6. S05 (YCbCr) → S06 (Chroma) ───────────────────────────────────────
+      // Cb and Cr cards visibly shrink to 50%, showing subsampling effect.
+      function transitionYcbcrToChroma(p) {
+        const ycbcrGrid = document.getElementById('ycbcrGrid');
+        if (!ycbcrGrid) return;
+        const panels = ycbcrGrid.querySelectorAll('.channel-panel');
+        if (panels.length < 3) return;
+
+        if (p <= 0) {
+          [panels[1], panels[2]].forEach(panel => {
+            panel.style.transition = '';
+            panel.style.transform  = '';
+          });
+          return;
+        }
+
+        const shrink = lerp(1, 0.5, easeInOutCubic(Math.min(p * 1.5, 1)));
+        [panels[1], panels[2]].forEach(panel => {
+          txStart(panel, 'transform');
+          panel.style.transition = 'none';
+          panel.style.transform  = `scale(${shrink})`;
+        });
+
+        if (p >= 1) {
+          [panels[1], panels[2]].forEach(panel => {
+            panel.style.transition = '';
+            panel.style.transform  = '';
+            txEnd(panel);
+          });
+        }
+      }
+
+      // 7. S06 (Chroma) → S07 (Blocks) ──────────────────────────────────────
+      // Grid lines sweep left-to-right across the image, blocks grid locks in.
+      function transitionChromaToBlocks(p) {
+        const chromaWrap   = document.getElementById('chromaWrap');
+        const blocksCanvas = document.getElementById('blocksCanvas');
+
+        if (p <= 0) {
+          if (chromaWrap)   chromaWrap.style.opacity = '';
+          if (blocksCanvas) { blocksCanvas.style.clipPath = ''; blocksCanvas.style.opacity = ''; txEnd(blocksCanvas); }
+          return;
+        }
+
+        if (chromaWrap) {
+          chromaWrap.style.opacity = lerp(1, 0, smoothstep(0.6, 1, p));
+        }
+        if (blocksCanvas) {
+          txStart(blocksCanvas, 'clip-path, opacity');
+          const sweepPct = Math.round(smoothstep(0, 0.65, p) * 100);
+          blocksCanvas.style.clipPath = `inset(0 ${100 - sweepPct}% 0 0)`;
+          blocksCanvas.style.opacity  = lerp(0, 1, smoothstep(0.05, 0.5, p));
+        }
+
+        if (p >= 1) {
+          if (chromaWrap)   chromaWrap.style.opacity = '';
+          if (blocksCanvas) { blocksCanvas.style.clipPath = ''; blocksCanvas.style.opacity = ''; txEnd(blocksCanvas); }
+        }
+      }
+
+      // 8. S07 (Blocks) → S08 (DCT) ──────────────────────────────────────────
+      // Selected block lifts off the image; DCT container fades in.
+      function transitionBlocksToDct(p) {
+        const blockZoom    = document.getElementById('blockZoom');
+        const dctContainer = document.getElementById('dctContainer');
+
+        if (p <= 0) {
+          if (blockZoom)    txReset(blockZoom);
+          if (dctContainer) { dctContainer.style.opacity = ''; txEnd(dctContainer); }
+          return;
+        }
+
+        if (blockZoom) {
+          txStart(blockZoom, 'transform, opacity');
+          noTx(blockZoom);
+          const ep = easeOutCubic(Math.max(0, (p - 0.3) / 0.7));
+          blockZoom.style.transform = `scale(${lerp(1, 1.9, ep)}) translateY(${lerp(0, -12, ep)}px)`;
+          blockZoom.style.opacity   = lerp(1, 0, smoothstep(0.65, 1, p));
+        }
+        if (dctContainer) {
+          txStart(dctContainer, 'opacity');
+          dctContainer.style.opacity = lerp(0, 1, smoothstep(0.4, 0.9, p));
+        }
+
+        if (p >= 1) {
+          txReset(blockZoom);
+          if (dctContainer) { dctContainer.style.opacity = ''; txEnd(dctContainer); }
+        }
+      }
+
+      // 9. S08 (DCT) → S09 (Quant) ───────────────────────────────────────────
+      // DCT matrix panel slides left; quantization demo slides in from right.
+      function transitionDctToQuant(p) {
+        const dctDemo  = document.querySelector('.dct-demo');
+        const quantDemo = document.getElementById('quantDemo');
+
+        if (p <= 0) {
+          if (dctDemo)   txReset(dctDemo);
+          if (quantDemo) { quantDemo.style.transform = ''; quantDemo.style.opacity = ''; quantDemo.style.transition = ''; txEnd(quantDemo); }
+          return;
+        }
+
+        if (dctDemo) {
+          txStart(dctDemo, 'transform, opacity');
+          noTx(dctDemo);
+          dctDemo.style.transform = `translateX(${lerp(0, -50, p)}%)`;
+          dctDemo.style.opacity   = lerp(1, 0, smoothstep(0.5, 0.9, p));
+        }
+        if (quantDemo) {
+          txStart(quantDemo, 'transform, opacity');
+          noTx(quantDemo);
+          quantDemo.style.transform = `translateX(${lerp(18, 0, easeOutCubic(p))}%)`;
+          quantDemo.style.opacity   = lerp(0, 1, smoothstep(0.2, 0.7, p));
+        }
+
+        if (p >= 1) {
+          txReset(dctDemo);
+          if (quantDemo) { quantDemo.style.transform = ''; quantDemo.style.opacity = ''; quantDemo.style.transition = ''; txEnd(quantDemo); }
+        }
+      }
+
+      // 10. S09 (Quant) → S10 (Zigzag) ──────────────────────────────────────
+      // Quantized matrix tilts in 3D (rotating to face viewer at angle);
+      // zigzag layout fades in.
+      function transitionQuantToZigzag(p) {
+        const quantDemo = document.getElementById('quantDemo');
+        const zzLayout  = document.querySelector('#s-zigzag .zz-layout');
+
+        if (p <= 0) {
+          if (quantDemo) txReset(quantDemo);
+          if (zzLayout)  { zzLayout.style.opacity = ''; txEnd(zzLayout); }
+          return;
+        }
+
+        if (quantDemo) {
+          txStart(quantDemo, 'transform, opacity');
+          noTx(quantDemo);
+          const ep = easeInOutCubic(Math.min(p * 2, 1));
+          quantDemo.style.transform = `perspective(800px) rotateX(${lerp(0, 22, ep)}deg) rotateY(${lerp(0, 8, ep)}deg)`;
+          quantDemo.style.opacity   = lerp(1, 0, smoothstep(0.6, 1, p));
+        }
+        if (zzLayout) {
+          txStart(zzLayout, 'opacity');
+          zzLayout.style.opacity = lerp(0, 1, smoothstep(0.4, 0.85, p));
+        }
+
+        if (p >= 1) {
+          txReset(quantDemo);
+          if (zzLayout) { zzLayout.style.opacity = ''; txEnd(zzLayout); }
+        }
+      }
+
+      // 11. S10 (Zigzag) → S11 (RLE) ────────────────────────────────────────
+      // 1D sequence zooms in; then zero-runs visibly collapse into RLE tokens.
+      function transitionZigzagToRle(p) {
+        const zzSeqRow    = document.getElementById('zzSeqRow');
+        const rleBeforeRow = document.getElementById('rleBeforeRow');
+
+        if (p <= 0) {
+          if (zzSeqRow)     txReset(zzSeqRow);
+          if (rleBeforeRow) { rleBeforeRow.style.opacity = ''; txEnd(rleBeforeRow); }
+          return;
+        }
+
+        if (zzSeqRow) {
+          txStart(zzSeqRow, 'transform, opacity');
+          noTx(zzSeqRow);
+          zzSeqRow.style.transform = `scale(${lerp(1, 1.12, easeInOutCubic(Math.min(p * 2, 1)))})`;
+          zzSeqRow.style.opacity   = lerp(1, 0, smoothstep(0.65, 1, p));
+        }
+        if (rleBeforeRow) {
+          txStart(rleBeforeRow, 'opacity');
+          rleBeforeRow.style.opacity = lerp(0, 1, smoothstep(0.4, 0.9, p));
+        }
+
+        if (p >= 1) {
+          txReset(zzSeqRow);
+          if (rleBeforeRow) { rleBeforeRow.style.opacity = ''; txEnd(rleBeforeRow); }
+        }
+      }
+
+      // 12. S11 (RLE) → S12 (Huffman) ───────────────────────────────────────
+      // RLE token row rises upward (sprouting branches); Huffman scene fades in.
+      function transitionRleToHuffman(p) {
+        const rleDemo           = document.querySelector('#s-rle .rle-demo');
+        const huffmanContainer  = document.getElementById('huffmanContainer');
+
+        if (p <= 0) {
+          if (rleDemo)          txReset(rleDemo);
+          if (huffmanContainer) { huffmanContainer.style.opacity = ''; txEnd(huffmanContainer); }
+          return;
+        }
+
+        if (rleDemo) {
+          txStart(rleDemo, 'transform, opacity');
+          noTx(rleDemo);
+          rleDemo.style.transform = `translateY(${lerp(0, -28, easeInOutCubic(p))}px)`;
+          rleDemo.style.opacity   = lerp(1, 0, smoothstep(0.6, 1, p));
+        }
+        if (huffmanContainer) {
+          txStart(huffmanContainer, 'opacity');
+          huffmanContainer.style.opacity = lerp(0, 1, smoothstep(0.3, 0.8, p));
+        }
+
+        if (p >= 1) {
+          txReset(rleDemo);
+          if (huffmanContainer) { huffmanContainer.style.opacity = ''; txEnd(huffmanContainer); }
+        }
+      }
+
+      // 13. S12 (Huffman) → S13 (Quality) ───────────────────────────────────
+      // Huffman tree converges and collapses into a tiny file icon; quality
+      // preview expands back out.
+      function transitionHuffmanToQuality(p) {
+        const huffmanContainer   = document.getElementById('huffmanContainer');
+        const qualityPreviewWrap = document.querySelector('.quality-preview-wrap');
+
+        if (p <= 0) {
+          if (huffmanContainer)   txReset(huffmanContainer);
+          if (qualityPreviewWrap) { qualityPreviewWrap.style.opacity = ''; txEnd(qualityPreviewWrap); }
+          return;
+        }
+
+        if (huffmanContainer) {
+          txStart(huffmanContainer, 'transform, opacity');
+          noTx(huffmanContainer);
+          const ep = easeInOutCubic(p);
+          huffmanContainer.style.transform = `scale(${lerp(1, 0.06, ep)})`;
+          huffmanContainer.style.opacity   = lerp(1, 0, smoothstep(0.38, 0.68, p));
+        }
+        if (qualityPreviewWrap) {
+          txStart(qualityPreviewWrap, 'opacity');
+          qualityPreviewWrap.style.opacity = lerp(0, 1, smoothstep(0.5, 0.95, p));
+        }
+
+        if (p >= 1) {
+          txReset(huffmanContainer);
+          if (qualityPreviewWrap) { qualityPreviewWrap.style.opacity = ''; txEnd(qualityPreviewWrap); }
+        }
+      }
+
+      // 14. S13 (Quality) → S14 (Compare) ───────────────────────────────────
+      // A crack appears down the middle; left half stays, right half shifts;
+      // comparison view with divider fades in.
+      function transitionQualityToCompare(p) {
+        const qualityCanvas = document.getElementById('qualityPreviewCanvas');
+        const compareWrap   = document.getElementById('compareWrap');
+
+        if (p <= 0) {
+          if (qualityCanvas) txReset(qualityCanvas);
+          if (compareWrap)   { compareWrap.style.opacity = ''; txEnd(compareWrap); }
+          return;
+        }
+
+        if (qualityCanvas) {
+          txStart(qualityCanvas, 'clip-path, opacity');
+          noTx(qualityCanvas);
+          const ep = easeInOutCubic(Math.max(0, (p - 0.3) / 0.7));
+          if (ep > 0) {
+            qualityCanvas.style.clipPath = `inset(0 ${ep * 7}% 0 0)`;
+          }
+          qualityCanvas.style.opacity = lerp(1, 0, smoothstep(0.7, 1, p));
+        }
+        if (compareWrap) {
+          txStart(compareWrap, 'opacity');
+          compareWrap.style.opacity = lerp(0, 1, smoothstep(0.4, 0.9, p));
+        }
+
+        if (p >= 1) {
+          txReset(qualityCanvas);
+          if (compareWrap) { compareWrap.style.opacity = ''; txEnd(compareWrap); }
+        }
+      }
+
+      // 15. S14 (Compare) → S15 (Undo) ──────────────────────────────────────
+      // Divider rewinds to right edge; artifacts dissolve;
+      // decode pipeline section fades in.
+      function transitionCompareToUndo(p) {
+        const compareWrap   = document.getElementById('compareWrap');
+        const decodeLayout  = document.querySelector('#s-undo .decode-layout');
+
+        if (p <= 0) {
+          if (compareWrap)  compareWrap.style.opacity = '';
+          if (decodeLayout) { decodeLayout.style.opacity = ''; txEnd(decodeLayout); }
+          return;
+        }
+
+        if (compareWrap) {
+          compareWrap.style.opacity = lerp(1, 0, smoothstep(0.4, 0.9, p));
+        }
+        if (decodeLayout) {
+          txStart(decodeLayout, 'opacity');
+          decodeLayout.style.opacity = lerp(0, 1, smoothstep(0.5, 1, p));
+        }
+
+        if (p >= 1) {
+          if (compareWrap)  compareWrap.style.opacity = '';
+          if (decodeLayout) { decodeLayout.style.opacity = ''; txEnd(decodeLayout); }
+        }
+      }
+
+      // ── Transition registry ──────────────────────────────────────────────
+      const transitions = [
+        { from: 'hero',       to: 's-lens',    fn: transitionHeroToLens      },
+        { from: 's-lens',     to: 's-bayer',   fn: transitionLensToBayer     },
+        { from: 's-bayer',    to: 's-raw',     fn: transitionBayerToRaw      },
+        { from: 's-raw',      to: 's-rgb',     fn: transitionRawToRgb        },
+        { from: 's-rgb',      to: 's-ycbcr',   fn: transitionRgbToYcbcr      },
+        { from: 's-ycbcr',    to: 's-chroma',  fn: transitionYcbcrToChroma   },
+        { from: 's-chroma',   to: 's-blocks',  fn: transitionChromaToBlocks  },
+        { from: 's-blocks',   to: 's-dct',     fn: transitionBlocksToDct     },
+        { from: 's-dct',      to: 's-quant',   fn: transitionDctToQuant      },
+        { from: 's-quant',    to: 's-zigzag',  fn: transitionQuantToZigzag   },
+        { from: 's-zigzag',   to: 's-rle',     fn: transitionZigzagToRle     },
+        { from: 's-rle',      to: 's-huffman', fn: transitionRleToHuffman    },
+        { from: 's-huffman',  to: 's-quality', fn: transitionHuffmanToQuality },
+        { from: 's-quality',  to: 's-compare', fn: transitionQualityToCompare },
+        { from: 's-compare',  to: 's-undo',    fn: transitionCompareToUndo   },
+      ];
+
+      // Track previous progress to detect active / just-completed transitions
+      const prevP = {};
+
+      function runTransitions() {
+        transitions.forEach(({ from, to, fn }) => {
+          const p   = getTxProgress(from, to);
+          const key = from + '->' + to;
+          // Call transition fn if it's active OR if it just crossed 0 / 1
+          if (p > 0 || (prevP[key] !== undefined && prevP[key] > 0)) {
+            fn(p);
+          }
+          prevP[key] = p;
+        });
+      }
+
+      // ── Main transition loop (RAF) ────────────────────────────────────────
+      // Runs at 60fps alongside the existing updateScrollProgress loop.
+      (function txLoop() {
+        runTransitions();
+        requestAnimationFrame(txLoop);
+      }());
+
+    }()); // end initScrollTransitions
 
   }());
 </script>
