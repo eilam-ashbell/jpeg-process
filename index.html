@@ -687,18 +687,24 @@
     }
 
     @keyframes cameraFlash {
-      0%   { opacity: 0; }
-      8%   { opacity: 1; }
-      100% { opacity: 0; }
+      0%   { transform: scale(0);    opacity: 1; }
+      30%  { transform: scale(1);    opacity: 0.95; }
+      100% { transform: scale(1);    opacity: 0; }
     }
 
     .flash-overlay {
       position: fixed;
-      inset: 0;
-      background: #ffffff;
+      width: 200vmax;
+      height: 200vmax;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      margin-left: -100vmax;
+      margin-top: -100vmax;
+      background: radial-gradient(circle, #ffffff 0%, rgba(255,255,255,0.85) 35%, rgba(255,255,255,0) 75%);
       pointer-events: none;
       z-index: 9999;
-      animation: cameraFlash 420ms ease-out forwards;
+      animation: cameraFlash 700ms ease-out forwards;
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -2795,8 +2801,77 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       errorMsg.textContent = '';
     }
 
+    let audioContext = null;
+
+    function getOrCreateAudioContext() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+      return audioContext;
+    }
+
+    function playShutterClick() {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+      const ctx = getOrCreateAudioContext();
+      const now = ctx.currentTime;
+
+      // Layer 1: Primary click (900 Hz sine)
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.frequency.value = 900;
+      osc1.type = 'sine';
+
+      gain1.gain.setValueAtTime(0, now);
+      gain1.gain.linearRampToValueAtTime(0.6, now + 0.015);
+      gain1.gain.setValueAtTime(0.6, now + 0.05);
+      gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.2);
+
+      // Layer 2: Metallic overtone (3500 Hz sine)
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.frequency.value = 3500;
+      osc2.type = 'sine';
+
+      gain2.gain.setValueAtTime(0, now);
+      gain2.gain.linearRampToValueAtTime(0.4, now + 0.015);
+      gain2.gain.setValueAtTime(0.4, now + 0.05);
+      gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(now);
+      osc2.stop(now + 0.12);
+    }
+
     function triggerFlash() {
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+      // Play shutter sound
+      playShutterClick();
+
+      // Schedule auto-scroll to next section
+      setTimeout(() => {
+        const lensSection = document.getElementById('s-lens');
+        if (lensSection) {
+          const offsetTop = lensSection.getBoundingClientRect().top + window.scrollY;
+          const targetScroll = offsetTop - 100;
+          window.scrollTo({
+            top: targetScroll,
+            behavior: 'smooth'
+          });
+        }
+      }, 150);
+
+      // Create and animate flash overlay
       const existing = document.querySelector('.flash-overlay');
       if (existing) existing.remove();
       const overlay = document.createElement('div');
