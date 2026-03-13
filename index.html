@@ -686,35 +686,38 @@
       50%       { transform: translateY(8px); }
     }
 
-    @keyframes cameraFlashExpand {
-      0%   { transform: scale(0); }
-      100% { transform: scale(1); }
-    }
-
-    .flash-overlay {
+    /* Lens transition WebGL overlay */
+    .lens-transition-canvas {
       position: fixed;
-      width: 200vmax;
-      height: 200vmax;
-      border-radius: 50%;
-      top: 50%;
-      left: 50%;
-      margin-left: -100vmax;
-      margin-top: -100vmax;
-      background-color: white;
-      /* background: radial-gradient(circle, #ffffff 0%, rgba(255,255,255,0.85) 35%, rgba(255,255,255,0) 75%); */
-      pointer-events: none;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
       z-index: 9999;
-      opacity: 1;
-      animation: cameraFlashExpand 50ms ease-out forwards;
-      transition: opacity 500ms ease-out;
-    }
-
-    .flash-overlay.fading {
+      pointer-events: none;
       opacity: 0;
+      transition: opacity 100ms ease-out;
+    }
+    .lens-transition-canvas.visible {
+      opacity: 1;
+    }
+    .lens-transition-canvas.fading-out {
+      opacity: 0;
+      transition: opacity 200ms ease-out;
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      .flash-overlay { display: none !important; }
+    /* Reduced-motion crossfade */
+    .lens-crossfade-overlay {
+      position: fixed;
+      inset: 0;
+      background: white;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 300ms ease;
+    }
+    .lens-crossfade-overlay.visible {
+      opacity: 1;
     }
 
     /* ── Section 01–03 shared ──────────────────────────────────────────────── */
@@ -2779,9 +2782,21 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       if (fileInput.files[0]) handleFile(fileInput.files[0]);
     });
 
+    let _lensTransitionCleanup = null; // set by triggerLensTransition for early abort
+
     changeBtn.addEventListener('click', () => {
+      // Abort any in-progress lens transition
+      if (_lensTransitionCleanup) {
+        _lensTransitionCleanup();
+        _lensTransitionCleanup = null;
+      }
+      // Remove any leftover WebGL canvases
+      document.querySelectorAll('.lens-transition-canvas').forEach(el => el.remove());
+      document.querySelectorAll('.lens-crossfade-overlay').forEach(el => el.remove());
+
       resultState.style.display = 'none';
       uploadState.style.display = 'flex';
+      uploadState.style.opacity = '1';
       scrollCue.classList.remove('visible');
       fileInput.value = '';
       document.body.classList.add('scroll-locked');
@@ -2858,38 +2873,329 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       timeout = setTimeout(done, minHoldMs + 300);
     }
 
-    function fadeOutOverlay(overlay) {
-      overlay.classList.add('fading');
-      overlay.addEventListener('transitionend', () => overlay.remove(), { once: true });
-    }
+    function triggerLensTransition(photoCanvas) {
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    function triggerFlash() {
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (reducedMotion) {
+        // Simple crossfade for reduced-motion users
+        const overlay = document.createElement('div');
+        overlay.className = 'lens-crossfade-overlay';
+        document.body.appendChild(overlay);
+        requestAnimationFrame(() => {
+          overlay.classList.add('visible');
+          setTimeout(() => {
+            uploadState.style.display = 'none';
+            resultState.style.display = 'flex';
+            scrollCue.classList.add('visible');
+            document.body.classList.remove('scroll-locked');
+            overlay.classList.remove('visible');
+            overlay.addEventListener('transitionend', () => overlay.remove(), { once: true });
+            const lensSection = document.getElementById('s-lens');
+            if (lensSection) {
+              const top = lensSection.getBoundingClientRect().top + window.scrollY;
+              window.scrollTo({ top: top - 100, behavior: 'smooth' });
+            }
+          }, 300);
+        });
+        return;
+      }
 
-      // Play shutter sound
-      playShutterClick();
+      // ── Full 3D lens transition ──
+      let aborted = false;
+      let renderer, scene, camera, animFrameId;
 
-      // Create flash overlay — expand animation (100ms) starts immediately
-      const existing = document.querySelector('.flash-overlay');
-      if (existing) existing.remove();
-      const overlay = document.createElement('div');
-      overlay.className = 'flash-overlay';
-      document.body.appendChild(overlay);
+      function cleanup() {
+        aborted = true;
+        if (animFrameId) cancelAnimationFrame(animFrameId);
+        if (renderer) {
+          renderer.dispose();
+          renderer.forceContextLoss();
+          if (renderer.domElement && renderer.domElement.parentNode) {
+            renderer.domElement.parentNode.removeChild(renderer.domElement);
+          }
+        }
+        renderer = null;
+        scene = null;
+        camera = null;
+        _lensTransitionCleanup = null;
+      }
 
-      // Phase 2: once fully white (110ms), trigger scroll
-      setTimeout(() => {
-        const lensSection = document.getElementById('s-lens');
-        if (!lensSection) {
-          fadeOutOverlay(overlay);
+      _lensTransitionCleanup = cleanup;
+
+      // Easing helpers
+      function easeIn(t) { return t * t; }
+      function easeInOut(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+      function lerp(a, b, t) { return a + (b - a) * t; }
+      function clamp01(t) { return Math.max(0, Math.min(1, t)); }
+
+      // Setup renderer
+      renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setClearColor(0x0a0f1a, 1);
+      renderer.domElement.className = 'lens-transition-canvas';
+      document.body.appendChild(renderer.domElement);
+
+      // Scene & camera
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+      camera.position.set(0, 0, 3);
+      camera.lookAt(0, 0, 0);
+
+      // Ambient light
+      const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+      scene.add(ambient);
+
+      // Point light for flash
+      const pointLight = new THREE.PointLight(0xffffff, 1, 20);
+      pointLight.position.set(0, 0, 2);
+      scene.add(pointLight);
+
+      // ── Photo plane ──
+      const tex = new THREE.CanvasTexture(photoCanvas);
+      tex.minFilter = THREE.LinearFilter;
+      const aspect = photoCanvas.width / photoCanvas.height;
+      const planeH = 1.8;
+      const planeW = planeH * aspect;
+      const photoGeo = new THREE.PlaneGeometry(planeW, planeH);
+      const photoMat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide });
+      const photoMesh = new THREE.Mesh(photoGeo, photoMat);
+      photoMesh.position.z = -2;
+      scene.add(photoMesh);
+
+      // ── Star particles ──
+      const starCount = 50;
+      const starPositions = new Float32Array(starCount * 3);
+      for (let i = 0; i < starCount; i++) {
+        starPositions[i * 3]     = (Math.random() - 0.5) * 20;
+        starPositions[i * 3 + 1] = (Math.random() - 0.5) * 20;
+        starPositions[i * 3 + 2] = (Math.random() - 0.5) * 20 - 2;
+      }
+      const starGeo = new THREE.BufferGeometry();
+      starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+      const starMat = new THREE.PointsMaterial({ color: 0xaabbff, size: 0.05, transparent: true, opacity: 0.8 });
+      const stars = new THREE.Points(starGeo, starMat);
+      scene.add(stars);
+
+      // ── Glass lens (half-sphere with fresnel shader) ──
+      const lensGeo = new THREE.SphereGeometry(0.6, 64, 32, 0, Math.PI * 2, 0, Math.PI / 2);
+      const lensMat = new THREE.ShaderMaterial({
+        transparent: true,
+        side: THREE.DoubleSide,
+        uniforms: {
+          uOpacity: { value: 0.0 },
+          uGlow: { value: 0.0 },
+          uTint: { value: new THREE.Color(0.6, 0.8, 1.0) }
+        },
+        vertexShader: `
+          varying vec3 vNormal;
+          varying vec3 vViewDir;
+          void main() {
+            vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+            vNormal = normalize(normalMatrix * normal);
+            vViewDir = normalize(-mvPos.xyz);
+            gl_Position = projectionMatrix * mvPos;
+          }
+        `,
+        fragmentShader: `
+          uniform float uOpacity;
+          uniform float uGlow;
+          uniform vec3 uTint;
+          varying vec3 vNormal;
+          varying vec3 vViewDir;
+          void main() {
+            float fresnel = pow(1.0 - abs(dot(vViewDir, vNormal)), 3.0);
+            vec3 col = mix(vec3(1.0), uTint, fresnel * 0.6);
+            // Chromatic aberration tint at edges
+            col.r += fresnel * 0.15;
+            col.b += fresnel * 0.1;
+            // Edge glow
+            col += vec3(uGlow) * fresnel * 2.0;
+            float alpha = (fresnel * 0.7 + 0.1) * uOpacity;
+            gl_FragColor = vec4(col, alpha);
+          }
+        `
+      });
+      const lensMesh = new THREE.Mesh(lensGeo, lensMat);
+      lensMesh.rotation.x = Math.PI / 2; // face camera
+      lensMesh.position.z = 0;
+      lensMesh.visible = false;
+      scene.add(lensMesh);
+
+      // ── Particle burst ring (initially invisible) ──
+      const burstCount = 50;
+      const burstPositions = new Float32Array(burstCount * 3);
+      const burstVelocities = [];
+      for (let i = 0; i < burstCount; i++) {
+        const angle = (i / burstCount) * Math.PI * 2;
+        burstPositions[i * 3]     = Math.cos(angle) * 0.3;
+        burstPositions[i * 3 + 1] = Math.sin(angle) * 0.3;
+        burstPositions[i * 3 + 2] = 0;
+        burstVelocities.push({
+          x: Math.cos(angle) * 0.008 + (Math.random() - 0.5) * 0.002,
+          y: Math.sin(angle) * 0.008 + (Math.random() - 0.5) * 0.002,
+          z: (Math.random() - 0.5) * 0.004
+        });
+      }
+      const burstGeo = new THREE.BufferGeometry();
+      burstGeo.setAttribute('position', new THREE.BufferAttribute(burstPositions, 3));
+      const burstMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.04, transparent: true, opacity: 0 });
+      const burstParticles = new THREE.Points(burstGeo, burstMat);
+      scene.add(burstParticles);
+
+      // ── Animation timeline ──
+      const T0 = performance.now();
+
+      // Fade in the WebGL canvas
+      requestAnimationFrame(() => {
+        renderer.domElement.classList.add('visible');
+      });
+
+      function animate() {
+        if (aborted) return;
+        animFrameId = requestAnimationFrame(animate);
+
+        const elapsed = performance.now() - T0;
+
+        // ── Phase: Shutter flash (100ms mark) ──
+        if (elapsed >= 100 && !animate._shutterFired) {
+          animate._shutterFired = true;
+          playShutterClick();
+          photoMesh.rotation.z = 2 * Math.PI / 180; // 2° snap
+        }
+        // Flash light pulse (100-250ms)
+        if (elapsed >= 100 && elapsed < 250) {
+          const ft = (elapsed - 100) / 150;
+          pointLight.intensity = ft < 0.3 ? lerp(1, 8, ft / 0.3) : lerp(8, 1, (ft - 0.3) / 0.7);
+        } else if (elapsed >= 250) {
+          pointLight.intensity = 1;
+        }
+
+        // ── Photo hover (sine wave) ──
+        photoMesh.position.y = Math.sin(elapsed * 0.002) * 0.05;
+
+        // ── Phase: Lens materializes (250-450ms) ──
+        if (elapsed >= 250) {
+          lensMesh.visible = true;
+          const lensIn = clamp01((elapsed - 250) / 200);
+          lensMat.uniforms.uOpacity.value = lensIn;
+        }
+
+        // ── Phase: Photo moves toward lens (450-1050ms) ──
+        if (elapsed >= 450 && elapsed < 1050) {
+          const t = easeIn(clamp01((elapsed - 450) / 600));
+          photoMesh.position.z = lerp(-2, -0.3, t);
+          // Stars drift faster
+          starMat.size = lerp(0.05, 0.08, t);
+        }
+
+        // ── Phase: Squeeze through lens (1050-1200ms) ──
+        if (elapsed >= 1050 && elapsed < 1200) {
+          const t = clamp01((elapsed - 1050) / 150);
+          // Squeeze X: 1 → 0.7 → 1
+          const squeeze = t < 0.5 ? lerp(1, 0.7, t * 2) : lerp(0.7, 1, (t - 0.5) * 2);
+          photoMesh.scale.x = squeeze;
+          photoMesh.position.z = -0.3;
+          // Lens glow
+          lensMat.uniforms.uGlow.value = Math.sin(t * Math.PI) * 1.5;
+          // Activate burst particles
+          burstMat.opacity = Math.sin(t * Math.PI);
+        } else {
+          lensMat.uniforms.uGlow.value = 0;
+        }
+
+        // ── Burst particles expand ──
+        if (elapsed >= 1050) {
+          const bt = clamp01((elapsed - 1050) / 800);
+          const posArr = burstGeo.attributes.position.array;
+          for (let i = 0; i < burstCount; i++) {
+            posArr[i * 3]     += burstVelocities[i].x;
+            posArr[i * 3 + 1] += burstVelocities[i].y;
+            posArr[i * 3 + 2] += burstVelocities[i].z;
+          }
+          burstGeo.attributes.position.needsUpdate = true;
+          burstMat.opacity = Math.max(0, 1 - bt);
+        }
+
+        // ── Phase: Camera fly forward (1200-2000ms) ──
+        if (elapsed >= 1200 && elapsed < 2000) {
+          const t = easeInOut(clamp01((elapsed - 1200) / 800));
+          camera.position.z = lerp(3, 8, t);
+          // Background navy → white
+          const r = lerp(0x0a / 255, 1, t);
+          const g = lerp(0x0f / 255, 1, t);
+          const b = lerp(0x1a / 255, 1, t);
+          renderer.setClearColor(new THREE.Color(r, g, b), 1);
+
+          // Stars streak effect
+          starMat.size = lerp(0.08, 0.3, t);
+          const starPosArr = starGeo.attributes.position.array;
+          for (let i = 0; i < starCount; i++) {
+            starPosArr[i * 3 + 2] += t * 0.15; // push stars forward for streak feel
+          }
+          starGeo.attributes.position.needsUpdate = true;
+          starMat.opacity = Math.max(0, 1 - t);
+
+          // Photo plane stays in place to match result canvas position
+          photoMesh.position.z = lerp(-0.3, 2, t);
+          photoMesh.rotation.z = lerp(2 * Math.PI / 180, 0, t);
+          photoMesh.scale.x = 1;
+        }
+
+        // ── Phase: Handoff (2000-2200ms) — fade out WebGL, show result ──
+        if (elapsed >= 2000 && !animate._handoffStarted) {
+          animate._handoffStarted = true;
+          renderer.setClearColor(new THREE.Color(1, 1, 1), 1);
+
+          // Show result state underneath
+          uploadState.style.display = 'none';
+          resultState.style.display = 'flex';
+          resultState.style.opacity = '0';
+          document.body.classList.remove('scroll-locked');
+
+          // Fade out WebGL canvas
+          renderer.domElement.classList.remove('visible');
+          renderer.domElement.classList.add('fading-out');
+
+          // Fade in result state
+          requestAnimationFrame(() => {
+            resultState.style.transition = 'opacity 200ms ease-out';
+            resultState.style.opacity = '1';
+          });
+        }
+
+        // ── Phase: Result info fade in (2200ms) ──
+        if (elapsed >= 2200 && !animate._infoShown) {
+          animate._infoShown = true;
+          scrollCue.classList.add('visible');
+        }
+
+        // ── Phase: Auto-scroll to lens section (2400ms) ──
+        if (elapsed >= 2400 && !animate._scrollStarted) {
+          animate._scrollStarted = true;
+          const lensSection = document.getElementById('s-lens');
+          if (lensSection) {
+            const top = lensSection.getBoundingClientRect().top + window.scrollY;
+            window.scrollTo({ top: top - 100, behavior: 'smooth' });
+          }
+        }
+
+        // ── Phase: Complete (3200ms) — cleanup ──
+        if (elapsed >= 3200) {
+          cleanup();
+          // Remove transition style from result
+          resultState.style.transition = '';
           return;
         }
 
-        const offsetTop = lensSection.getBoundingClientRect().top + window.scrollY;
-        window.scrollTo({ top: offsetTop - 100, behavior: 'smooth' });
+        renderer.render(scene, camera);
+      }
 
-        // Phase 3: once scroll is done, fade out (but hold white for at least 600ms total)
-        waitForScrollEnd(() => fadeOutOverlay(overlay), 600);
-      }, 110);
+      animate._shutterFired = false;
+      animate._handoffStarted = false;
+      animate._infoShown = false;
+      animate._scrollStarted = false;
+      animate();
     }
 
     function handleFile(file) {
@@ -2951,15 +3257,11 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         resultDims.textContent = `Your photo: ${origW} × ${origH} pixels`;
         resultDimsNote.textContent = `Scaled to ${w} × ${h} px for this presentation`;
 
-        // 7. Transition UI
-        uploadState.style.display = 'none';
-        resultState.style.display = 'flex';
-        scrollCue.classList.add('visible');
-        triggerFlash();
-        document.body.classList.remove('scroll-locked');
-
-        // 8. Notify other sections
+        // 7. Notify other sections early so they can initialize during animation
         document.dispatchEvent(new CustomEvent('imageReady'));
+
+        // 8. Transition UI — 3D lens fly-through
+        triggerLensTransition(canvas);
       };
       img.src = dataURL;
     }
