@@ -688,7 +688,8 @@
 
     @keyframes cameraFlash {
       0%   { transform: scale(0);    opacity: 1; }
-      30%  { transform: scale(1);    opacity: 0.95; }
+      10%  { transform: scale(1);    opacity: 1; }
+      40%  { transform: scale(1);    opacity: 1; }
       100% { transform: scale(1);    opacity: 0; }
     }
 
@@ -704,7 +705,7 @@
       background: radial-gradient(circle, #ffffff 0%, rgba(255,255,255,0.85) 35%, rgba(255,255,255,0) 75%);
       pointer-events: none;
       z-index: 9999;
-      animation: cameraFlash 700ms ease-out forwards;
+      animation: cameraFlash 1000ms ease-out forwards;
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -2819,37 +2820,57 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       const ctx = getOrCreateAudioContext();
       const now = ctx.currentTime;
 
-      // Layer 1: Primary click (900 Hz sine)
+      // Layer 1: Sharp click (1200 Hz sine, very short)
       const osc1 = ctx.createOscillator();
       const gain1 = ctx.createGain();
-      osc1.frequency.value = 900;
+      osc1.frequency.value = 1200;
       osc1.type = 'sine';
 
       gain1.gain.setValueAtTime(0, now);
-      gain1.gain.linearRampToValueAtTime(0.6, now + 0.015);
-      gain1.gain.setValueAtTime(0.6, now + 0.05);
-      gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+      gain1.gain.linearRampToValueAtTime(0.8, now + 0.008);
+      gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.06);
 
       osc1.connect(gain1);
       gain1.connect(ctx.destination);
       osc1.start(now);
-      osc1.stop(now + 0.2);
+      osc1.stop(now + 0.06);
 
-      // Layer 2: Metallic overtone (3500 Hz sine)
-      const osc2 = ctx.createOscillator();
-      const gain2 = ctx.createGain();
-      osc2.frequency.value = 3500;
-      osc2.type = 'sine';
+      // Layer 2: Mechanical spring clatter (white noise burst)
+      const bufSize = ctx.sampleRate * 0.15;
+      const noiseBuffer = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+      const noiseData = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufSize; i++) {
+        noiseData[i] = Math.random() * 2 - 1;
+      }
 
-      gain2.gain.setValueAtTime(0, now);
-      gain2.gain.linearRampToValueAtTime(0.4, now + 0.015);
-      gain2.gain.setValueAtTime(0.4, now + 0.05);
-      gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+      const noiseSource = ctx.createBufferSource();
+      noiseSource.buffer = noiseBuffer;
+      const noiseGain = ctx.createGain();
 
-      osc2.connect(gain2);
-      gain2.connect(ctx.destination);
-      osc2.start(now);
-      osc2.stop(now + 0.12);
+      noiseGain.gain.setValueAtTime(0.3, now + 0.03);
+      noiseGain.gain.setValueAtTime(0.3, now + 0.08);
+      noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+
+      noiseSource.connect(noiseGain);
+      noiseGain.connect(ctx.destination);
+      noiseSource.start(now + 0.03);
+      noiseSource.stop(now + 0.18);
+
+      // Layer 3: Low bass thump (120 Hz sine, sub-bass)
+      const osc3 = ctx.createOscillator();
+      const gain3 = ctx.createGain();
+      osc3.frequency.value = 120;
+      osc3.type = 'sine';
+
+      gain3.gain.setValueAtTime(0, now);
+      gain3.gain.linearRampToValueAtTime(0.5, now + 0.02);
+      gain3.gain.setValueAtTime(0.5, now + 0.08);
+      gain3.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+
+      osc3.connect(gain3);
+      gain3.connect(ctx.destination);
+      osc3.start(now);
+      osc3.stop(now + 0.25);
     }
 
     function triggerFlash() {
@@ -2869,7 +2890,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
             behavior: 'smooth'
           });
         }
-      }, 150);
+      }, 50);
 
       // Create and animate flash overlay
       const existing = document.querySelector('.flash-overlay');
