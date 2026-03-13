@@ -2021,6 +2021,83 @@
         flex-shrink: 0;
       }
     }
+
+    /* Three.js container styling */
+    .three-container {
+      background: var(--scene-bg);
+      border-radius: var(--radius);
+      overflow: hidden;
+      position: relative;
+      border: 1px solid var(--border);
+    }
+
+    /* CSS 3D effects for Section 03 (Pixel Grid) */
+    .pixel-grid {
+      perspective: 800px;
+      transform-style: preserve-3d;
+    }
+    .pixel-cell {
+      transform: rotateX(8deg);
+      transition: transform 0.2s ease;
+    }
+    .pixel-cell:hover {
+      transform: rotateX(8deg) translateZ(4px);
+    }
+
+    /* CSS 3D effects for Raw Pixel Grid (Section 03) */
+    .raw-dual {
+      perspective: 800px;
+      transform-style: preserve-3d;
+    }
+    #rawZoomCanvas {
+      transform: rotateX(8deg);
+      transform-origin: center;
+      display: block;
+    }
+
+    /* CSS 3D effects for Channel Cards (Section 04) */
+    .channel-grid {
+      perspective: 1000px;
+      transform-style: preserve-3d;
+    }
+    .channel-panel {
+      perspective: 1000px;
+      transform-style: preserve-3d;
+      transition: transform 0.3s ease;
+    }
+    .channel-grid:hover .channel-panel {
+      transform: rotateX(-3deg) rotateY(5deg) translateZ(8px);
+    }
+
+    /* CSS 3D effects for YCbCr Cards (Section 05) */
+    .channel-grid--3 {
+      perspective: 1000px;
+      transform-style: preserve-3d;
+    }
+    .channel-grid--3 .channel-panel {
+      perspective: 1000px;
+      transform-style: preserve-3d;
+      transition: transform 0.3s ease;
+    }
+    .channel-grid--3 .channel-panel:first-child {
+      transform: scale(1.05) translateZ(16px);
+    }
+    .channel-grid--3:hover .channel-panel {
+      transform: rotateX(-3deg) rotateY(5deg) translateZ(8px);
+    }
+    .channel-grid--3:hover .channel-panel:first-child {
+      transform: scale(1.05) translateZ(16px) rotateX(-3deg) rotateY(5deg);
+    }
+
+    /* Reduce motion support */
+    @media (prefers-reduced-motion: reduce) {
+      .three-container canvas,
+      .pixel-cell,
+      .channel-card {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -2044,6 +2121,7 @@
 
       <!-- Result state (shown after upload) -->
       <div class="hero-result-state" id="heroResultState">
+        <div class="three-container" id="heroCameraContainer" style="width:100%; height:500px; margin-bottom:24px;"></div>
         <div class="result-image-card">
           <canvas id="resultCanvas"></canvas>
         </div>
@@ -2075,7 +2153,8 @@
         them precisely onto the tiny sensor chip waiting behind it.
       </p>
       <div class="demo-card reveal">
-        <canvas id="lensCanvas" width="700" height="240"></canvas>
+        <div class="three-container" id="lensContainer" style="width:100%; height:400px;"></div>
+        <canvas id="lensCanvas" width="700" height="240" style="display:none;"></canvas>
       </div>
     </section>
   </div>
@@ -2099,7 +2178,8 @@
       <div class="demo-card reveal">
         <p class="raw-panel-label">Interactive Bayer grid — click any cell to inspect</p>
         <div class="bayer-demo-wrap">
-          <canvas id="bayerCanvas"></canvas>
+          <div class="three-container" id="bayerContainer" style="width:100%; height:400px; position:relative;"></div>
+          <canvas id="bayerCanvas" style="position:absolute; top:0; left:0;"></canvas>
           <div id="bayerCallout" class="bayer-callout"></div>
           <div id="bayerHint" class="bayer-callout-hint">Click a cell to see photosite details.</div>
         </div>
@@ -2288,6 +2368,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         The brilliant insight: most of the visual energy in a typical photo block concentrates in just a few low-frequency values. The high-frequency coefficients are often tiny or zero. This is why JPEG can throw away data without you noticing — it's discarding frequencies your eyes barely register.
       </p>
       <div class="demo-card reveal">
+        <div class="three-container" id="dctContainer" style="width:100%; height:400px;"></div>
         <div class="dct-demo">
           <div class="matrix-panel">
             <p class="matrix-panel-label">Pixel values (Y channel)</p>
@@ -2324,6 +2405,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         The quality slider you see on image editors controls exactly this step. Quality 100 means gentle quantization (large file, high quality). Quality 1 means aggressive quantization (tiny file, blocky mess). At quality 75 — a common default — about 70% of the coefficients become zero. That's a lot of data you no longer need to store.
       </p>
       <div class="demo-card reveal">
+        <div class="three-container" id="quantContainer" style="width:100%; height:400px;"></div>
         <div class="quant-demo" id="quantDemo">
           <div class="quant-row">
             <div class="matrix-panel">
@@ -2438,6 +2520,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         The result is a stream of bits that's as compact as possible without losing any information. Combined with all the previous steps, your original 36 MB of raw pixel data is now compressed to around 300 KB — over 100 times smaller. That's the magic of JPEG.
       </p>
       <div class="demo-card reveal">
+        <div class="three-container" id="huffmanContainer" style="width:100%; height:400px;"></div>
         <div class="huffman-layout">
           <div>
             <p class="matrix-panel-label">Huffman tree</p>
@@ -5273,6 +5356,409 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     document.addEventListener('imageReady',     build);
     document.addEventListener('qualityChanged', () => { if (S.img) build(); });
     build(); // render with defaults before any image is uploaded
+
+    // ============= PHASE 09: 3D Scenes & Animations =============
+
+    // Shared 3D utilities
+    const sceneManagers = {};
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function initSceneIfNeeded(sectionId, initFn) {
+      if (sceneManagers[sectionId]) return;
+      const wrapper = document.getElementById(sectionId);
+      if (!wrapper) return;
+
+      const container = wrapper.querySelector('.three-container');
+      if (!container) return;
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      container.appendChild(renderer.domElement);
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+
+      // Lighting
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      dirLight.position.set(-2, 3, 2);
+      scene.add(dirLight);
+      scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+
+      const manager = { renderer, scene, camera, wrapper, container };
+      initFn(manager);
+      sceneManagers[sectionId] = manager;
+
+      // Start animation loop
+      animateScene(sectionId);
+    }
+
+    function disposeScene(sectionId) {
+      const mgr = sceneManagers[sectionId];
+      if (!mgr) return;
+      mgr.scene.traverse(obj => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) {
+          if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
+          else obj.material.dispose();
+        }
+      });
+      mgr.renderer.dispose();
+      if (mgr.renderer.domElement.parentNode) {
+        mgr.renderer.domElement.parentNode.removeChild(mgr.renderer.domElement);
+      }
+      delete sceneManagers[sectionId];
+    }
+
+    function animateScene(sectionId) {
+      const mgr = sceneManagers[sectionId];
+      if (!mgr) return;
+
+      requestAnimationFrame(() => animateScene(sectionId));
+
+      if (mgr.animate) mgr.animate();
+      mgr.renderer.render(mgr.scene, mgr.camera);
+    }
+
+    function addMouseParallax(camera, wrapper, basePosition = { rx: 0, ry: 0 }, maxAngle = 5) {
+      wrapper.addEventListener('mousemove', e => {
+        if (prefersReducedMotion) return;
+        const rect = wrapper.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+        const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+        camera.rotation.y = basePosition.ry + THREE.MathUtils.degToRad(x * maxAngle);
+        camera.rotation.x = basePosition.rx + THREE.MathUtils.degToRad(y * maxAngle);
+      });
+    }
+
+    // Scroll-driven lazy loading
+    let scrollCheckInterval;
+    function setupScrollDrivenLoading() {
+      const vh = window.innerHeight;
+      const sections = {
+        'hero': initHeroCameraScene,
+        's-lens': initLensScene,
+        's-bayer': initBayerScene,
+        's-dct': initDCTScene,
+        's-quant': initQuantScene,
+        's-huffman': initHuffmanScene
+      };
+
+      function checkScroll() {
+        Object.entries(sections).forEach(([id, initFn]) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          const rect = el.getBoundingClientRect();
+          const inRange = rect.top < vh * 2 && rect.bottom > -vh;
+
+          if (inRange && !sceneManagers[id]) {
+            initSceneIfNeeded(id, initFn);
+          } else if ((rect.top > vh * 3 || rect.bottom < -vh * 2) && sceneManagers[id]) {
+            disposeScene(id);
+          }
+        });
+      }
+
+      window.addEventListener('scroll', checkScroll);
+      checkScroll();
+    }
+
+    // Resize handler
+    window.addEventListener('resize', () => {
+      Object.values(sceneManagers).forEach(mgr => {
+        const w = mgr.container.clientWidth;
+        const h = mgr.container.clientHeight;
+        mgr.camera.aspect = w / h;
+        mgr.camera.updateProjectionMatrix();
+        mgr.renderer.setSize(w, h);
+      });
+    });
+
+    // ============= Hero: 3D Camera Model =============
+    function initHeroCameraScene(mgr) {
+      mgr.camera.position.z = 3;
+
+      // Create camera body
+      const bodyGeom = new THREE.BoxGeometry(0.8, 1.0, 0.5);
+      const bodyMat = new THREE.MeshStandardMaterial({ color: 0x4a5568, metalness: 0.8, roughness: 0.2 });
+      const body = new THREE.Mesh(bodyGeom, bodyMat);
+      mgr.scene.add(body);
+
+      // Create lens
+      const lensGeom = new THREE.CylinderGeometry(0.25, 0.25, 0.2, 32);
+      const lensMat = new THREE.MeshStandardMaterial({ color: 0x1a202c, metalness: 0.9, roughness: 0.1 });
+      const lens = new THREE.Mesh(lensGeom, lensMat);
+      lens.position.set(0, 0, 0.3);
+      body.add(lens);
+
+      // Particle network background
+      const particleCount = 100;
+      const positions = new Float32Array(particleCount * 3);
+      for (let i = 0; i < particleCount; i++) {
+        positions[i * 3] = (Math.random() - 0.5) * 10;
+        positions[i * 3 + 1] = (Math.random() - 0.5) * 10;
+        positions[i * 3 + 2] = (Math.random() - 0.5) * 5;
+      }
+
+      const partGeom = new THREE.BufferGeometry();
+      partGeom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const partMat = new THREE.PointsMaterial({ color: 0xaabbcc, size: 0.05, transparent: true, opacity: 0.6 });
+      const particles = new THREE.Points(partGeom, partMat);
+      mgr.scene.add(particles);
+
+      // Mouse parallax
+      addMouseParallax(mgr.camera, mgr.wrapper);
+
+      // Animation
+      mgr.animate = function() {
+        if (!prefersReducedMotion) {
+          body.rotation.y += 0.002;
+          particles.rotation.y += 0.0003;
+        }
+      };
+    }
+
+    // ============= Section 01: 3D Lens & Light Rays =============
+    function initLensScene(mgr) {
+      mgr.camera.position.set(0, 0, 3);
+
+      // Glass lens
+      const lensGeom = new THREE.CylinderGeometry(0.5, 0.5, 0.2, 32);
+      const lensMat = new THREE.MeshPhysicalMaterial({
+        transmission: 0.9,
+        roughness: 0.05,
+        ior: 1.5,
+        thickness: 0.5,
+        color: 0xccddff
+      });
+      const lens = new THREE.Mesh(lensGeom, lensMat);
+      mgr.scene.add(lens);
+
+      // Light rays
+      const rayCount = 5;
+      const rays = [];
+      for (let i = 0; i < rayCount; i++) {
+        const points = [];
+        points.push(new THREE.Vector3(-2, (i - 2) * 0.3, 0));
+        points.push(new THREE.Vector3(0, (i - 2) * 0.15, 0));
+        points.push(new THREE.Vector3(2, 0, 0.5));
+
+        const geom = new THREE.BufferGeometry().setFromPoints(points);
+        const mat = new THREE.LineBasicMaterial({ color: new THREE.Color().setHSL(i / rayCount, 0.8, 0.5), linewidth: 2 });
+        const ray = new THREE.Line(geom, mat);
+        mgr.scene.add(ray);
+        rays.push(ray);
+      }
+
+      // Photon particles
+      const photonGeom = new THREE.BufferGeometry();
+      const photonPositions = new Float32Array(50 * 3);
+      for (let i = 0; i < 50; i++) {
+        photonPositions[i * 3] = Math.random() * 4 - 2;
+        photonPositions[i * 3 + 1] = Math.random() * 1 - 0.5;
+        photonPositions[i * 3 + 2] = Math.random() * 0.5;
+      }
+      photonGeom.setAttribute('position', new THREE.BufferAttribute(photonPositions, 3));
+      const photonMat = new THREE.PointsMaterial({ color: 0xffff99, size: 0.05, transparent: true, opacity: 0.8 });
+      const photons = new THREE.Points(photonGeom, photonMat);
+      mgr.scene.add(photons);
+
+      // Animation
+      mgr.animate = function() {
+        if (!prefersReducedMotion) {
+          mgr.camera.position.y = Math.sin(Date.now() * 0.001) * 0.2;
+        }
+      };
+    }
+
+    // ============= Section 02: 3D Bayer Sensor =============
+    function initBayerScene(mgr) {
+      mgr.camera.position.set(0, 1, 2.5);
+      mgr.camera.lookAt(0, 0, 0);
+
+      // Create photosites
+      const colors = { R: 0xff6b6b, G: 0x4ecdc4, B: 0x45b7d1 };
+      const bayerPattern = [
+        ['G', 'R', 'G', 'R'],
+        ['B', 'G', 'B', 'G'],
+        ['G', 'R', 'G', 'R'],
+        ['B', 'G', 'B', 'G']
+      ];
+
+      const spacing = 0.3;
+      for (let i = 0; i < bayerPattern.length; i++) {
+        for (let j = 0; j < bayerPattern[i].length; j++) {
+          const color = colors[bayerPattern[i][j]];
+          const geom = new THREE.BoxGeometry(0.25, 0.25, 0.1);
+          const mat = new THREE.MeshStandardMaterial({ color });
+          const cube = new THREE.Mesh(geom, mat);
+          cube.position.set((j - 1.5) * spacing, (i - 1.5) * spacing, 0);
+          mgr.scene.add(cube);
+        }
+      }
+
+      // Animation
+      mgr.animate = function() {
+        if (!prefersReducedMotion) {
+          mgr.camera.position.y = 1 + Math.sin(Date.now() * 0.001) * 0.1;
+        }
+      };
+    }
+
+    // ============= Section 08: 3D DCT Bar Chart =============
+    function initDCTScene(mgr) {
+      mgr.camera.position.set(0, 2, 4);
+      mgr.camera.lookAt(0, 0, 0);
+
+      // Create 8x8 bar chart
+      const bars = [];
+      const spacing = 0.35;
+
+      // Sample DCT coefficients (in a real scenario, these would come from actual DCT data)
+      const dctValues = [
+        [150, 80, 20, 5, 2, 1, 0, 0],
+        [60, 30, 10, 2, 1, 0, 0, 0],
+        [15, 8, 3, 1, 0, 0, 0, 0],
+        [5, 2, 1, 0, 0, 0, 0, 0],
+        [2, 1, 0, 0, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0]
+      ];
+
+      const maxVal = 150;
+      for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+          const height = dctValues[i][j] / maxVal;
+          const barGeom = new THREE.BoxGeometry(0.25, Math.max(0.05, height), 0.25);
+          const color = height > 0 ? new THREE.Color().setHSL(0.6, 0.8, height * 0.5) : 0x444444;
+          const barMat = new THREE.MeshStandardMaterial({ color });
+          const bar = new THREE.Mesh(barGeom, barMat);
+          bar.position.set((j - 3.5) * spacing, height * 0.5, (i - 3.5) * spacing);
+          mgr.scene.add(bar);
+          bars.push(bar);
+        }
+      }
+
+      // Animation
+      mgr.animate = function() {
+        if (!prefersReducedMotion) {
+          mgr.scene.rotation.y += 0.0005;
+        }
+      };
+    }
+
+    // ============= Section 09: 3D Quantization Press =============
+    function initQuantScene(mgr) {
+      mgr.camera.position.set(0, 2, 4);
+      mgr.camera.lookAt(0, 0, 0);
+
+      // Create base bars (same as DCT scene)
+      const bars = [];
+      const spacing = 0.35;
+      const dctValues = [
+        [150, 80, 20, 5, 2, 1, 0, 0],
+        [60, 30, 10, 2, 1, 0, 0, 0],
+        [15, 8, 3, 1, 0, 0, 0, 0],
+        [5, 2, 1, 0, 0, 0, 0, 0],
+        [2, 1, 0, 0, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0]
+      ];
+
+      const maxVal = 150;
+      for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+          const height = dctValues[i][j] / maxVal;
+          const barGeom = new THREE.BoxGeometry(0.25, Math.max(0.05, height), 0.25);
+          const color = new THREE.Color().setHSL(0.6, 0.8, height * 0.5);
+          const barMat = new THREE.MeshStandardMaterial({ color });
+          const bar = new THREE.Mesh(barGeom, barMat);
+          bar.position.set((j - 3.5) * spacing, height * 0.5, (i - 3.5) * spacing);
+          bar.originalHeight = height;
+          mgr.scene.add(bar);
+          bars.push(bar);
+        }
+      }
+
+      // Press plane
+      const pressGeom = new THREE.PlaneGeometry(5, 5);
+      const pressMat = new THREE.MeshPhysicalMaterial({
+        transmission: 0.5,
+        roughness: 0.1,
+        ior: 1.5,
+        color: 0xcccccc
+      });
+      const press = new THREE.Mesh(pressGeom, pressMat);
+      press.position.y = 2;
+      mgr.scene.add(press);
+
+      mgr.bars = bars;
+      mgr.press = press;
+
+      // Animation
+      mgr.animate = function() {
+        if (!prefersReducedMotion) {
+          mgr.scene.rotation.y += 0.0005;
+        }
+      };
+    }
+
+    // ============= Section 12: 3D Huffman Tree =============
+    function initHuffmanScene(mgr) {
+      mgr.camera.position.set(0, 0, 3);
+
+      // Create simple Huffman tree
+      const nodes = [];
+
+      // Root node
+      const rootGeom = new THREE.SphereGeometry(0.15, 32, 32);
+      const rootMat = new THREE.MeshStandardMaterial({ color: 0x888888 });
+      const root = new THREE.Mesh(rootGeom, rootMat);
+      root.position.y = 2;
+      mgr.scene.add(root);
+      nodes.push(root);
+
+      // Create leaf nodes in a tree structure
+      const leafPositions = [
+        { x: -1.5, y: 0, z: 0 },
+        { x: -0.5, y: 0, z: 0 },
+        { x: 0.5, y: 0, z: 0 },
+        { x: 1.5, y: 0, z: 0 }
+      ];
+
+      leafPositions.forEach(pos => {
+        const leafGeom = new THREE.SphereGeometry(0.1, 32, 32);
+        const leafMat = new THREE.MeshStandardMaterial({ color: 0x2563eb });
+        const leaf = new THREE.Mesh(leafGeom, leafMat);
+        leaf.position.copy(pos);
+        mgr.scene.add(leaf);
+        nodes.push(leaf);
+
+        // Connect to root with line
+        const lineGeom = new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(root.position.x, root.position.y, root.position.z),
+          new THREE.Vector3(leaf.position.x, leaf.position.y, leaf.position.z)
+        ]);
+        const lineMat = new THREE.LineBasicMaterial({ color: 0xaabbcc, transparent: true, opacity: 0.6 });
+        const line = new THREE.Line(lineGeom, lineMat);
+        mgr.scene.add(line);
+      });
+
+      mgr.nodes = nodes;
+
+      // Animation
+      mgr.animate = function() {
+        if (!prefersReducedMotion) {
+          mgr.scene.rotation.z += 0.0003;
+        }
+      };
+    }
+
+    // Initialize scroll-driven loading
+    setupScrollDrivenLoading();
+
   }());
 </script>
 </body>
