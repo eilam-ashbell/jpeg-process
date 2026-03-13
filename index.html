@@ -5563,9 +5563,24 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       const photons = new THREE.Points(photonGeom, photonMat);
       mgr.scene.add(photons);
 
+      mgr.scrollProgress = 0;
+
+      // Handle scroll-driven camera
+      const sectionEl = document.getElementById('s-lens');
+      window.addEventListener('scroll', () => {
+        if (!sectionEl) return;
+        const rect = sectionEl.getBoundingClientRect();
+        const vh = window.innerHeight;
+        mgr.scrollProgress = Math.max(0, Math.min(1, (vh - rect.top) / (vh + rect.height)));
+      });
+
       // Animation
       mgr.animate = function() {
         if (!prefersReducedMotion) {
+          // Scroll-driven orbit
+          const angle = mgr.scrollProgress * Math.PI * 2;
+          mgr.camera.position.x = Math.sin(angle) * 0.5;
+          mgr.camera.position.z = 3 - mgr.scrollProgress * 0.5;
           mgr.camera.position.y = Math.sin(Date.now() * 0.001) * 0.2;
         }
       };
@@ -5586,6 +5601,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       ];
 
       const spacing = 0.3;
+      const photosites = [];
+
       for (let i = 0; i < bayerPattern.length; i++) {
         for (let j = 0; j < bayerPattern[i].length; j++) {
           const color = colors[bayerPattern[i][j]];
@@ -5593,9 +5610,41 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           const mat = new THREE.MeshStandardMaterial({ color });
           const cube = new THREE.Mesh(geom, mat);
           cube.position.set((j - 1.5) * spacing, (i - 1.5) * spacing, 0);
+          cube.colorType = bayerPattern[i][j];
+          cube.originalZ = 0;
           mgr.scene.add(cube);
+          photosites.push(cube);
         }
       }
+
+      // Add spotlight for hover/selection
+      const spotlight = new THREE.SpotLight(0xffffff, 1);
+      spotlight.position.set(0, 1, 1);
+      mgr.scene.add(spotlight);
+
+      mgr.photosites = photosites;
+      mgr.raycaster = new THREE.Raycaster();
+      mgr.mouse = new THREE.Vector2();
+
+      // Handle clicks on photosites
+      mgr.container.addEventListener('click', (e) => {
+        const rect = mgr.container.getBoundingClientRect();
+        mgr.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mgr.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+        mgr.raycaster.setFromCamera(mgr.mouse, mgr.camera);
+        const intersects = mgr.raycaster.intersectObjects(photosites);
+
+        if (intersects.length > 0) {
+          const selected = intersects[0].object;
+          photosites.forEach(ps => {
+            ps.position.z = ps.originalZ;
+          });
+          if (!prefersReducedMotion) {
+            selected.position.z = 0.3;
+          }
+        }
+      });
 
       // Animation
       mgr.animate = function() {
@@ -5614,7 +5663,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       const bars = [];
       const spacing = 0.35;
 
-      // Sample DCT coefficients (in a real scenario, these would come from actual DCT data)
+      // Sample DCT coefficients
       const dctValues = [
         [150, 80, 20, 5, 2, 1, 0, 0],
         [60, 30, 10, 2, 1, 0, 0, 0],
@@ -5626,6 +5675,9 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         [0, 0, 0, 0, 0, 0, 0, 0]
       ];
 
+      // Uniform "before" values (all pixels at same height)
+      const pixelValues = new Array(8).fill(null).map(() => new Array(8).fill(100));
+
       const maxVal = 150;
       for (let i = 0; i < 8; i++) {
         for (let j = 0; j < 8; j++) {
@@ -5635,15 +5687,62 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           const barMat = new THREE.MeshStandardMaterial({ color });
           const bar = new THREE.Mesh(barGeom, barMat);
           bar.position.set((j - 3.5) * spacing, height * 0.5, (i - 3.5) * spacing);
+          bar.originalHeight = height;
+          bar.row = i;
+          bar.col = j;
           mgr.scene.add(bar);
           bars.push(bar);
         }
+      }
+
+      mgr.bars = bars;
+      mgr.dctValues = dctValues;
+      mgr.pixelValues = pixelValues;
+      mgr.spacing = spacing;
+      mgr.maxVal = maxVal;
+      mgr.animating = false;
+
+      // Hook into animate button
+      const animBtn = document.getElementById('dctAnimateBtn');
+      if (animBtn) {
+        animBtn.addEventListener('click', () => {
+          if (!mgr.animating) {
+            mgr.animating = true;
+            mgr.animationStart = Date.now();
+            mgr.animationDuration = 1500; // 1.5 seconds
+          }
+        });
       }
 
       // Animation
       mgr.animate = function() {
         if (!prefersReducedMotion) {
           mgr.scene.rotation.y += 0.0005;
+
+          // Handle morph animation
+          if (mgr.animating) {
+            const elapsed = Date.now() - mgr.animationStart;
+            const progress = Math.min(elapsed / mgr.animationDuration, 1);
+
+            // Ease-in-out
+            const eased = progress < 0.5
+              ? 2 * progress * progress
+              : -1 + (4 - 2 * progress) * progress;
+
+            bars.forEach(bar => {
+              const i = bar.row;
+              const j = bar.col;
+              const targetHeight = mgr.dctValues[i][j] / mgr.maxVal;
+              const startHeight = mgr.pixelValues[i][j] / mgr.maxVal;
+              const currentHeight = startHeight + (targetHeight - startHeight) * eased;
+              bar.scale.y = Math.max(0.05, currentHeight) / bar.originalHeight;
+              bar.position.y = (Math.max(0.05, currentHeight) / 2);
+            });
+
+            if (progress >= 1) {
+              mgr.animating = false;
+            }
+          }
         }
       };
     }
@@ -5667,6 +5766,17 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         [0, 0, 0, 0, 0, 0, 0, 0]
       ];
 
+      const quantTables = {
+        75: [16, 11, 10, 16, 24, 40, 51, 61,
+             12, 12, 14, 19, 26, 58, 60, 55,
+             14, 13, 16, 24, 40, 57, 69, 56,
+             14, 17, 22, 29, 51, 87, 80, 62,
+             18, 22, 37, 56, 68, 109, 103, 77,
+             24, 35, 55, 64, 81, 104, 113, 92,
+             49, 64, 78, 87, 103, 121, 120, 101,
+             72, 92, 95, 98, 112, 100, 103, 99]
+      };
+
       const maxVal = 150;
       for (let i = 0; i < 8; i++) {
         for (let j = 0; j < 8; j++) {
@@ -5677,6 +5787,10 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           const bar = new THREE.Mesh(barGeom, barMat);
           bar.position.set((j - 3.5) * spacing, height * 0.5, (i - 3.5) * spacing);
           bar.originalHeight = height;
+          bar.originalColor = new THREE.Color(color);
+          bar.dctValue = dctValues[i][j];
+          bar.row = i;
+          bar.col = j;
           mgr.scene.add(bar);
           bars.push(bar);
         }
@@ -5696,6 +5810,32 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
       mgr.bars = bars;
       mgr.press = press;
+      mgr.maxVal = maxVal;
+      mgr.spacing = spacing;
+
+      // Hook into quality slider
+      const qualitySlider = document.getElementById('qualitySlider');
+      if (qualitySlider) {
+        const updatePressHeight = () => {
+          if (!mgr.scene) return;
+          const quality = parseInt(qualitySlider.value, 10);
+          const pressDepth = 2 - (quality / 100) * 1.5; // Higher quality = press higher
+          press.position.y = pressDepth;
+
+          // Update bar visibility based on threshold
+          bars.forEach(bar => {
+            const threshold = (100 - quality) * 1.5;
+            if (bar.dctValue < threshold) {
+              bar.scale.y = 0.01; // Nearly invisible
+            } else {
+              const height = bar.dctValue / mgr.maxVal;
+              bar.scale.y = height / bar.originalHeight;
+            }
+          });
+        };
+
+        qualitySlider.addEventListener('input', updatePressHeight);
+      }
 
       // Animation
       mgr.animate = function() {
@@ -5711,21 +5851,24 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
       // Create simple Huffman tree
       const nodes = [];
+      const leafNodes = [];
+      const lines = [];
 
       // Root node
       const rootGeom = new THREE.SphereGeometry(0.15, 32, 32);
       const rootMat = new THREE.MeshStandardMaterial({ color: 0x888888 });
       const root = new THREE.Mesh(rootGeom, rootMat);
       root.position.y = 2;
+      root.isLeaf = false;
       mgr.scene.add(root);
       nodes.push(root);
 
       // Create leaf nodes in a tree structure
       const leafPositions = [
-        { x: -1.5, y: 0, z: 0 },
-        { x: -0.5, y: 0, z: 0 },
-        { x: 0.5, y: 0, z: 0 },
-        { x: 1.5, y: 0, z: 0 }
+        { x: -1.5, y: 0, z: 0, symbol: 'A', freq: 45, code: '0' },
+        { x: -0.5, y: 0, z: 0, symbol: 'B', freq: 13, code: '100' },
+        { x: 0.5, y: 0, z: 0, symbol: 'C', freq: 12, code: '101' },
+        { x: 1.5, y: 0, z: 0, symbol: 'D', freq: 16, code: '11' }
       ];
 
       leafPositions.forEach(pos => {
@@ -5733,8 +5876,13 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         const leafMat = new THREE.MeshStandardMaterial({ color: 0x2563eb });
         const leaf = new THREE.Mesh(leafGeom, leafMat);
         leaf.position.copy(pos);
+        leaf.isLeaf = true;
+        leaf.symbol = pos.symbol;
+        leaf.frequency = pos.freq;
+        leaf.code = pos.code;
         mgr.scene.add(leaf);
         nodes.push(leaf);
+        leafNodes.push(leaf);
 
         // Connect to root with line
         const lineGeom = new THREE.BufferGeometry().setFromPoints([
@@ -5744,9 +5892,70 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         const lineMat = new THREE.LineBasicMaterial({ color: 0xaabbcc, transparent: true, opacity: 0.6 });
         const line = new THREE.Line(lineGeom, lineMat);
         mgr.scene.add(line);
+        lines.push({ line, leaf });
       });
 
       mgr.nodes = nodes;
+      mgr.leafNodes = leafNodes;
+      mgr.lines = lines;
+      mgr.raycaster = new THREE.Raycaster();
+      mgr.mouse = new THREE.Vector2();
+
+      // Create tooltip element
+      let tooltip = document.querySelector('.huffman-tooltip');
+      if (!tooltip) {
+        tooltip = document.createElement('div');
+        tooltip.className = 'huffman-tooltip';
+        tooltip.style.cssText = 'position:absolute; background:#1a202c; color:#fff; padding:8px 12px; border-radius:6px; font-size:12px; pointer-events:none; display:none; z-index:1000;';
+        document.body.appendChild(tooltip);
+      }
+
+      // Handle hover on leaf nodes
+      mgr.container.addEventListener('mousemove', (e) => {
+        const rect = mgr.container.getBoundingClientRect();
+        mgr.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mgr.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+        mgr.raycaster.setFromCamera(mgr.mouse, mgr.camera);
+        const intersects = mgr.raycaster.intersectObjects(leafNodes);
+
+        if (intersects.length > 0) {
+          const hovered = intersects[0].object;
+          leafNodes.forEach(leaf => {
+            leaf.material.emissive.setHex(0x000000);
+          });
+          hovered.material.emissive.setHex(0x4466ff);
+
+          // Highlight path
+          lines.forEach(({ line, leaf }) => {
+            line.material.opacity = leaf === hovered ? 1.0 : 0.3;
+          });
+
+          // Show tooltip
+          tooltip.innerHTML = `<strong>${hovered.symbol}</strong><br/>Freq: ${hovered.frequency}<br/>Code: ${hovered.code}`;
+          tooltip.style.left = (e.clientX + 10) + 'px';
+          tooltip.style.top = (e.clientY + 10) + 'px';
+          tooltip.style.display = 'block';
+        } else {
+          leafNodes.forEach(leaf => {
+            leaf.material.emissive.setHex(0x000000);
+          });
+          lines.forEach(({ line }) => {
+            line.material.opacity = 0.6;
+          });
+          tooltip.style.display = 'none';
+        }
+      });
+
+      mgr.container.addEventListener('mouseleave', () => {
+        leafNodes.forEach(leaf => {
+          leaf.material.emissive.setHex(0x000000);
+        });
+        lines.forEach(({ line }) => {
+          line.material.opacity = 0.6;
+        });
+        tooltip.style.display = 'none';
+      });
 
       // Animation
       mgr.animate = function() {
