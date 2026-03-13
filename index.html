@@ -517,7 +517,7 @@
       justify-content: center;
       text-align: center;
       min-height: 100vh;
-      padding-top: 80px;
+      padding-top: 60px;
       padding-bottom: 80px;
     }
 
@@ -627,6 +627,7 @@
     .result-image-card canvas {
       display: block;
       max-width: 100%;
+      max-height: 25vh;
       height: auto;
     }
 
@@ -2848,6 +2849,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         S.img        = ctx.getImageData(0, 0, pw, ph);
         S.w          = pw;
         S.h          = ph;
+        S.origW      = origW;
+        S.origH      = origH;
         S.origCanvas = canvas;
 
         // 5. Default selected block = center block
@@ -2926,7 +2929,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
   function scaledMB(rawMB) {
     if (!S.w || !S.h) return rawMB;
-    return rawMB * (S.w * S.h) / 12_000_000;
+    return rawMB * (S.origW * S.origH) / 12_000_000;
   }
 
   // ── Data Size Bar ─────────────────────────────────────────────────────────
@@ -3480,11 +3483,11 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       if (!S.img) return;
 
       // Stats
-      const pixels = S.w * S.h;
+      const pixels = S.origW * S.origH;
       const rawMB = (pixels * 3 / 1_000_000).toFixed(1);
       const ratio = Math.round(pixels * 3 / 300_000);
       document.getElementById('rawStatsPixels').textContent =
-        `Your photo: ${S.w} × ${S.h} = ${pixels.toLocaleString()} pixels`;
+        `Your photo: ${S.origW} × ${S.origH} = ${pixels.toLocaleString()} pixels`;
       document.getElementById('rawStatsSize').textContent =
         `Uncompressed: ${rawMB} MB`;
       document.getElementById('rawStatsRatio').textContent =
@@ -4835,7 +4838,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
       if (stats) {
         stats.style.display = '';
-        const raw   = S.w * S.h * 3;
+        const raw   = S.origW * S.origH * 3;
         const ratio = Math.max(1, Math.round(raw / cBytes));
         document.getElementById('qualityFileSize').textContent = fmtBytes(cBytes);
         document.getElementById('qualityRatio').textContent    = ratio;
@@ -5304,7 +5307,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       fc.className = 'summary-final-card';
       let rawStr = '36 MB', compStr = '~300 KB', ratio = '~120';
       if (S.origCanvas) {
-        const raw  = S.w * S.h * 3;
+        const raw  = S.origW * S.origH * 3;
         const url  = S.origCanvas.toDataURL('image/jpeg', S.quality / 100);
         const comp = Math.round(url.length * 3 / 4);
         rawStr  = fmtBytes(raw);
