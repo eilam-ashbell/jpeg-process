@@ -41,6 +41,10 @@
       overflow-x: hidden;
     }
 
+    body.scroll-locked {
+      overflow: hidden;
+    }
+
     /* Typography */
     .title-page {
       font-family: 'Inter', sans-serif;
@@ -510,7 +514,9 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       text-align: center;
+      min-height: 100vh;
       padding-top: 80px;
       padding-bottom: 80px;
     }
@@ -629,6 +635,13 @@
       font-size: 0.9rem;
     }
 
+    .result-dims-note {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      margin: -8px 0 0;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
     .change-photo-btn {
       background: none;
       border: 1px solid var(--border);
@@ -670,6 +683,25 @@
     @keyframes scrollBounce {
       0%, 100% { transform: translateY(0); }
       50%       { transform: translateY(8px); }
+    }
+
+    @keyframes cameraFlash {
+      0%   { opacity: 0; }
+      8%   { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .flash-overlay {
+      position: fixed;
+      inset: 0;
+      background: #ffffff;
+      pointer-events: none;
+      z-index: 9999;
+      animation: cameraFlash 420ms ease-out forwards;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .flash-overlay { display: none !important; }
     }
 
     /* ── Section 01–03 shared ──────────────────────────────────────────────── */
@@ -2023,7 +2055,7 @@
     }
   </style>
 </head>
-<body>
+<body class="scroll-locked">
 
 <main>
   <div class="section-wrapper">
@@ -2048,6 +2080,7 @@
           <canvas id="resultCanvas"></canvas>
         </div>
         <p class="result-dims" id="resultDims"></p>
+        <p class="result-dims-note" id="resultDimsNote"></p>
         <button class="change-photo-btn" id="changePhotoBtn">Change photo</button>
         <div class="scroll-cue" id="scrollCue">
           <span>Scroll down to begin</span>
@@ -2706,6 +2739,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     const resultState  = document.getElementById('heroResultState');
     const resultCanvas = document.getElementById('resultCanvas');
     const resultDims   = document.getElementById('resultDims');
+    const resultDimsNote = document.getElementById('resultDimsNote');
     const changeBtn    = document.getElementById('changePhotoBtn');
     const scrollCue    = document.getElementById('scrollCue');
 
@@ -2737,6 +2771,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       uploadState.style.display = 'flex';
       scrollCue.classList.remove('visible');
       fileInput.value = '';
+      document.body.classList.add('scroll-locked');
+      window.scrollTo({ top: 0, behavior: 'instant' });
     });
 
     // Hide scroll cue when user scrolls past hero
@@ -2758,6 +2794,16 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       errorMsg.textContent = '';
     }
 
+    function triggerFlash() {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const existing = document.querySelector('.flash-overlay');
+      if (existing) existing.remove();
+      const overlay = document.createElement('div');
+      overlay.className = 'flash-overlay';
+      document.body.appendChild(overlay);
+      overlay.addEventListener('animationend', () => overlay.remove(), { once: true });
+    }
+
     function handleFile(file) {
       clearError();
       if (!file.type.startsWith('image/')) {
@@ -2777,8 +2823,10 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       img.onload = () => {
         // 1. Scale to fit within 480×480 maintaining aspect ratio
         const MAX = 480;
-        let w = img.naturalWidth;
-        let h = img.naturalHeight;
+        const origW = img.naturalWidth;
+        const origH = img.naturalHeight;
+        let w = origW;
+        let h = origH;
         const scale = Math.min(MAX / w, MAX / h, 1);
         w = Math.round(w * scale);
         h = Math.round(h * scale);
@@ -2810,12 +2858,15 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         resultCanvas.width  = pw;
         resultCanvas.height = ph;
         resultCanvas.getContext('2d').drawImage(canvas, 0, 0);
-        resultDims.textContent = `Your photo: ${pw} × ${ph} pixels`;
+        resultDims.textContent = `Your photo: ${origW} × ${origH} pixels`;
+        resultDimsNote.textContent = `Scaled to ${w} × ${h} px for this presentation`;
 
         // 7. Transition UI
         uploadState.style.display = 'none';
         resultState.style.display = 'flex';
         scrollCue.classList.add('visible');
+        triggerFlash();
+        document.body.classList.remove('scroll-locked');
 
         // 8. Notify other sections
         document.dispatchEvent(new CustomEvent('imageReady'));
