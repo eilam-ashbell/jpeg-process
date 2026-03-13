@@ -686,11 +686,9 @@
       50%       { transform: translateY(8px); }
     }
 
-    @keyframes cameraFlash {
-      0%   { transform: scale(0);    opacity: 1; }
-      10%  { transform: scale(1);    opacity: 1; }
-      40%  { transform: scale(1);    opacity: 1; }
-      100% { transform: scale(1);    opacity: 0; }
+    @keyframes cameraFlashExpand {
+      0%   { transform: scale(0); }
+      100% { transform: scale(1); }
     }
 
     .flash-overlay {
@@ -705,7 +703,13 @@
       background: radial-gradient(circle, #ffffff 0%, rgba(255,255,255,0.85) 35%, rgba(255,255,255,0) 75%);
       pointer-events: none;
       z-index: 9999;
-      animation: cameraFlash 1000ms ease-out forwards;
+      opacity: 1;
+      animation: cameraFlashExpand 100ms ease-out forwards;
+      transition: opacity 600ms ease-out;
+    }
+
+    .flash-overlay.fading {
+      opacity: 0;
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -2873,32 +2877,53 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       osc3.stop(now + 0.25);
     }
 
+    function waitForScrollEnd(callback) {
+      let timeout;
+      const done = () => {
+        window.removeEventListener('scroll', onScroll, { passive: true });
+        callback();
+      };
+      const onScroll = () => {
+        clearTimeout(timeout);
+        timeout = setTimeout(done, 120);
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+      // Fallback: if scroll never starts (already at destination), fire after 300ms
+      timeout = setTimeout(done, 300);
+    }
+
+    function fadeOutOverlay(overlay) {
+      overlay.classList.add('fading');
+      overlay.addEventListener('transitionend', () => overlay.remove(), { once: true });
+    }
+
     function triggerFlash() {
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
       // Play shutter sound
       playShutterClick();
 
-      // Schedule auto-scroll to next section
-      setTimeout(() => {
-        const lensSection = document.getElementById('s-lens');
-        if (lensSection) {
-          const offsetTop = lensSection.getBoundingClientRect().top + window.scrollY;
-          const targetScroll = offsetTop - 100;
-          window.scrollTo({
-            top: targetScroll,
-            behavior: 'smooth'
-          });
-        }
-      }, 50);
-
-      // Create and animate flash overlay
+      // Create flash overlay — expand animation (100ms) starts immediately
       const existing = document.querySelector('.flash-overlay');
       if (existing) existing.remove();
       const overlay = document.createElement('div');
       overlay.className = 'flash-overlay';
       document.body.appendChild(overlay);
-      overlay.addEventListener('animationend', () => overlay.remove(), { once: true });
+
+      // Phase 2: once fully white (110ms), trigger scroll
+      setTimeout(() => {
+        const lensSection = document.getElementById('s-lens');
+        if (!lensSection) {
+          fadeOutOverlay(overlay);
+          return;
+        }
+
+        const offsetTop = lensSection.getBoundingClientRect().top + window.scrollY;
+        window.scrollTo({ top: offsetTop - 100, behavior: 'smooth' });
+
+        // Phase 3: once scroll is done, fade out
+        waitForScrollEnd(() => fadeOutOverlay(overlay));
+      }, 110);
     }
 
     function handleFile(file) {
