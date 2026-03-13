@@ -2877,19 +2877,28 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       osc3.stop(now + 0.25);
     }
 
-    function waitForScrollEnd(callback) {
+    function waitForScrollEnd(callback, minHoldMs = 0) {
       let timeout;
+      let scrollEndTime = 0;
       const done = () => {
         window.removeEventListener('scroll', onScroll, { passive: true });
-        callback();
+        scrollEndTime = Date.now();
+        const elapsed = scrollEndTime - startTime;
+        const remaining = Math.max(0, minHoldMs - elapsed);
+        if (remaining > 0) {
+          setTimeout(callback, remaining);
+        } else {
+          callback();
+        }
       };
       const onScroll = () => {
         clearTimeout(timeout);
         timeout = setTimeout(done, 120);
       };
+      const startTime = Date.now();
       window.addEventListener('scroll', onScroll, { passive: true });
-      // Fallback: if scroll never starts (already at destination), fire after 300ms
-      timeout = setTimeout(done, 300);
+      // Fallback: if scroll never starts (already at destination), fire after minHoldMs
+      timeout = setTimeout(done, minHoldMs + 300);
     }
 
     function fadeOutOverlay(overlay) {
@@ -2921,8 +2930,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         const offsetTop = lensSection.getBoundingClientRect().top + window.scrollY;
         window.scrollTo({ top: offsetTop - 100, behavior: 'smooth' });
 
-        // Phase 3: once scroll is done, fade out
-        waitForScrollEnd(() => fadeOutOverlay(overlay));
+        // Phase 3: once scroll is done, fade out (but hold white for at least 1000ms total)
+        waitForScrollEnd(() => fadeOutOverlay(overlay), 1000);
       }, 110);
     }
 
