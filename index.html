@@ -616,6 +616,7 @@
     }
 
     .result-image-card {
+      position: relative;
       border: 3px solid #fff;
       border-radius: var(--radius);
       box-shadow: var(--shadow-card);
@@ -686,35 +687,67 @@
       50%       { transform: translateY(8px); }
     }
 
-    @keyframes cameraFlashExpand {
-      0%   { transform: scale(0); }
-      100% { transform: scale(1); }
-    }
-
-    .flash-overlay {
+    /* ── Iris Aperture Overlay ─────────────────────────────────────────────── */
+    .iris-overlay {
       position: fixed;
-      width: 200vmax;
-      height: 200vmax;
-      border-radius: 50%;
-      top: 50%;
-      left: 50%;
-      margin-left: -100vmax;
-      margin-top: -100vmax;
-      background-color: white;
-      /* background: radial-gradient(circle, #ffffff 0%, rgba(255,255,255,0.85) 35%, rgba(255,255,255,0) 75%); */
-      pointer-events: none;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
       z-index: 9999;
-      opacity: 1;
-      animation: cameraFlashExpand 50ms ease-out forwards;
-      transition: opacity 500ms ease-out;
-    }
-
-    .flash-overlay.fading {
+      pointer-events: none;
       opacity: 0;
+      transition: opacity 150ms ease-out;
+    }
+    .iris-overlay.visible {
+      opacity: 1;
+    }
+    .iris-overlay.fade-out {
+      opacity: 0;
+      transform: scale(1.1);
+      transition: opacity 200ms ease-out, transform 200ms ease-out;
     }
 
+    /* ── Bounce-settle for result card ─────────────────────────────────────── */
+    @keyframes bouncSettle {
+      0%   { transform: translateY(8px); opacity: 0.8; }
+      60%  { transform: translateY(-2px); opacity: 1; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+    .iris-bounce-settle {
+      animation: bouncSettle 300ms ease-out forwards;
+    }
+
+    /* ── Staggered fade-in for info elements ───────────────────────────────── */
+    @keyframes fadeUpIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .iris-fade-in {
+      opacity: 0;
+      animation: fadeUpIn 200ms ease-out forwards;
+    }
+
+    /* ── Viewfinder border SVG around result card ──────────────────────────── */
+    .iris-viewfinder-wrap {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+    }
+    .iris-viewfinder-wrap svg {
+      position: absolute;
+      top: -3px; left: -3px;
+      width: calc(100% + 6px);
+      height: calc(100% + 6px);
+    }
+
+    /* ── Warm filter during reveal ─────────────────────────────────────────── */
+    .iris-warm-filter {
+      filter: saturate(1.1) brightness(1.05);
+    }
+
+    /* ── Reduced-motion crossfade ──────────────────────────────────────────── */
     @media (prefers-reduced-motion: reduce) {
-      .flash-overlay { display: none !important; }
+      .iris-overlay { display: none !important; }
     }
 
     /* ── Section 01–03 shared ──────────────────────────────────────────────── */
@@ -2780,6 +2813,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     });
 
     changeBtn.addEventListener('click', () => {
+      cleanupIris();
       resultState.style.display = 'none';
       uploadState.style.display = 'flex';
       scrollCue.classList.remove('visible');
@@ -2858,38 +2892,370 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       timeout = setTimeout(done, minHoldMs + 300);
     }
 
-    function fadeOutOverlay(overlay) {
-      overlay.classList.add('fading');
-      overlay.addEventListener('transitionend', () => overlay.remove(), { once: true });
+    // ── Iris Aperture Transition ───────────────────────────────────────────
+    function cleanupIris() {
+      // Remove any leftover iris overlays
+      document.querySelectorAll('.iris-overlay').forEach(el => el.remove());
+      // Remove viewfinder borders
+      document.querySelectorAll('.iris-viewfinder-wrap').forEach(el => el.remove());
+      // Remove warm filter
+      const card = document.querySelector('.result-image-card');
+      if (card) card.classList.remove('iris-warm-filter');
+      // Remove bounce class
+      if (card) card.classList.remove('iris-bounce-settle');
+      // Remove fade-in classes
+      document.querySelectorAll('.iris-fade-in').forEach(el => {
+        el.classList.remove('iris-fade-in');
+        el.style.removeProperty('animation-delay');
+      });
     }
 
-    function triggerFlash() {
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    function createIrisSVG() {
+      const svgNS = 'http://www.w3.org/2000/svg';
+      const svg = document.createElementNS(svgNS, 'svg');
+      svg.setAttribute('viewBox', '0 0 1000 1000');
+      svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+      svg.style.width = '100%';
+      svg.style.height = '100%';
 
-      // Play shutter sound
-      playShutterClick();
+      // Defs: gradient + optional noise filter
+      const defs = document.createElementNS(svgNS, 'defs');
 
-      // Create flash overlay — expand animation (100ms) starts immediately
-      const existing = document.querySelector('.flash-overlay');
-      if (existing) existing.remove();
+      // Metallic gradient for blades
+      for (let i = 0; i < 6; i++) {
+        const grad = document.createElementNS(svgNS, 'linearGradient');
+        grad.id = 'bladeGrad' + i;
+        grad.setAttribute('gradientTransform', 'rotate(' + (45 + i * 15) + ')');
+        const stops = [
+          { offset: '0%', color: '#2a2a2e' },
+          { offset: '50%', color: '#4a4a4e' },
+          { offset: '100%', color: '#2a2a2e' }
+        ];
+        stops.forEach(s => {
+          const stop = document.createElementNS(svgNS, 'stop');
+          stop.setAttribute('offset', s.offset);
+          stop.setAttribute('stop-color', s.color);
+          grad.appendChild(stop);
+        });
+        defs.appendChild(grad);
+      }
+
+      // Subtle brushed-metal noise filter
+      const filter = document.createElementNS(svgNS, 'filter');
+      filter.id = 'metalNoise';
+      const turb = document.createElementNS(svgNS, 'feTurbulence');
+      turb.setAttribute('type', 'fractalNoise');
+      turb.setAttribute('baseFrequency', '0.9');
+      turb.setAttribute('numOctaves', '4');
+      turb.setAttribute('result', 'noise');
+      const blend = document.createElementNS(svgNS, 'feBlend');
+      blend.setAttribute('in', 'SourceGraphic');
+      blend.setAttribute('in2', 'noise');
+      blend.setAttribute('mode', 'multiply');
+      filter.appendChild(turb);
+      filter.appendChild(blend);
+      defs.appendChild(filter);
+
+      svg.appendChild(defs);
+
+      // Background rect (fills the gap when iris is closed)
+      const bgRect = document.createElementNS(svgNS, 'rect');
+      bgRect.setAttribute('width', '1000');
+      bgRect.setAttribute('height', '1000');
+      bgRect.setAttribute('fill', '#1a1a1e');
+      svg.appendChild(bgRect);
+
+      // Blade group
+      const bladeGroup = document.createElementNS(svgNS, 'g');
+      bladeGroup.id = 'irisBlades';
+      bladeGroup.setAttribute('transform', 'translate(500,500)');
+
+      for (let i = 0; i < 6; i++) {
+        const g = document.createElementNS(svgNS, 'g');
+        g.dataset.blade = i;
+        const angle = i * 60;
+        g.setAttribute('transform', 'rotate(' + angle + ')');
+
+        // Main blade path
+        const path = document.createElementNS(svgNS, 'path');
+        path.setAttribute('fill', 'url(#bladeGrad' + i + ')');
+        path.setAttribute('filter', 'url(#metalNoise)');
+        path.setAttribute('stroke', '#555');
+        path.setAttribute('stroke-width', '0.5');
+        g.appendChild(path);
+
+        // Highlight edge line
+        const highlight = document.createElementNS(svgNS, 'line');
+        highlight.setAttribute('stroke', 'rgba(255,255,255,0.15)');
+        highlight.setAttribute('stroke-width', '1');
+        g.appendChild(highlight);
+
+        bladeGroup.appendChild(g);
+      }
+
+      svg.appendChild(bladeGroup);
+      return svg;
+    }
+
+    function generateBladePath(openAmount) {
+      // openAmount: 1.0 = fully open, 0.0 = fully closed
+      // Returns a path for one blade (pointing "up" from center, rotated per blade)
+      // The blade is a curved wedge that sweeps closed
+      const R = 600; // outer radius (larger than viewBox half to cover corners)
+      const r = 20;  // inner radius when closed
+      const open = Math.max(0, Math.min(1, openAmount));
+
+      // When open=1, blades are pushed far apart; when open=0, they overlap to cover center
+      const spreadAngle = open * 58; // degrees each blade "opens" outward
+      const innerR = r + open * 480; // inner edge moves outward when open
+
+      const a1 = -30 + spreadAngle;
+      const a2 = 30 + spreadAngle;
+      const toRad = Math.PI / 180;
+
+      // Outer arc points
+      const ox1 = R * Math.sin(a1 * toRad);
+      const oy1 = -R * Math.cos(a1 * toRad);
+      const ox2 = R * Math.sin(a2 * toRad);
+      const oy2 = -R * Math.cos(a2 * toRad);
+
+      // Inner arc points
+      const ix1 = innerR * Math.sin(a1 * toRad);
+      const iy1 = -innerR * Math.cos(a1 * toRad);
+      const ix2 = innerR * Math.sin(a2 * toRad);
+      const iy2 = -innerR * Math.cos(a2 * toRad);
+
+      // Path: inner edge -> outer edge 1 -> arc to outer edge 2 -> back to inner edge
+      return `M ${ix1} ${iy1} L ${ox1} ${oy1} A ${R} ${R} 0 0 1 ${ox2} ${oy2} L ${ix2} ${iy2} A ${innerR} ${innerR} 0 0 0 ${ix1} ${iy1} Z`;
+    }
+
+    function updateIrisBlades(svg, openAmount) {
+      const blades = svg.querySelectorAll('[data-blade]');
+      const d = generateBladePath(openAmount);
+      blades.forEach((g) => {
+        const path = g.querySelector('path');
+        path.setAttribute('d', d);
+
+        // Update highlight line along leading edge
+        const hl = g.querySelector('line');
+        const R = 600;
+        const open = Math.max(0, Math.min(1, openAmount));
+        const spreadAngle = open * 58;
+        const innerR = 20 + open * 480;
+        const a1 = -30 + spreadAngle;
+        const toRad = Math.PI / 180;
+        hl.setAttribute('x1', innerR * Math.sin(a1 * toRad));
+        hl.setAttribute('y1', -innerR * Math.cos(a1 * toRad));
+        hl.setAttribute('x2', R * Math.sin(a1 * toRad));
+        hl.setAttribute('y2', -R * Math.cos(a1 * toRad));
+      });
+    }
+
+    function animateValue(from, to, duration, easeFn, onUpdate, onDone) {
+      const start = performance.now();
+      function tick(now) {
+        const elapsed = now - start;
+        const rawT = Math.min(1, elapsed / duration);
+        const t = easeFn(rawT);
+        const val = from + (to - from) * t;
+        onUpdate(val);
+        if (rawT < 1) {
+          requestAnimationFrame(tick);
+        } else {
+          if (onDone) onDone();
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+
+    function easeIn(t) { return t * t; }
+    function easeOut(t) { return 1 - (1 - t) * (1 - t); }
+
+    function drawViewfinderBorder(resultCardEl) {
+      // Make card position relative for absolute child
+      const wrap = document.createElement('div');
+      wrap.className = 'iris-viewfinder-wrap';
+
+      const svgNS = 'http://www.w3.org/2000/svg';
+      const svg = document.createElementNS(svgNS, 'svg');
+      const rect = document.createElementNS(svgNS, 'rect');
+
+      // We'll size it after append
+      wrap.appendChild(svg);
+      resultCardEl.appendChild(wrap);
+
+      const w = resultCardEl.offsetWidth + 6;
+      const h = resultCardEl.offsetHeight + 6;
+      svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+      svg.setAttribute('width', w);
+      svg.setAttribute('height', h);
+
+      const r = 12; // border-radius
+      rect.setAttribute('x', '1');
+      rect.setAttribute('y', '1');
+      rect.setAttribute('width', w - 2);
+      rect.setAttribute('height', h - 2);
+      rect.setAttribute('rx', r);
+      rect.setAttribute('ry', r);
+      rect.setAttribute('fill', 'none');
+      rect.setAttribute('stroke', 'var(--accent-blue, #2563eb)');
+      rect.setAttribute('stroke-width', '1.5');
+
+      const perimeter = 2 * (w - 2 + h - 2 - 4 * r) + 2 * Math.PI * r;
+      rect.setAttribute('stroke-dasharray', perimeter);
+      rect.setAttribute('stroke-dashoffset', perimeter);
+      rect.style.transition = 'stroke-dashoffset 400ms ease-out';
+
+      svg.appendChild(rect);
+
+      // Trigger the draw animation
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          rect.setAttribute('stroke-dashoffset', '0');
+        });
+      });
+
+      // Fade out and remove after 2 seconds
+      setTimeout(() => {
+        svg.style.transition = 'opacity 400ms ease-out';
+        svg.style.opacity = '0';
+        setTimeout(() => wrap.remove(), 400);
+      }, 2000);
+    }
+
+    function triggerIrisTransition() {
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      if (reducedMotion) {
+        // Simple crossfade fallback
+        uploadState.style.transition = 'opacity 300ms ease-out';
+        uploadState.style.opacity = '0';
+        setTimeout(() => {
+          uploadState.style.display = 'none';
+          uploadState.style.removeProperty('transition');
+          uploadState.style.removeProperty('opacity');
+          resultState.style.display = 'flex';
+          resultState.style.opacity = '0';
+          resultState.style.transition = 'opacity 300ms ease-in';
+          requestAnimationFrame(() => { resultState.style.opacity = '1'; });
+          setTimeout(() => {
+            resultState.style.removeProperty('transition');
+            resultState.style.removeProperty('opacity');
+            scrollCue.classList.add('visible');
+            document.body.classList.remove('scroll-locked');
+            const lensSection = document.getElementById('s-lens');
+            if (lensSection) {
+              const offsetTop = lensSection.getBoundingClientRect().top + window.scrollY;
+              window.scrollTo({ top: offsetTop - 100, behavior: 'smooth' });
+            }
+          }, 300);
+        }, 300);
+        return;
+      }
+
+      // Clean up any previous iris
+      cleanupIris();
+
+      // Create iris overlay
       const overlay = document.createElement('div');
-      overlay.className = 'flash-overlay';
+      overlay.className = 'iris-overlay';
+      const irisSVG = createIrisSVG();
+      overlay.appendChild(irisSVG);
       document.body.appendChild(overlay);
 
-      // Phase 2: once fully white (110ms), trigger scroll
+      // Initialize blades fully open
+      updateIrisBlades(irisSVG, 1.0);
+
+      // Phase 1: Fade in overlay (0-150ms)
+      requestAnimationFrame(() => {
+        overlay.classList.add('visible');
+      });
+
+      // Phase 2: Close iris (150-400ms, 250ms duration, ease-in)
       setTimeout(() => {
-        const lensSection = document.getElementById('s-lens');
-        if (!lensSection) {
-          fadeOutOverlay(overlay);
-          return;
-        }
+        animateValue(1.0, 0.0, 250, easeIn, (val) => {
+          updateIrisBlades(irisSVG, val);
+        }, () => {
+          // Phase 3: Fully closed — play sound, blackout hold (400-600ms)
+          playShutterClick();
 
-        const offsetTop = lensSection.getBoundingClientRect().top + window.scrollY;
-        window.scrollTo({ top: offsetTop - 100, behavior: 'smooth' });
+          // Swap DOM during blackout
+          uploadState.style.display = 'none';
+          resultState.style.display = 'flex';
 
-        // Phase 3: once scroll is done, fade out (but hold white for at least 600ms total)
-        waitForScrollEnd(() => fadeOutOverlay(overlay), 600);
-      }, 110);
+          // Hide result elements initially for staggered reveal
+          const card = document.querySelector('.result-image-card');
+          if (card) card.style.opacity = '0';
+          resultDims.style.opacity = '0';
+          resultDimsNote.style.opacity = '0';
+          changeBtn.style.opacity = '0';
+
+          // Phase 4: Open iris (600-1000ms, 400ms duration, ease-out)
+          setTimeout(() => {
+            // Apply warm filter on card
+            if (card) {
+              card.classList.add('iris-warm-filter');
+              card.style.opacity = '1';
+            }
+
+            animateValue(0.0, 1.0, 400, easeOut, (val) => {
+              updateIrisBlades(irisSVG, val);
+            }, () => {
+              // Phase 5: Iris blades fade out + scale up (1000-1200ms)
+              overlay.classList.add('fade-out');
+
+              // Remove warm filter after reveal
+              setTimeout(() => {
+                if (card) {
+                  card.style.transition = 'filter 400ms ease-out';
+                  card.classList.remove('iris-warm-filter');
+                  setTimeout(() => card.style.removeProperty('transition'), 400);
+                }
+              }, 200);
+
+              // Phase 6: Bounce settle + staggered fade-ins (1200ms)
+              setTimeout(() => {
+                // Remove overlay
+                overlay.remove();
+
+                // Bounce settle on card
+                if (card) card.classList.add('iris-bounce-settle');
+
+                // Staggered fade-in for info elements
+                resultDims.classList.add('iris-fade-in');
+                resultDims.style.animationDelay = '0ms';
+
+                resultDimsNote.classList.add('iris-fade-in');
+                resultDimsNote.style.animationDelay = '80ms';
+
+                changeBtn.classList.add('iris-fade-in');
+                changeBtn.style.animationDelay = '160ms';
+
+                // Viewfinder border draw
+                if (card) drawViewfinderBorder(card);
+
+                // Show scroll cue + unlock scroll
+                scrollCue.classList.add('visible');
+                document.body.classList.remove('scroll-locked');
+
+                // Phase 7: Auto-scroll to #s-lens at 1800ms (600ms after phase 6 start)
+                setTimeout(() => {
+                  const lensSection = document.getElementById('s-lens');
+                  if (lensSection) {
+                    const offsetTop = lensSection.getBoundingClientRect().top + window.scrollY;
+                    window.scrollTo({ top: offsetTop - 100, behavior: 'smooth' });
+                  }
+                }, 600);
+
+                // Phase 8: Final cleanup at 2800ms (1600ms from phase 6 start)
+                setTimeout(() => {
+                  cleanupIris();
+                }, 1600);
+              }, 200); // 200ms for fade-out phase
+            });
+          }, 200); // 200ms blackout hold
+        });
+      }, 150); // 150ms initial fade-in
     }
 
     function handleFile(file) {
@@ -2951,15 +3317,11 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         resultDims.textContent = `Your photo: ${origW} × ${origH} pixels`;
         resultDimsNote.textContent = `Scaled to ${w} × ${h} px for this presentation`;
 
-        // 7. Transition UI
-        uploadState.style.display = 'none';
-        resultState.style.display = 'flex';
-        scrollCue.classList.add('visible');
-        triggerFlash();
-        document.body.classList.remove('scroll-locked');
-
-        // 8. Notify other sections
+        // 7. Notify other sections early (so they can init in background)
         document.dispatchEvent(new CustomEvent('imageReady'));
+
+        // 8. Iris aperture transition
+        triggerIrisTransition();
       };
       img.src = dataURL;
     }
