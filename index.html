@@ -976,6 +976,375 @@
       color: #fff;
       letter-spacing: 1px;
     }
+
+    /* ── S07: 8×8 Block Division ─────────────────────────────────────────── */
+    .blocks-demo {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 680px) {
+      .blocks-demo {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .blocks-canvas-wrap {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--bg-secondary);
+      line-height: 0;
+    }
+
+    .blocks-canvas-wrap canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      cursor: crosshair;
+    }
+
+    .block-detail {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      min-height: 140px;
+    }
+
+    .block-detail-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin: 0 0 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .block-detail-coords {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin: 0 0 10px;
+    }
+
+    .block-detail-body {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    #blockZoom {
+      display: block;
+      border-radius: 4px;
+      image-rendering: pixelated;
+      width: 96px;
+      height: 96px;
+    }
+
+    .block-channels {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .block-ch-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+
+    .block-ch-tab {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .block-ch-tab.active {
+      background: var(--accent-blue);
+      color: #fff;
+      border-color: var(--accent-blue);
+    }
+
+    .block-hint {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin: 10px 0 0;
+      text-align: center;
+    }
+
+    .block-hint kbd {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      background: var(--border);
+      border-radius: 3px;
+      padding: 1px 5px;
+      color: var(--text-secondary);
+    }
+
+    .blocks-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 160px;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+    }
+
+    /* ── Matrix Grid (shared S07, S08, S09) ──────────────────────────────── */
+    .matrix-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 1px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.55rem;
+      background: var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .matrix-cell {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1px;
+      line-height: 1;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .matrix-cell.zero {
+      opacity: 0.35;
+    }
+
+    .matrix-cell.dc-cell {
+      outline: 2px solid var(--accent-blue);
+      outline-offset: -2px;
+      z-index: 1;
+      position: relative;
+    }
+
+    /* ── S08: DCT Section ────────────────────────────────────────────────── */
+    .dct-demo {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+
+    @media (max-width: 680px) {
+      .dct-demo {
+        grid-template-columns: 1fr;
+      }
+      .dct-arrow {
+        text-align: center;
+      }
+    }
+
+    .matrix-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .matrix-panel-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 0;
+    }
+
+    .dct-arrow {
+      font-size: 1.4rem;
+      color: var(--text-muted);
+      padding: 0 4px;
+      white-space: nowrap;
+    }
+
+    .dct-controls {
+      display: flex;
+      justify-content: center;
+      margin-top: 16px;
+    }
+
+    .btn-animate {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 8px 20px;
+      border-radius: 8px;
+      border: none;
+      background: var(--accent-blue);
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .btn-animate:hover {
+      background: var(--accent-blue-dark);
+    }
+
+    .btn-animate:active {
+      transform: scale(0.97);
+    }
+
+    .dct-stats {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 14px;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    .dct-stats strong {
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .section-placeholder {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      text-align: center;
+      padding: 20px 0 0;
+    }
+
+    /* ── S09: Quantization Section ───────────────────────────────────────── */
+    .quant-demo {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .quant-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 12px;
+      align-items: center;
+      width: 100%;
+    }
+
+    @media (max-width: 680px) {
+      .quant-row {
+        grid-template-columns: 1fr;
+      }
+      .quant-op {
+        text-align: center;
+      }
+    }
+
+    .quant-op {
+      font-size: 1.8rem;
+      color: var(--text-muted);
+      padding: 0 4px;
+      text-align: center;
+    }
+
+    .quant-eq {
+      font-size: 1.8rem;
+      color: var(--text-muted);
+      text-align: center;
+      line-height: 1;
+    }
+
+    .quant-result-panel {
+      align-self: center;
+    }
+
+    .quant-zeros-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #f59e0b;
+      background: #fef3c7;
+      border-radius: 4px;
+      padding: 1px 5px;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .quant-slider-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 18px;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .quant-slider-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      min-width: 90px;
+    }
+
+    .quant-slider-label strong {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-primary);
+    }
+
+    .quality-slider {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--border);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .quality-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent-blue);
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+
+    .quality-slider::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent-blue);
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+
+    .quant-stats {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 10px;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    .quant-stats strong {
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
   </style>
 </head>
 <body>
@@ -1193,13 +1562,121 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     </section>
   </div>
   <div class="section-wrapper section-wrapper--alt">
-    <section id="s-blocks" class="section"><!-- Phase 06 --></section>
+    <section id="s-blocks" class="section">
+      <div class="section-header reveal">
+        <span class="section-number">07</span>
+        <h2 class="section-title">8×8 Block Division</h2>
+      </div>
+      <p class="section-body-text reveal">
+        JPEG doesn't compress the whole image at once. Instead, it divides your photo into a grid of tiny 8×8 pixel blocks — just 64 pixels each. For a 1080p image, that's over 32,000 blocks, each processed independently.
+      </p>
+      <p class="section-body-text reveal">
+        Why 8×8? It's a sweet spot — small enough to capture local patterns efficiently, but large enough to contain meaningful visual information. Every block goes through the same compression pipeline from here on. Click any block to follow its journey through the next steps.
+      </p>
+      <div class="demo-card reveal">
+        <div id="blocksDemo" class="blocks-demo">
+          <div class="blocks-canvas-wrap">
+            <canvas id="blocksCanvas"></canvas>
+            <div class="blocks-placeholder" id="blocksPlaceholder">Upload a photo to begin</div>
+          </div>
+          <div class="block-detail">
+            <p class="block-detail-title" id="blockDetailTitle">Click a block to inspect</p>
+            <p class="block-detail-coords" id="blockDetailCoords" style="display:none"></p>
+            <div class="block-detail-body" id="blockDetailBody" style="display:none">
+              <canvas id="blockZoom" width="96" height="96"></canvas>
+              <div class="block-channels">
+                <div class="block-ch-tabs">
+                  <button class="block-ch-tab active" data-ch="y">Y</button>
+                  <button class="block-ch-tab" data-ch="cb">Cb</button>
+                  <button class="block-ch-tab" data-ch="cr">Cr</button>
+                </div>
+                <div class="matrix-grid" id="blockMatrix"></div>
+              </div>
+            </div>
+            <p class="block-hint">Press <kbd>Space</kbd> for a random block</p>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
   <div class="section-wrapper">
-    <section id="s-dct" class="section"><!-- Phase 06 --></section>
+    <section id="s-dct" class="section">
+      <div class="section-header reveal">
+        <span class="section-number">08</span>
+        <h2 class="section-title">Discrete Cosine Transform</h2>
+      </div>
+      <p class="section-body-text reveal">
+        Here's where the math magic happens. The Discrete Cosine Transform takes each 8×8 block of pixel values and converts them into 64 frequency values — think of it like a graphic equalizer for images. Low frequencies (top-left) capture smooth gradients, high frequencies (bottom-right) capture sharp edges and fine details.
+      </p>
+      <p class="section-body-text reveal">
+        The brilliant insight: most of the visual energy in a typical photo block concentrates in just a few low-frequency values. The high-frequency coefficients are often tiny or zero. This is why JPEG can throw away data without you noticing — it's discarding frequencies your eyes barely register.
+      </p>
+      <div class="demo-card reveal">
+        <div class="dct-demo">
+          <div class="matrix-panel">
+            <p class="matrix-panel-label">Pixel values (Y channel)</p>
+            <div class="matrix-grid" id="dctPixelMatrix"></div>
+          </div>
+          <div class="dct-arrow">DCT&nbsp;→</div>
+          <div class="matrix-panel">
+            <p class="matrix-panel-label">Frequency coefficients</p>
+            <div class="matrix-grid" id="dctCoeffMatrix"></div>
+          </div>
+        </div>
+        <div class="dct-controls">
+          <button class="btn-animate" id="dctAnimateBtn">▶ Animate Transform</button>
+        </div>
+        <div class="dct-stats" id="dctStats">
+          <span>DC: <strong id="dctDC">—</strong></span>
+          <span>Non-zero AC: <strong id="dctNonZero">—</strong>/63</span>
+          <span>Energy in top-left: <strong id="dctEnergy">—</strong></span>
+        </div>
+        <p class="section-placeholder" id="dctPlaceholder">Select a block above to see its DCT transform</p>
+      </div>
+    </section>
   </div>
   <div class="section-wrapper section-wrapper--alt">
-    <section id="s-quant" class="section"><!-- Phase 06 --></section>
+    <section id="s-quant" class="section">
+      <div class="section-header reveal">
+        <span class="section-number">09</span>
+        <h2 class="section-title">Quantization</h2>
+      </div>
+      <p class="section-body-text reveal">
+        Quantization is where JPEG actually loses information — permanently. Each DCT coefficient is divided by a number from the quantization table, then rounded to the nearest integer. Large divisors for high-frequency coefficients crush small values to zero, while the important low-frequency values survive.
+      </p>
+      <p class="section-body-text reveal">
+        The quality slider you see on image editors controls exactly this step. Quality 100 means gentle quantization (large file, high quality). Quality 1 means aggressive quantization (tiny file, blocky mess). At quality 75 — a common default — about 70% of the coefficients become zero. That's a lot of data you no longer need to store.
+      </p>
+      <div class="demo-card reveal">
+        <div class="quant-demo" id="quantDemo">
+          <div class="quant-row">
+            <div class="matrix-panel">
+              <p class="matrix-panel-label">DCT coefficients</p>
+              <div class="matrix-grid" id="quantDctMatrix"></div>
+            </div>
+            <div class="quant-op">÷</div>
+            <div class="matrix-panel">
+              <p class="matrix-panel-label">Quantization table</p>
+              <div class="matrix-grid" id="quantTableMatrix"></div>
+            </div>
+          </div>
+          <div class="quant-eq">=</div>
+          <div class="matrix-panel quant-result-panel">
+            <p class="matrix-panel-label">Result <span class="quant-zeros-badge" id="quantZerosBadge"></span></p>
+            <div class="matrix-grid" id="quantResultMatrix"></div>
+          </div>
+        </div>
+        <div class="quant-slider-row">
+          <label class="quant-slider-label" for="qualitySlider">Quality: <strong id="qualityVal">75</strong></label>
+          <input type="range" id="qualitySlider" min="1" max="100" value="75" class="quality-slider">
+        </div>
+        <div class="quant-stats">
+          <span>Zeros: <strong id="quantZeros">—</strong>/64</span>
+          <span>Effective compression: ~<strong id="quantRatio">—</strong>:1</span>
+        </div>
+        <p class="section-placeholder" id="quantPlaceholder">Select a block above to see quantization</p>
+      </div>
+    </section>
   </div>
   <div class="section-wrapper">
     <section id="s-zigzag" class="section"><!-- Phase 07 --></section>
@@ -2433,6 +2910,416 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     }
 
     document.addEventListener('imageReady', initSection06);
+  }());
+
+  // ─── Block Algorithms (shared: S07, S08, S09) ──────────────────────────────
+  function extractBlock(channel, x, y, w) {
+    const block = new Float32Array(64);
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        block[row * 8 + col] = channel[(y + row) * w + (x + col)];
+      }
+    }
+    return block;
+  }
+
+  function dct2d(block) {
+    const N = 8;
+    const result = new Float32Array(64);
+    for (let u = 0; u < N; u++) {
+      for (let v = 0; v < N; v++) {
+        let sum = 0;
+        const cu = u === 0 ? 1 / Math.sqrt(2) : 1;
+        const cv = v === 0 ? 1 / Math.sqrt(2) : 1;
+        for (let x = 0; x < N; x++) {
+          for (let y = 0; y < N; y++) {
+            sum += (block[x * N + y] - 128) *
+              Math.cos((2 * x + 1) * u * Math.PI / (2 * N)) *
+              Math.cos((2 * y + 1) * v * Math.PI / (2 * N));
+          }
+        }
+        result[u * N + v] = 0.25 * cu * cv * sum;
+      }
+    }
+    return result;
+  }
+
+  const BASE_QT = [
+    16,11,10,16,24,40,51,61,
+    12,12,14,19,26,58,60,55,
+    14,13,16,24,40,57,69,56,
+    14,17,22,29,51,87,80,62,
+    18,22,37,56,68,109,103,77,
+    24,35,55,64,81,104,113,92,
+    49,64,78,87,103,121,120,101,
+    72,92,95,98,112,100,103,99
+  ];
+
+  function scaleQT(quality) {
+    const scale = quality < 50 ? Math.floor(5000 / quality) : 200 - quality * 2;
+    return BASE_QT.map(v => Math.max(1, Math.min(255, Math.round((v * scale + 50) / 100))));
+  }
+
+  function quantize(dctCoeffs, qt) {
+    return dctCoeffs.map((v, i) => Math.round(v / qt[i]));
+  }
+
+  function updateBlock(bx, by) {
+    if (!S.yChannel) return;
+    S.selBx = bx;
+    S.selBy = by;
+    S.block = {
+      y:  extractBlock(S.yChannel,  bx, by, S.w),
+      cb: extractBlock(S.cbChannel, bx, by, S.w),
+      cr: extractBlock(S.crChannel, bx, by, S.w),
+    };
+    S.dctC   = dct2d(S.block.y);
+    S.quantC = quantize(S.dctC, scaleQT(S.quality));
+    document.dispatchEvent(new CustomEvent('blockChanged'));
+  }
+
+  // ─── Section 07: 8×8 Block Division ────────────────────────────────────────
+  (function () {
+    let blocksCtx = null;
+    let hoverBx = -1, hoverBy = -1;
+    let activeChannel = 'y';
+
+    function ensureChannels() {
+      if (S.yChannel) return;
+      const src = S.img.data, N = S.w * S.h;
+      S.yChannel  = new Uint8Array(N);
+      S.cbChannel = new Uint8Array(N);
+      S.crChannel = new Uint8Array(N);
+      for (let i = 0; i < N; i++) {
+        const si = i * 4, r = src[si], g = src[si+1], b = src[si+2];
+        S.yChannel[i]  = Math.max(0, Math.min(255, Math.round( 0.299    * r + 0.587    * g + 0.114    * b)));
+        S.cbChannel[i] = Math.max(0, Math.min(255, Math.round(-0.168736 * r - 0.331264 * g + 0.5      * b + 128)));
+        S.crChannel[i] = Math.max(0, Math.min(255, Math.round( 0.5      * r - 0.418688 * g - 0.081312 * b + 128)));
+      }
+    }
+
+    function drawGrid() {
+      if (!blocksCtx) return;
+      blocksCtx.drawImage(S.origCanvas, 0, 0);
+      blocksCtx.strokeStyle = 'rgba(37,99,235,0.3)';
+      blocksCtx.lineWidth = 0.5;
+      for (let x = 0; x <= S.w; x += 8) {
+        blocksCtx.beginPath(); blocksCtx.moveTo(x, 0); blocksCtx.lineTo(x, S.h); blocksCtx.stroke();
+      }
+      for (let y = 0; y <= S.h; y += 8) {
+        blocksCtx.beginPath(); blocksCtx.moveTo(0, y); blocksCtx.lineTo(S.w, y); blocksCtx.stroke();
+      }
+      if (hoverBx >= 0) {
+        blocksCtx.fillStyle = 'rgba(37,99,235,0.15)';
+        blocksCtx.fillRect(hoverBx, hoverBy, 8, 8);
+      }
+      blocksCtx.save();
+      blocksCtx.strokeStyle = '#2563eb';
+      blocksCtx.lineWidth = 2;
+      blocksCtx.shadowColor = 'rgba(37,99,235,0.7)';
+      blocksCtx.shadowBlur = 6;
+      blocksCtx.strokeRect(S.selBx + 1, S.selBy + 1, 6, 6);
+      blocksCtx.restore();
+    }
+
+    function renderBlockMatrix() {
+      const el = document.getElementById('blockMatrix');
+      if (!S.block || !el) return;
+      const ch = activeChannel === 'y' ? S.block.y : activeChannel === 'cb' ? S.block.cb : S.block.cr;
+      el.innerHTML = '';
+      for (let i = 0; i < 64; i++) {
+        const v = Math.round(ch[i]);
+        const cell = document.createElement('div');
+        cell.className = 'matrix-cell';
+        cell.style.background = `rgb(${v},${v},${v})`;
+        cell.style.color = v > 128 ? 'rgba(0,0,0,0.75)' : 'rgba(255,255,255,0.9)';
+        cell.textContent = v;
+        el.appendChild(cell);
+      }
+    }
+
+    function renderBlockDetail() {
+      if (!S.block) return;
+      document.getElementById('blockDetailTitle').textContent = 'Selected Block';
+      const coords = document.getElementById('blockDetailCoords');
+      coords.textContent = `Block (${S.selBx / 8}, ${S.selBy / 8}) — pixel origin (${S.selBx}, ${S.selBy})`;
+      coords.style.display = '';
+      document.getElementById('blockDetailBody').style.display = '';
+
+      const zoomCanvas = document.getElementById('blockZoom');
+      const zctx = zoomCanvas.getContext('2d');
+      zctx.imageSmoothingEnabled = false;
+      const tmp = document.createElement('canvas');
+      tmp.width = 8; tmp.height = 8;
+      tmp.getContext('2d').drawImage(S.origCanvas, S.selBx, S.selBy, 8, 8, 0, 0, 8, 8);
+      zctx.clearRect(0, 0, 96, 96);
+      zctx.drawImage(tmp, 0, 0, 96, 96);
+
+      renderBlockMatrix();
+    }
+
+    function getBlockCoords(e) {
+      const canvas = document.getElementById('blocksCanvas');
+      const rect = canvas.getBoundingClientRect();
+      const px = Math.floor((e.clientX - rect.left) * (S.w / rect.width));
+      const py = Math.floor((e.clientY - rect.top) * (S.h / rect.height));
+      return {
+        bx: Math.max(0, Math.min(Math.floor(px / 8) * 8, S.w - 8)),
+        by: Math.max(0, Math.min(Math.floor(py / 8) * 8, S.h - 8)),
+      };
+    }
+
+    function initSection07() {
+      if (!S.img) return;
+      ensureChannels();
+
+      const canvas = document.getElementById('blocksCanvas');
+      canvas.width  = S.w;
+      canvas.height = S.h;
+      blocksCtx = canvas.getContext('2d');
+      document.getElementById('blocksPlaceholder').style.display = 'none';
+
+      canvas.addEventListener('mousemove', e => {
+        const { bx, by } = getBlockCoords(e);
+        hoverBx = bx; hoverBy = by;
+        drawGrid();
+      });
+      canvas.addEventListener('mouseleave', () => { hoverBx = -1; hoverBy = -1; drawGrid(); });
+      canvas.addEventListener('click', e => {
+        const { bx, by } = getBlockCoords(e);
+        updateBlock(bx, by);
+        drawGrid();
+      });
+
+      document.querySelectorAll('.block-ch-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.block-ch-tab').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          activeChannel = btn.dataset.ch;
+          renderBlockMatrix();
+        });
+      });
+
+      document.addEventListener('keydown', e => {
+        if (e.code !== 'Space') return;
+        const tag = document.activeElement?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON') return;
+        e.preventDefault();
+        updateBlock(
+          Math.floor(Math.random() * Math.floor(S.w / 8)) * 8,
+          Math.floor(Math.random() * Math.floor(S.h / 8)) * 8
+        );
+        drawGrid();
+      });
+
+      document.addEventListener('blockChanged', () => { drawGrid(); renderBlockDetail(); });
+
+      updateBlock(S.selBx, S.selBy);
+      drawGrid();
+    }
+
+    document.addEventListener('imageReady', initSection07);
+  }());
+
+  // ─── Section 08: Discrete Cosine Transform ─────────────────────────────────
+  (function () {
+    let dctAnimating = false;
+
+    function heatCell(v, maxVal, isFirst) {
+      const mag = maxVal > 0 ? Math.abs(v) / maxVal : 0;
+      const intensity = Math.round(mag * 255);
+      const cell = document.createElement('div');
+      cell.className = 'matrix-cell' + (isFirst ? ' dc-cell' : '');
+      cell.style.background = v >= 0
+        ? `rgb(${Math.round(intensity * 0.1)},${Math.round(intensity * 0.4)},${intensity})`
+        : `rgb(${intensity},${Math.round(intensity * 0.1)},${Math.round(intensity * 0.1)})`;
+      cell.style.color = mag > 0.35 ? '#fff' : '#64748b';
+      cell.textContent = Math.round(v);
+      return cell;
+    }
+
+    function renderPixelMatrix() {
+      const el = document.getElementById('dctPixelMatrix');
+      if (!el || !S.block) return;
+      el.innerHTML = '';
+      for (let i = 0; i < 64; i++) {
+        const v = Math.round(S.block.y[i]);
+        const cell = document.createElement('div');
+        cell.className = 'matrix-cell';
+        cell.style.background = `rgb(${v},${v},${v})`;
+        cell.style.color = v > 128 ? 'rgba(0,0,0,0.75)' : 'rgba(255,255,255,0.9)';
+        cell.textContent = v;
+        el.appendChild(cell);
+      }
+    }
+
+    function renderCoeffMatrix(coeffs) {
+      const el = document.getElementById('dctCoeffMatrix');
+      if (!el || !coeffs) return;
+      el.innerHTML = '';
+      const maxVal = Math.max(1, ...Array.from(coeffs).map(v => Math.abs(v)));
+      for (let i = 0; i < 64; i++) el.appendChild(heatCell(coeffs[i], maxVal, i === 0));
+    }
+
+    function renderDCTStats(coeffs) {
+      if (!coeffs) return;
+      document.getElementById('dctPlaceholder').style.display = 'none';
+      document.getElementById('dctDC').textContent = Math.round(coeffs[0]);
+      let nonZeroAC = 0, totalE = 0, tlE = 0;
+      for (let i = 0; i < 64; i++) {
+        totalE += coeffs[i] * coeffs[i];
+        if (i > 0 && Math.round(coeffs[i]) !== 0) nonZeroAC++;
+      }
+      for (let u = 0; u < 4; u++)
+        for (let v = 0; v < 4; v++)
+          tlE += coeffs[u * 8 + v] * coeffs[u * 8 + v];
+      document.getElementById('dctNonZero').textContent = nonZeroAC;
+      document.getElementById('dctEnergy').textContent =
+        totalE > 0 ? Math.round(tlE / totalE * 100) + '%' : '—';
+    }
+
+    document.addEventListener('blockChanged', () => {
+      if (!S.block) return;
+      dctAnimating = false;
+      document.getElementById('dctAnimateBtn').textContent = '▶ Animate Transform';
+      renderPixelMatrix();
+      renderCoeffMatrix(S.dctC);
+      renderDCTStats(S.dctC);
+    });
+
+    document.getElementById('dctAnimateBtn').addEventListener('click', () => {
+      if (!S.block || dctAnimating) return;
+      const btn = document.getElementById('dctAnimateBtn');
+      dctAnimating = true;
+      btn.textContent = '…';
+
+      // Reset coeff matrix cells to 0 before animating
+      const coeffEl = document.getElementById('dctCoeffMatrix');
+      const cells = Array.from(coeffEl.querySelectorAll('.matrix-cell'));
+      const targets = Array.from(S.dctC);
+      const maxVal = Math.max(1, ...targets.map(v => Math.abs(v)));
+      const duration = 1500;
+      const start = performance.now();
+
+      function animate(now) {
+        if (!dctAnimating) return;
+        const t = Math.min(1, (now - start) / duration);
+        const ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+        for (let i = 0; i < 64; i++) {
+          const cur = targets[i] * ease;
+          const mag = Math.abs(cur) / maxVal;
+          const intensity = Math.round(mag * 255);
+          const cell = cells[i];
+          if (!cell) continue;
+          cell.textContent = Math.round(cur);
+          cell.style.background = cur >= 0
+            ? `rgb(${Math.round(intensity * 0.1)},${Math.round(intensity * 0.4)},${intensity})`
+            : `rgb(${intensity},${Math.round(intensity * 0.1)},${Math.round(intensity * 0.1)})`;
+          cell.style.color = mag > 0.35 ? '#fff' : '#64748b';
+        }
+        if (t < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          dctAnimating = false;
+          btn.textContent = '↺ Replay';
+          renderCoeffMatrix(S.dctC);
+        }
+      }
+      requestAnimationFrame(animate);
+    });
+
+    document.addEventListener('imageReady', () => {
+      if (S.block) { renderPixelMatrix(); renderCoeffMatrix(S.dctC); renderDCTStats(S.dctC); }
+    });
+  }());
+
+  // ─── Section 09: Quantization ───────────────────────────────────────────────
+  (function () {
+    function renderQuantDCT() {
+      const el = document.getElementById('quantDctMatrix');
+      if (!el || !S.dctC) return;
+      el.innerHTML = '';
+      const maxVal = Math.max(1, ...Array.from(S.dctC).map(v => Math.abs(v)));
+      for (let i = 0; i < 64; i++) {
+        const v = S.dctC[i];
+        const mag = Math.abs(v) / maxVal;
+        const intensity = Math.round(mag * 255);
+        const cell = document.createElement('div');
+        cell.className = 'matrix-cell';
+        cell.style.background = v >= 0
+          ? `rgb(${Math.round(intensity * 0.1)},${Math.round(intensity * 0.4)},${intensity})`
+          : `rgb(${intensity},${Math.round(intensity * 0.1)},${Math.round(intensity * 0.1)})`;
+        cell.style.color = mag > 0.35 ? '#fff' : '#64748b';
+        cell.textContent = Math.round(v);
+        el.appendChild(cell);
+      }
+    }
+
+    function renderQuantTable(qt) {
+      const el = document.getElementById('quantTableMatrix');
+      if (!el) return;
+      el.innerHTML = '';
+      const maxVal = Math.max(...qt);
+      for (let i = 0; i < 64; i++) {
+        const v = qt[i];
+        const lightness = Math.round(250 - (v / maxVal) * 160);
+        const cell = document.createElement('div');
+        cell.className = 'matrix-cell';
+        cell.style.background = `rgb(${lightness},${lightness},${lightness})`;
+        cell.style.color = lightness < 140 ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.75)';
+        cell.textContent = v;
+        el.appendChild(cell);
+      }
+    }
+
+    function renderQuantResult(quantC) {
+      const el = document.getElementById('quantResultMatrix');
+      if (!el || !quantC) return;
+      el.innerHTML = '';
+      let zeros = 0;
+      for (let i = 0; i < 64; i++) {
+        const v = quantC[i];
+        const isZero = v === 0;
+        if (isZero) zeros++;
+        const cell = document.createElement('div');
+        cell.className = 'matrix-cell' + (isZero ? ' zero' : '');
+        if (isZero) {
+          cell.style.background = '#f8f9fb';
+          cell.style.color = '#cbd5e1';
+        } else {
+          cell.style.background = '#eff6ff';
+          cell.style.color = '#1e40af';
+          cell.style.fontWeight = '700';
+        }
+        cell.textContent = v;
+        el.appendChild(cell);
+      }
+      const pct = Math.round(zeros / 64 * 100);
+      document.getElementById('quantZerosBadge').textContent = pct + '% zeros';
+      document.getElementById('quantZeros').textContent = zeros;
+      document.getElementById('quantRatio').textContent = Math.round(64 / Math.max(1, 64 - zeros));
+      document.getElementById('quantPlaceholder').style.display = 'none';
+    }
+
+    function refreshQuant() {
+      if (!S.dctC) return;
+      const qt = scaleQT(S.quality);
+      S.quantC = quantize(S.dctC, qt);
+      renderQuantDCT();
+      renderQuantTable(qt);
+      renderQuantResult(S.quantC);
+      document.dispatchEvent(new CustomEvent('qualityChanged'));
+    }
+
+    document.getElementById('qualitySlider').addEventListener('input', e => {
+      S.quality = parseInt(e.target.value);
+      document.getElementById('qualityVal').textContent = S.quality;
+      refreshQuant();
+    });
+
+    document.addEventListener('blockChanged', refreshQuant);
+
+    document.addEventListener('imageReady', () => { if (S.block) refreshQuant(); });
   }());
 </script>
 </body>
