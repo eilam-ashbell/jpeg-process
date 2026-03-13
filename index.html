@@ -700,12 +700,13 @@
       left: 50%;
       margin-left: -100vmax;
       margin-top: -100vmax;
-      background: radial-gradient(circle, #ffffff 0%, rgba(255,255,255,0.85) 35%, rgba(255,255,255,0) 75%);
+      background-color: white;
+      /* background: radial-gradient(circle, #ffffff 0%, rgba(255,255,255,0.85) 35%, rgba(255,255,255,0) 75%); */
       pointer-events: none;
       z-index: 9999;
       opacity: 1;
       animation: cameraFlashExpand 50ms ease-out forwards;
-      transition: opacity 600ms ease-out;
+      transition: opacity 500ms ease-out;
     }
 
     .flash-overlay.fading {
@@ -2809,10 +2810,27 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     function playShutterClick() {
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-      const audio = new Audio('@freesound_community-camera-shutter-6305.mp3');
+      // Try to play the shutter sound file
+      const audio = new Audio('freesound_community-camera-shutter-6305.mp3');
       audio.volume = 0.7;
       audio.play().catch(() => {
-        // Silently fail if audio fails to play (e.g., on muted devices)
+        // Fallback: synthesize a quick click if file fails
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const now = ctx.currentTime;
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.frequency.value = 1200;
+          osc.type = 'sine';
+          gain.gain.setValueAtTime(0.6, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.1);
+        } catch (e) {
+          // Silent fail if Web Audio also unavailable
+        }
       });
     }
 
@@ -2869,8 +2887,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         const offsetTop = lensSection.getBoundingClientRect().top + window.scrollY;
         window.scrollTo({ top: offsetTop - 100, behavior: 'smooth' });
 
-        // Phase 3: once scroll is done, fade out (but hold white for at least 1000ms total)
-        waitForScrollEnd(() => fadeOutOverlay(overlay), 1000);
+        // Phase 3: once scroll is done, fade out (but hold white for at least 600ms total)
+        waitForScrollEnd(() => fadeOutOverlay(overlay), 600);
       }, 110);
     }
 
