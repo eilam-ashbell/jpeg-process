@@ -1639,6 +1639,388 @@
       color: var(--text-primary);
       font-family: 'JetBrains Mono', monospace;
     }
+
+    /* ── S13: Live JPEG Compression ─────────────────────────────────────────── */
+    .quality-preview-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .quality-canvas-wrap {
+      width: 100%;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 200px;
+      position: relative;
+    }
+
+    #qualityPreviewCanvas {
+      display: none;
+      max-width: 100%;
+      border-radius: 4px;
+    }
+
+    .quality-stats-row {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+    }
+
+    .quality-stats-row strong {
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .artifact-callouts {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--bg-accent);
+      border-radius: 8px;
+      border-left: 3px solid var(--accent-blue);
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      display: none;
+    }
+
+    .artifact-callouts.visible { display: block; }
+
+    .artifact-callouts ul {
+      margin: 6px 0 0 0;
+      padding-left: 18px;
+    }
+
+    .artifact-callouts li { margin-bottom: 3px; }
+
+    /* ── S14: Compare ────────────────────────────────────────────────────────── */
+    .compare-canvas-wrap {
+      position: relative;
+      width: 100%;
+      user-select: none;
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--bg-secondary);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 200px;
+    }
+
+    #compareCanvas {
+      display: none;
+      max-width: 100%;
+      cursor: col-resize;
+      touch-action: none;
+    }
+
+    .compare-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      padding: 4px 8px;
+    }
+
+    .artifact-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .artifact-badge {
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 1.5px solid var(--border);
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      background: var(--bg-secondary);
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+    }
+
+    .artifact-badge:hover {
+      border-color: var(--accent-blue);
+      background: var(--accent-blue-tint);
+      color: var(--accent-blue);
+    }
+
+    .artifact-tooltip {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      color: #f1f5f9;
+      font-size: 0.78rem;
+      padding: 8px 12px;
+      border-radius: 6px;
+      pointer-events: none;
+      z-index: 100;
+      display: none;
+      width: 200px;
+      text-align: center;
+      line-height: 1.4;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .artifact-badge:hover .artifact-tooltip { display: block; }
+
+    /* ── S15: Undo / Decode Pipeline ─────────────────────────────────────────── */
+    .decode-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .decode-canvas-wrap {
+      width: 100%;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 200px;
+      padding: 12px;
+      box-sizing: border-box;
+      position: relative;
+    }
+
+    #decodeCanvas {
+      display: none;
+      max-width: 100%;
+      border-radius: 4px;
+    }
+
+    #decodeTextVis {
+      display: none;
+      width: 100%;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.73rem;
+      color: var(--text-secondary);
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 200px;
+      overflow-y: auto;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .decode-step-indicators {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .decode-step-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: var(--bg-secondary);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .decode-step-btn.active {
+      border-color: var(--accent-blue);
+      background: var(--accent-blue);
+      color: white;
+    }
+
+    .decode-step-btn.done {
+      border-color: var(--accent-blue);
+      background: var(--accent-blue-tint);
+      color: var(--accent-blue);
+    }
+
+    .decode-nav {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .decode-nav button {
+      padding: 8px 18px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .decode-nav button:hover:not(:disabled) {
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+
+    .decode-nav button:disabled {
+      opacity: 0.38;
+      cursor: default;
+    }
+
+    .decode-nav .btn-apply {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+      color: white;
+      font-weight: 600;
+    }
+
+    .decode-nav .btn-apply:hover:not(:disabled) {
+      background: var(--accent-blue-dark);
+      border-color: var(--accent-blue-dark);
+    }
+
+    .decode-step-label {
+      text-align: center;
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      min-height: 20px;
+    }
+
+    .decode-step-desc {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-style: italic;
+      min-height: 18px;
+    }
+
+    /* ── Summary ─────────────────────────────────────────────────────────────── */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 14px;
+      margin-top: 8px;
+    }
+
+    .summary-card {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .summary-card:hover {
+      border-color: var(--accent-blue);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(37,99,235,0.13);
+    }
+
+    .summary-card-icon { font-size: 1.3rem; }
+
+    .summary-card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .summary-card-desc {
+      font-size: 0.79rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    .summary-card-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      margin-top: 4px;
+      align-self: flex-start;
+    }
+
+    .badge-lossy  { background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; }
+    .badge-lossless { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+    .badge-neutral  { background: var(--bg-secondary); color: var(--text-muted); border: 1px solid var(--border); }
+
+    .summary-card-size {
+      font-size: 0.73rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: auto;
+    }
+
+    .summary-final-card {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, var(--accent-blue-tint), var(--bg-primary));
+      border: 1.5px solid var(--accent-blue);
+      border-radius: var(--radius);
+      padding: 28px;
+      text-align: center;
+    }
+
+    .summary-final-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+    }
+
+    .summary-final-stats {
+      display: flex;
+      gap: 28px;
+      justify-content: center;
+      flex-wrap: wrap;
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+    }
+
+    .summary-final-stats strong {
+      color: var(--accent-blue);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.05em;
+    }
+
+    @media (max-width: 600px) {
+      .summary-grid {
+        display: flex;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
+        gap: 10px;
+        padding-bottom: 8px;
+      }
+      .summary-card {
+        min-width: 158px;
+        scroll-snap-align: start;
+        flex-shrink: 0;
+      }
+      .summary-final-card {
+        min-width: 280px;
+        scroll-snap-align: start;
+        flex-shrink: 0;
+      }
+    }
   </style>
 </head>
 <body>
@@ -2087,16 +2469,132 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     </section>
   </div>
   <div class="section-wrapper section-wrapper--alt">
-    <section id="s-quality" class="section"><!-- Phase 08 --></section>
+    <section id="s-quality" class="section">
+      <div class="section-header reveal">
+        <span class="section-number">13</span>
+        <h2 class="section-title">Live JPEG Compression</h2>
+      </div>
+      <p class="section-body-text reveal">
+        Now let's see the complete JPEG pipeline applied to your entire photo. Drag the quality slider to watch the file size change — and notice the visual artifacts that appear at lower quality settings. Below quality 20, you'll start seeing obvious 8×8 block boundaries — that's the block-based processing showing through.
+      </p>
+      <p class="section-body-text reveal">
+        Most photos look perfectly acceptable at quality 75–85. Below 50, artifacts become noticeable. The sweet spot depends on the image — photos with lots of smooth gradients (like skies) show banding sooner, while busy textures hide artifacts better.
+      </p>
+      <div class="demo-card reveal">
+        <div class="quality-preview-wrap">
+          <div class="quality-canvas-wrap">
+            <canvas id="qualityPreviewCanvas"></canvas>
+            <p class="section-placeholder" id="qualityPlaceholder">Upload a photo to see live JPEG compression</p>
+          </div>
+          <div class="quant-slider-row">
+            <label class="quant-slider-label" for="qualitySlider2">Quality: <strong id="qualityVal2">75</strong></label>
+            <input type="range" id="qualitySlider2" min="1" max="100" value="75" class="quality-slider">
+          </div>
+          <div class="quality-stats-row" id="qualityStatsRow" style="display:none">
+            <span>File size: <strong id="qualityFileSize">—</strong></span>
+            <span>Compression: <strong id="qualityRatio">—</strong>:1</span>
+            <span>Raw: <strong id="qualityRawSize">—</strong></span>
+          </div>
+          <div class="artifact-callouts" id="artifactCallouts">
+            <strong>▼ Visible artifacts at this quality level:</strong>
+            <ul id="artifactList"></ul>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
   <div class="section-wrapper">
-    <section id="s-compare" class="section"><!-- Phase 08 --></section>
+    <section id="s-compare" class="section">
+      <div class="section-header reveal">
+        <span class="section-number">14</span>
+        <h2 class="section-title">Original vs Compressed</h2>
+      </div>
+      <p class="section-body-text reveal">
+        Drag the divider to compare your original photo with the JPEG-compressed version. Pay attention to edges, gradients, and areas of solid color — those are where artifacts are most visible.
+      </p>
+      <p class="section-body-text reveal">
+        The four main JPEG artifacts each have a name. Blockiness: visible 8×8 grid. Color banding: smooth gradients become stair-stepped. Ringing: halos around sharp edges. Mosquito noise: shimmering patterns near high-contrast boundaries.
+      </p>
+      <div class="demo-card reveal">
+        <div class="compare-canvas-wrap" id="compareWrap">
+          <canvas id="compareCanvas"></canvas>
+          <p class="section-placeholder" id="comparePlaceholder">Upload a photo to compare original vs compressed</p>
+        </div>
+        <div class="compare-labels">
+          <span>← Original</span>
+          <span>Compressed →</span>
+        </div>
+        <div class="quant-slider-row">
+          <label class="quant-slider-label" for="qualitySlider3">Quality: <strong id="qualityVal3">75</strong></label>
+          <input type="range" id="qualitySlider3" min="1" max="100" value="75" class="quality-slider">
+        </div>
+        <div class="artifact-badges">
+          <div class="artifact-badge">Blockiness
+            <div class="artifact-tooltip">Visible 8×8 grid squares appear, especially in smooth areas. Stronger at lower quality settings.</div>
+          </div>
+          <div class="artifact-badge">Color Banding
+            <div class="artifact-tooltip">Smooth gradients (sky, skin) become stair-stepped bands of solid color instead of smooth transitions.</div>
+          </div>
+          <div class="artifact-badge">Ringing
+            <div class="artifact-tooltip">Bright halos or dark fringes appear around sharp edges, like text on a white background.</div>
+          </div>
+          <div class="artifact-badge">Mosquito Noise
+            <div class="artifact-tooltip">Shimmering, buzzing noise patterns appear near high-contrast edges and fine details.</div>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
   <div class="section-wrapper section-wrapper--alt">
-    <section id="s-undo" class="section"><!-- Phase 08 --></section>
+    <section id="s-undo" class="section">
+      <div class="section-header reveal">
+        <span class="section-number">15</span>
+        <h2 class="section-title">Undo JPEG: Decode Pipeline</h2>
+      </div>
+      <p class="section-body-text reveal">
+        When your computer opens a JPEG file, it runs the entire pipeline in reverse. Let's watch each step reconstruct the image — and see exactly where the permanently lost information creates the differences you noticed in the comparison.
+      </p>
+      <p class="section-body-text reveal">
+        The lossless steps (Huffman and RLE decoding) recover perfectly — no information was lost there. But dequantization can only multiply by the quantization table values; it can't recover the fractions that were rounded away. That permanent loss is why JPEG is called a "lossy" format.
+      </p>
+      <div class="demo-card reveal">
+        <div class="decode-layout">
+          <div class="decode-canvas-wrap">
+            <canvas id="decodeCanvas"></canvas>
+            <pre id="decodeTextVis"></pre>
+            <p class="section-placeholder" id="decodePlaceholder">Upload a photo and select a block to use the decode pipeline</p>
+          </div>
+          <div class="decode-step-indicators">
+            <button class="decode-step-btn active" data-step="0">1</button>
+            <button class="decode-step-btn" data-step="1">2</button>
+            <button class="decode-step-btn" data-step="2">3</button>
+            <button class="decode-step-btn" data-step="3">4</button>
+            <button class="decode-step-btn" data-step="4">5</button>
+          </div>
+          <div class="decode-step-label" id="decodeStepLabel">Step 1 of 5: Huffman Decode</div>
+          <div class="decode-step-desc" id="decodeStepDesc">Binary codes → RLE token stream. Perfectly lossless.</div>
+          <div class="decode-nav">
+            <button id="decodePrevBtn" disabled>◄ Previous</button>
+            <button id="decodeApplyBtn" class="btn-apply" disabled>Apply Step</button>
+            <button id="decodeNextBtn" disabled>Next ►</button>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
   <div class="section-wrapper">
-    <section id="s-summary" class="section"><!-- Phase 08 --></section>
+    <section id="s-summary" class="section">
+      <div class="section-header reveal">
+        <span class="section-number">★</span>
+        <h2 class="section-title">The Complete JPEG Pipeline</h2>
+      </div>
+      <p class="section-body-text reveal">
+        You've just walked through every step of one of the most widely-used compression algorithms in history. JPEG's brilliance isn't any single technique — it's the combination: each step exploits a different property of human vision to strip away data we barely notice.
+      </p>
+      <div class="summary-grid reveal" id="summaryGrid">
+        <!-- Cards injected by JS -->
+      </div>
+    </section>
   </div>
 </main>
 
@@ -4207,6 +4705,574 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     }
 
     document.addEventListener('rleChanged', refreshHuffman);
+  }());
+
+  // ─── Quality Slider Sync (S13 / S14 → S09) ──────────────────────────────────
+  // Keep sliders 2 & 3 in sync whenever qualityChanged fires
+  document.addEventListener('qualityChanged', () => {
+    const v = S.quality;
+    const s2 = document.getElementById('qualitySlider2');
+    const s3 = document.getElementById('qualitySlider3');
+    const v2 = document.getElementById('qualityVal2');
+    const v3 = document.getElementById('qualityVal3');
+    if (s2 && +s2.value !== v) s2.value = v;
+    if (s3 && +s3.value !== v) s3.value = v;
+    if (v2) v2.textContent = v;
+    if (v3) v3.textContent = v;
+  });
+
+  // Helper: trigger the S09 quality-change chain from a new value
+  function setQuality(q) {
+    S.quality = q;
+    const s1 = document.getElementById('qualitySlider');
+    const v1 = document.getElementById('qualityVal');
+    if (s1) s1.value = q;
+    if (v1) v1.textContent = q;
+    // Manually kick off the S09 chain (refreshQuant is in that IIFE scope,
+    // but S09 re-reads S.quality when blockChanged fires; dispatch qualityChanged
+    // which the zigzag/rle/huffman chain listens to, plus re-quantize via blockChanged)
+    if (S.dctC) {
+      S.quantC = quantize(S.dctC, scaleQT(q));
+      document.dispatchEvent(new CustomEvent('qualityChanged'));
+    }
+  }
+
+  // ─── Section 13: Live JPEG Compression ──────────────────────────────────────
+  (function () {
+    let _debounce = null;
+
+    function fmtBytes(b) {
+      if (b >= 1048576) return (b / 1048576).toFixed(2) + ' MB';
+      if (b >= 1024)    return (b / 1024).toFixed(1) + ' KB';
+      return b + ' B';
+    }
+
+    function updateArtifacts(q) {
+      const el = document.getElementById('artifactCallouts');
+      const ul = document.getElementById('artifactList');
+      if (!el || !ul) return;
+      const items = [];
+      if (q < 80) items.push('Slight color banding in gradients');
+      if (q < 50) items.push('Visible 8×8 block boundaries');
+      if (q < 30) items.push('Strong blocking artifacts, color bleeding');
+      if (q < 15) items.push('Severe degradation, mosaic-like appearance');
+      ul.innerHTML = items.map(i => `<li>${i}</li>`).join('');
+      el.classList.toggle('visible', items.length > 0);
+    }
+
+    function render() {
+      if (!S.origCanvas) return;
+      const canvas = document.getElementById('qualityPreviewCanvas');
+      const phEl   = document.getElementById('qualityPlaceholder');
+      const stats  = document.getElementById('qualityStatsRow');
+      if (!canvas) return;
+
+      const q       = S.quality;
+      const dataURL = S.origCanvas.toDataURL('image/jpeg', q / 100);
+      const cBytes  = Math.round(dataURL.length * 3 / 4);
+
+      const img = new Image();
+      img.onload = () => {
+        canvas.width  = img.width;
+        canvas.height = img.height;
+        canvas.getContext('2d').drawImage(img, 0, 0);
+      };
+      img.src = dataURL;
+
+      if (phEl)  phEl.style.display  = 'none';
+      canvas.style.display = 'block';
+
+      if (stats) {
+        stats.style.display = '';
+        const raw   = S.w * S.h * 3;
+        const ratio = Math.max(1, Math.round(raw / cBytes));
+        document.getElementById('qualityFileSize').textContent = fmtBytes(cBytes);
+        document.getElementById('qualityRatio').textContent    = ratio;
+        document.getElementById('qualityRawSize').textContent  = fmtBytes(raw);
+      }
+      updateArtifacts(q);
+    }
+
+    function debounce() {
+      clearTimeout(_debounce);
+      _debounce = setTimeout(render, 20);
+    }
+
+    document.getElementById('qualitySlider2')?.addEventListener('input', e => {
+      const q = parseInt(e.target.value);
+      document.getElementById('qualityVal2').textContent = q;
+      setQuality(q);
+      debounce();
+    });
+
+    document.addEventListener('imageReady',     () => render());
+    document.addEventListener('qualityChanged', debounce);
+  }());
+
+  // ─── Section 14: Original vs Compressed ─────────────────────────────────────
+  (function () {
+    let _divX     = 0.5;   // fraction 0–1
+    let _dragging = false;
+    let _debounce = null;
+    let _compImg  = null;
+
+    function loadCompressed(cb) {
+      if (!S.origCanvas) return;
+      const url = S.origCanvas.toDataURL('image/jpeg', S.quality / 100);
+      const img = new Image();
+      img.onload = () => { _compImg = img; if (cb) cb(); };
+      img.src = url;
+    }
+
+    function draw() {
+      const canvas = document.getElementById('compareCanvas');
+      if (!canvas || !S.origCanvas || !_compImg) return;
+      const W = canvas.width, H = canvas.height;
+      const ctx = canvas.getContext('2d');
+      const sx  = Math.round(W * _divX);
+
+      // Left: original
+      ctx.drawImage(S.origCanvas, 0, 0, W, H);
+
+      // Right: compressed
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(sx, 0, W - sx, H);
+      ctx.clip();
+      ctx.drawImage(_compImg, 0, 0, W, H);
+      ctx.restore();
+
+      // Divider line
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+      ctx.lineWidth   = 2;
+      ctx.shadowColor = 'rgba(0,0,0,0.5)';
+      ctx.shadowBlur  = 4;
+      ctx.beginPath();
+      ctx.moveTo(sx, 0);
+      ctx.lineTo(sx, H);
+      ctx.stroke();
+      ctx.restore();
+
+      // Handle circle
+      ctx.save();
+      ctx.fillStyle   = 'white';
+      ctx.shadowColor = 'rgba(0,0,0,0.3)';
+      ctx.shadowBlur  = 6;
+      ctx.beginPath();
+      ctx.arc(sx, H / 2, 14, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      ctx.save();
+      ctx.fillStyle = 'var(--accent-blue)';
+      ctx.font      = 'bold 13px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('◄►', sx, H / 2);
+      ctx.restore();
+
+      // Labels
+      ctx.save();
+      ctx.font      = 'bold 11px Inter, sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.shadowColor = 'rgba(0,0,0,0.6)';
+      ctx.shadowBlur  = 3;
+      if (sx > 70)        { ctx.textAlign = 'left';  ctx.fillText('Original',   8,      20); }
+      if (W - sx > 100)   { ctx.textAlign = 'right'; ctx.fillText('Compressed', W - 8,  20); }
+      ctx.restore();
+    }
+
+    function setup() {
+      if (!S.origCanvas) return;
+      const canvas = document.getElementById('compareCanvas');
+      const phEl   = document.getElementById('comparePlaceholder');
+      if (!canvas) return;
+
+      const scale = Math.min(1, 480 / S.w);
+      canvas.width  = Math.round(S.w * scale);
+      canvas.height = Math.round(S.h * scale);
+      canvas.style.display = 'block';
+      if (phEl) phEl.style.display = 'none';
+
+      loadCompressed(draw);
+    }
+
+    function getPct(clientX) {
+      const canvas = document.getElementById('compareCanvas');
+      if (!canvas) return 0.5;
+      const r = canvas.getBoundingClientRect();
+      return Math.max(0, Math.min(1, (clientX - r.left) / r.width));
+    }
+
+    const canvas = document.getElementById('compareCanvas');
+    if (canvas) {
+      canvas.addEventListener('mousedown',  e => { _dragging = true;  _divX = getPct(e.clientX); draw(); });
+      canvas.addEventListener('touchstart', e => { _dragging = true;  _divX = getPct(e.touches[0].clientX); draw(); e.preventDefault(); }, { passive: false });
+    }
+    document.addEventListener('mousemove',  e => { if (!_dragging) return; _divX = getPct(e.clientX);           draw(); });
+    document.addEventListener('mouseup',    () => { _dragging = false; });
+    document.addEventListener('touchmove',  e => { if (!_dragging) return; _divX = getPct(e.touches[0].clientX); draw(); e.preventDefault(); }, { passive: false });
+    document.addEventListener('touchend',   () => { _dragging = false; });
+
+    document.getElementById('qualitySlider3')?.addEventListener('input', e => {
+      const q = parseInt(e.target.value);
+      document.getElementById('qualityVal3').textContent = q;
+      setQuality(q);
+      clearTimeout(_debounce);
+      _debounce = setTimeout(() => loadCompressed(draw), 20);
+    });
+
+    document.addEventListener('imageReady', setup);
+    document.addEventListener('qualityChanged', () => {
+      if (!S.origCanvas) return;
+      clearTimeout(_debounce);
+      _debounce = setTimeout(() => loadCompressed(draw), 20);
+    });
+  }());
+
+  // ─── Section 15: Undo JPEG / Decode Pipeline ────────────────────────────────
+  (function () {
+    const STEPS = [
+      { label: 'Step 1 of 5: Huffman Decode',  desc: 'Binary codes → RLE token stream. Perfectly lossless — every bit recovers exactly.' },
+      { label: 'Step 2 of 5: RLE Decode',       desc: 'Expand zero runs → full 64-value zigzag sequence. All zeros restored.' },
+      { label: 'Step 3 of 5: Dequantize',       desc: 'Multiply by QT table. Fractions lost during quantization are gone forever — this is where quality loss lives.' },
+      { label: 'Step 4 of 5: Inverse DCT',      desc: 'Frequency domain → pixel domain. Reconstructs (approximate) pixel values from DCT coefficients.' },
+      { label: 'Step 5 of 5: YCbCr → RGB',      desc: 'Convert back to RGB. Final reconstructed image — lossy where quantization discarded data.' },
+    ];
+
+    let _step       = 0;
+    let _done       = new Set();
+    let _decodedY   = null;
+    let _inProgress = false;
+
+    function idct2d(coeffs) {
+      const N = 8, out = new Float32Array(64);
+      for (let x = 0; x < N; x++) {
+        for (let y = 0; y < N; y++) {
+          let sum = 0;
+          for (let u = 0; u < N; u++) {
+            const cu = u === 0 ? 1 / Math.sqrt(2) : 1;
+            for (let v = 0; v < N; v++) {
+              const cv = v === 0 ? 1 / Math.sqrt(2) : 1;
+              sum += cu * cv * coeffs[u * N + v] *
+                Math.cos((2 * x + 1) * u * Math.PI / (2 * N)) *
+                Math.cos((2 * y + 1) * v * Math.PI / (2 * N));
+            }
+          }
+          out[x * N + y] = sum * 0.25 + 128;
+        }
+      }
+      return out;
+    }
+
+    function updateNav() {
+      const stepLabel = document.getElementById('decodeStepLabel');
+      const stepDesc  = document.getElementById('decodeStepDesc');
+      const prevBtn   = document.getElementById('decodePrevBtn');
+      const nextBtn   = document.getElementById('decodeNextBtn');
+      const applyBtn  = document.getElementById('decodeApplyBtn');
+      const hasData   = !!(S.rleSeq);
+
+      if (stepLabel) stepLabel.textContent = STEPS[_step].label;
+      if (stepDesc)  stepDesc.textContent  = STEPS[_step].desc;
+      if (prevBtn)   prevBtn.disabled  = _step === 0;
+      if (nextBtn)   nextBtn.disabled  = _step === STEPS.length - 1;
+      if (applyBtn) {
+        const alreadyDone = _done.has(_step);
+        applyBtn.disabled   = !hasData || _inProgress || alreadyDone;
+        applyBtn.textContent = alreadyDone ? '✓ Applied' : 'Apply Step';
+      }
+
+      document.querySelectorAll('.decode-step-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', i === _step);
+        btn.classList.toggle('done',   _done.has(i) && i !== _step);
+      });
+    }
+
+    function showText(content) {
+      const canvas  = document.getElementById('decodeCanvas');
+      const textEl  = document.getElementById('decodeTextVis');
+      const phEl    = document.getElementById('decodePlaceholder');
+      if (canvas) canvas.style.display = 'none';
+      if (textEl) { textEl.style.display = ''; textEl.textContent = content; }
+      if (phEl)   phEl.style.display = 'none';
+    }
+
+    function getCanvas() {
+      const canvas  = document.getElementById('decodeCanvas');
+      const textEl  = document.getElementById('decodeTextVis');
+      const phEl    = document.getElementById('decodePlaceholder');
+      if (textEl) textEl.style.display = 'none';
+      if (phEl)   phEl.style.display   = 'none';
+      if (canvas) { canvas.style.display = 'block'; canvas.style.maxWidth = '100%'; }
+      return canvas;
+    }
+
+    function done() {
+      _done.add(_step);
+      _inProgress = false;
+      updateNav();
+    }
+
+    function applyStep() {
+      if (!S.rleSeq || _inProgress || _done.has(_step)) return;
+      _inProgress = true;
+      updateNav();
+
+      if (_step === 0) {
+        // Show RLE tokens
+        let lines = ['// Huffman decoded → RLE token stream:\n'];
+        S.rleSeq.forEach((t, i) => {
+          const s = t.value === 'EOB' ? 'EOB' : `(zeros: ${t.skip}, value: ${t.value})`;
+          lines.push(`[${String(i).padStart(2, '0')}]  ${s}`);
+        });
+        showText(lines.join('\n'));
+        done();
+
+      } else if (_step === 1) {
+        // Show expanded zigzag sequence
+        const seq   = S.zzSeq;
+        let   lines = ['// RLE decoded → 64-value zigzag sequence:\n'];
+        for (let i = 0; i < seq.length; i += 8) {
+          lines.push(seq.slice(i, i + 8).map(v => String(v).padStart(5)).join(' '));
+        }
+        const nz = seq.filter(v => v !== 0).length;
+        lines.push(`\n// Non-zero: ${nz}/64   Zeros: ${64 - nz}/64`);
+        showText(lines.join('\n'));
+        done();
+
+      } else if (_step === 2) {
+        // Dequantize: show 8×8 block heatmap
+        const qt   = scaleQT(S.quality);
+        const deq  = S.quantC.map((v, i) => v * qt[i]);
+        const canvas = getCanvas();
+        if (!canvas) { done(); return; }
+
+        const CELL = 36;
+        canvas.width  = 8 * CELL;
+        canvas.height = 8 * CELL;
+        const ctx    = canvas.getContext('2d');
+        const maxAbs = Math.max(1, ...deq.map(Math.abs));
+
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            const v = deq[r * 8 + c];
+            const t = Math.min(1, Math.abs(v) / maxAbs);
+            let fillR, fillG, fillB;
+            if (v > 0)     { fillR = Math.round(37 + (218 - 37) * t); fillG = Math.round(99 * (1 - t)); fillB = Math.round(235 * (1 - t * 0.8)); }
+            else if (v < 0){ fillR = Math.round(239 * t); fillG = Math.round(68 * (1 - t)); fillB = Math.round(68 * t); }
+            else           { fillR = fillG = fillB = 242; }
+
+            ctx.fillStyle = `rgb(${fillR},${fillG},${fillB})`;
+            ctx.fillRect(c * CELL, r * CELL, CELL, CELL);
+            ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+            ctx.strokeRect(c * CELL, r * CELL, CELL, CELL);
+
+            ctx.fillStyle    = t > 0.45 ? 'rgba(255,255,255,0.9)' : '#1e293b';
+            ctx.font         = '8px JetBrains Mono, monospace';
+            ctx.textAlign    = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(Math.round(v), c * CELL + CELL / 2, r * CELL + CELL / 2);
+          }
+        }
+        done();
+
+      } else if (_step === 3) {
+        // IDCT on all blocks → reconstructed grayscale image
+        if (!S.yChannel) { done(); return; }
+        const canvas = getCanvas();
+        if (!canvas)  { done(); return; }
+
+        const W = S.w, H = S.h;
+        canvas.width  = W;
+        canvas.height = H;
+        const ctx  = canvas.getContext('2d');
+        const imgD = ctx.createImageData(W, H);
+        const data = imgD.data;
+
+        const qt = scaleQT(S.quality);
+        _decodedY = new Uint8Array(W * H);
+
+        // Seed with original Y to show progressive updates
+        for (let i = 0; i < W * H; i++) {
+          data[i * 4] = data[i * 4 + 1] = data[i * 4 + 2] = S.yChannel[i];
+          data[i * 4 + 3] = 255;
+        }
+        ctx.putImageData(imgD, 0, 0);
+
+        const blocks = [];
+        for (let by = 0; by < H; by += 8)
+          for (let bx = 0; bx < W; bx += 8)
+            blocks.push({ bx, by });
+
+        let i = 0;
+        function chunk() {
+          const end = Math.min(i + 50, blocks.length);
+          for (; i < end; i++) {
+            const { bx, by } = blocks[i];
+            const blk   = extractBlock(S.yChannel, bx, by, W);
+            const dctC  = dct2d(blk);
+            const deqC  = dctC.map((v, j) => Math.round(v / qt[j]) * qt[j]);
+            const pixels = idct2d(deqC);
+            for (let row = 0; row < 8; row++) {
+              for (let col = 0; col < 8; col++) {
+                const px = bx + col, py = by + row;
+                if (px >= W || py >= H) continue;
+                const val = Math.max(0, Math.min(255, Math.round(pixels[row * 8 + col])));
+                _decodedY[py * W + px] = val;
+                const idx = (py * W + px) * 4;
+                data[idx] = data[idx + 1] = data[idx + 2] = val;
+              }
+            }
+          }
+          ctx.putImageData(imgD, 0, 0);
+          if (i < blocks.length) {
+            setTimeout(chunk, 0);
+          } else {
+            done();
+          }
+        }
+        chunk();
+
+      } else if (_step === 4) {
+        // YCbCr → RGB
+        if (!S.yChannel) { done(); return; }
+        const canvas = getCanvas();
+        if (!canvas)  { done(); return; }
+
+        const W = S.w, H = S.h;
+        canvas.width  = W;
+        canvas.height = H;
+        const ctx   = canvas.getContext('2d');
+        const imgD  = ctx.createImageData(W, H);
+        const data  = imgD.data;
+        const yData = _decodedY || S.yChannel;
+
+        for (let idx = 0; idx < W * H; idx++) {
+          const y   = yData[idx];
+          const cb  = S.cbChannel[idx];
+          const cr  = S.crChannel[idx];
+          data[idx * 4]     = Math.max(0, Math.min(255, Math.round(y + 1.402    * (cr - 128))));
+          data[idx * 4 + 1] = Math.max(0, Math.min(255, Math.round(y - 0.344136 * (cb - 128) - 0.714136 * (cr - 128))));
+          data[idx * 4 + 2] = Math.max(0, Math.min(255, Math.round(y + 1.772    * (cb - 128))));
+          data[idx * 4 + 3] = 255;
+        }
+        ctx.putImageData(imgD, 0, 0);
+        done();
+      }
+    }
+
+    document.getElementById('decodeApplyBtn')?.addEventListener('click', applyStep);
+
+    document.getElementById('decodePrevBtn')?.addEventListener('click', () => {
+      if (_step > 0) { _step--; updateNav(); }
+    });
+
+    document.getElementById('decodeNextBtn')?.addEventListener('click', () => {
+      if (_step < STEPS.length - 1) { _step++; updateNav(); }
+    });
+
+    document.querySelectorAll('.decode-step-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        _step = parseInt(btn.getAttribute('data-step'));
+        updateNav();
+      });
+    });
+
+    function reset() {
+      _step = 0; _done = new Set(); _decodedY = null; _inProgress = false;
+      const canvas = document.getElementById('decodeCanvas');
+      const textEl = document.getElementById('decodeTextVis');
+      const phEl   = document.getElementById('decodePlaceholder');
+      if (canvas) canvas.style.display = 'none';
+      if (textEl) textEl.style.display = 'none';
+      if (phEl)   { phEl.style.display = ''; phEl.textContent = 'Upload a photo and select a block to use the decode pipeline'; }
+      updateNav();
+    }
+
+    document.addEventListener('imageReady',   reset);
+    document.addEventListener('blockChanged', () => {
+      // Reset done-state but keep step position so user can re-apply
+      _done = new Set(); _decodedY = null; _inProgress = false;
+      const canvas = document.getElementById('decodeCanvas');
+      const textEl = document.getElementById('decodeTextVis');
+      if (canvas) canvas.style.display = 'none';
+      if (textEl) textEl.style.display = 'none';
+      const phEl = document.getElementById('decodePlaceholder');
+      if (phEl) { phEl.style.display = ''; phEl.textContent = 'Click "Apply Step" to see this decode step'; }
+      updateNav();
+    });
+    document.addEventListener('rleChanged',   () => { if (!_inProgress) updateNav(); });
+  }());
+
+  // ─── Summary Section ──────────────────────────────────────────────────────────
+  (function () {
+    const CARDS = [
+      { num: '01', id: 's-raw',     icon: '📷', title: 'RGB Pixels',    type: '',         desc: 'Your photo starts as raw color data',      size: '~36 MB'  },
+      { num: '02', id: 's-ycbcr',   icon: '🎨', title: 'YCbCr',         type: 'lossless', desc: 'Separate brightness from color',            size: '~36 MB'  },
+      { num: '03', id: 's-chroma',  icon: '📉', title: 'Chroma Sub.',    type: 'lossy',    desc: 'Shrink color channels by 75%',              size: '~18 MB'  },
+      { num: '04', id: 's-blocks',  icon: '⬛', title: '8×8 Blocks',    type: '',         desc: 'Divide into independent squares',           size: '~18 MB'  },
+      { num: '05', id: 's-dct',     icon: '〰️', title: 'DCT',            type: 'lossless', desc: 'Convert to frequency patterns',             size: '~18 MB'  },
+      { num: '06', id: 's-quant',   icon: '✂️', title: 'Quantization',   type: 'lossy',    desc: 'Round away high-frequency details',         size: '~3 MB'   },
+      { num: '07', id: 's-zigzag',  icon: '↗️', title: 'Zigzag Scan',    type: '',         desc: 'Read coefficients in diagonal order',       size: '~3 MB'   },
+      { num: '08', id: 's-rle',     icon: '🗜️', title: 'RLE',            type: 'lossless', desc: 'Compress runs of zeros',                    size: '~800 KB' },
+      { num: '09', id: 's-huffman', icon: '🌳', title: 'Huffman',        type: 'lossless', desc: 'Shortest codes for common values',          size: '~300 KB' },
+      { num: '10', id: 's-quality', icon: '📁', title: 'JPEG File',      type: '',         desc: 'Final compressed result on disk',           size: '~300 KB' },
+    ];
+
+    function fmtBytes(b) {
+      if (b >= 1048576) return (b / 1048576).toFixed(1) + ' MB';
+      if (b >= 1024)    return (b / 1024).toFixed(1) + ' KB';
+      return b + ' B';
+    }
+
+    function build() {
+      const grid = document.getElementById('summaryGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      CARDS.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'summary-card';
+        const bc = c.type === 'lossy' ? 'badge-lossy' : c.type === 'lossless' ? 'badge-lossless' : 'badge-neutral';
+        const bt = c.type === 'lossy' ? 'Lossy'       : c.type === 'lossless' ? 'Lossless'       : '—';
+        div.innerHTML = `
+          <div class="summary-card-icon">${c.icon}</div>
+          <div class="summary-card-title">${c.num}. ${c.title}</div>
+          <div class="summary-card-desc">${c.desc}</div>
+          <span class="summary-card-badge ${bc}">${bt}</span>
+          <div class="summary-card-size">${c.size}</div>`;
+        div.addEventListener('click', () => {
+          document.getElementById(c.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        grid.appendChild(div);
+      });
+
+      // Final stats card
+      const fc = document.createElement('div');
+      fc.className = 'summary-final-card';
+      let rawStr = '36 MB', compStr = '~300 KB', ratio = '~120';
+      if (S.origCanvas) {
+        const raw  = S.w * S.h * 3;
+        const url  = S.origCanvas.toDataURL('image/jpeg', S.quality / 100);
+        const comp = Math.round(url.length * 3 / 4);
+        rawStr  = fmtBytes(raw);
+        compStr = fmtBytes(comp);
+        ratio   = Math.max(1, Math.round(raw / comp));
+      }
+      fc.innerHTML = `
+        <div class="summary-final-title">Your photo: ${rawStr} → ${compStr}</div>
+        <div class="summary-final-stats">
+          <span>Compression ratio: <strong>${ratio}:1</strong></span>
+          <span>Quality setting: <strong>${S.quality}</strong></span>
+          <span>Lossy steps: <strong>2</strong> (Chroma Sub. + Quantization)</span>
+        </div>`;
+      grid.appendChild(fc);
+    }
+
+    document.addEventListener('imageReady',     build);
+    document.addEventListener('qualityChanged', () => { if (S.img) build(); });
+    build(); // render with defaults before any image is uploaded
   }());
 </script>
 </body>
