@@ -1345,6 +1345,300 @@
       color: var(--text-primary);
       font-family: 'JetBrains Mono', monospace;
     }
+
+    /* ── S10: Zigzag Scanning ───────────────────────────────────────────────── */
+    .zz-layout {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (max-width: 680px) {
+      .zz-layout { grid-template-columns: 1fr; }
+    }
+
+    .zz-layout .matrix-panel {
+      max-width: 200px;
+    }
+
+    .zz-right {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .seq-row {
+      display: flex;
+      gap: 3px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      margin-top: 6px;
+      min-height: 36px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .seq-cell {
+      flex: 0 0 auto;
+      min-width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 600;
+      border: 1px solid var(--border);
+    }
+
+    .seq-cell.nonzero {
+      background: var(--accent-blue-tint);
+      color: #1e40af;
+      font-weight: 700;
+    }
+
+    .seq-cell.zero {
+      background: #f8f9fb;
+      color: #cbd5e1;
+    }
+
+    .seq-cell.new {
+      animation: seqPop 0.15s ease;
+    }
+
+    @keyframes seqPop {
+      0%   { transform: scale(0.7); opacity: 0; }
+      100% { transform: scale(1);   opacity: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .seq-cell.new { animation: none !important; }
+    }
+
+    .matrix-cell.zz-cursor {
+      outline: 2px solid var(--accent-blue) !important;
+      outline-offset: -2px;
+      background: var(--accent-blue-tint) !important;
+      color: #1e40af !important;
+      font-weight: 700 !important;
+      position: relative;
+      z-index: 1;
+    }
+
+    .matrix-cell.zz-visited {
+      background: #eff6ff !important;
+      color: #3b82f6 !important;
+    }
+
+    .matrix-cell.zz-unvisited {
+      opacity: 0.35;
+    }
+
+    /* ── S11: Run-Length Encoding ───────────────────────────────────────────── */
+    .rle-demo {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .rle-seq-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 0 0 6px;
+    }
+
+    .rle-before-seq {
+      display: flex;
+      gap: 3px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      min-height: 36px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .rle-before-cell {
+      flex: 0 0 28px;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      transition: flex-basis 0.35s ease, width 0.35s ease, min-width 0.35s ease,
+                  opacity 0.35s ease, padding 0.35s ease, margin 0.35s ease,
+                  border-width 0.35s ease;
+    }
+
+    .rle-before-cell.nz {
+      background: var(--accent-blue-tint);
+      color: #1e40af;
+      font-weight: 700;
+    }
+
+    .rle-before-cell.z {
+      background: #f8f9fb;
+      color: #cbd5e1;
+    }
+
+    .rle-before-cell.collapsing {
+      flex-basis: 0 !important;
+      width: 0 !important;
+      opacity: 0;
+      padding: 0 !important;
+      margin: 0 !important;
+      border-width: 0 !important;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .rle-before-cell { transition: none !important; }
+    }
+
+    .rle-tokens-row {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      min-height: 40px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .rle-token {
+      flex: 0 0 auto;
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 600;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+    }
+
+    .rle-token.animated {
+      animation: tokenIn 0.2s ease both;
+    }
+
+    .rle-token.eob {
+      background: var(--accent-blue);
+      color: #fff;
+      border-color: var(--accent-blue-dark);
+    }
+
+    @keyframes tokenIn {
+      0%   { opacity: 0; transform: scale(0.8) translateY(4px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .rle-token.animated { animation: none !important; }
+    }
+
+    .rle-stats {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 10px;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    .rle-stats strong {
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ── S12: Huffman Coding ────────────────────────────────────────────────── */
+    .huffman-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .huffman-tree-wrap {
+      width: 100%;
+      overflow-x: auto;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      padding: 8px 0;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    #huffmanTreeSvg {
+      display: block;
+      min-height: 60px;
+    }
+
+    .huffman-table-wrap {
+      overflow-x: auto;
+    }
+
+    .huffman-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    .huffman-table th {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 6px 12px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+
+    .huffman-table td {
+      padding: 5px 12px;
+      border-bottom: 1px solid var(--bg-secondary);
+      color: var(--text-primary);
+    }
+
+    .huffman-table tbody tr:nth-child(even) td {
+      background: var(--bg-secondary);
+    }
+
+    .huffman-table tbody tr:hover td,
+    .huffman-table tbody tr.huff-highlight td {
+      background: var(--accent-blue-tint) !important;
+      cursor: default;
+    }
+
+    .huffman-table td.code-cell {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      font-size: 0.78rem;
+      color: var(--accent-blue);
+      letter-spacing: 0.04em;
+    }
+
+    .huffman-stats {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 10px;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    .huffman-stats strong {
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
   </style>
 </head>
 <body>
@@ -1679,13 +1973,118 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     </section>
   </div>
   <div class="section-wrapper">
-    <section id="s-zigzag" class="section"><!-- Phase 07 --></section>
+    <section id="s-zigzag" class="section">
+      <div class="section-header reveal">
+        <span class="section-number">10</span>
+        <h2 class="section-title">Zigzag Scanning</h2>
+      </div>
+      <p class="section-body-text reveal">
+        The quantized 8×8 matrix still has two dimensions, but the compressed file is a one-dimensional stream of bytes. JPEG reads the matrix in a zigzag pattern — starting at the top-left corner and sweeping diagonally back and forth to the bottom-right.
+      </p>
+      <p class="section-body-text reveal">
+        Why zigzag? After quantization, the non-zero values cluster in the top-left (low frequencies) and zeros fill the bottom-right (high frequencies). The zigzag path puts all those zeros at the end of the sequence, making them easy to compress in the next step.
+      </p>
+      <div class="demo-card reveal">
+        <div class="zz-layout">
+          <div class="matrix-panel">
+            <p class="matrix-panel-label">Quantized matrix</p>
+            <div class="matrix-grid" id="zzMatrix"></div>
+          </div>
+          <div class="zz-right">
+            <div class="dct-controls" style="justify-content:flex-start">
+              <button class="btn-animate" id="zzPlayBtn" disabled>▶ Play Scan</button>
+            </div>
+            <div>
+              <p class="matrix-panel-label">1D sequence</p>
+              <div class="seq-row" id="zzSeqRow"></div>
+            </div>
+          </div>
+        </div>
+        <div class="dct-stats" id="zzStats" style="display:none">
+          <span>Non-zero values: <strong id="zzNonZero">—</strong></span>
+          <span>Trailing zeros: <strong id="zzTrailing">—</strong></span>
+        </div>
+        <p class="section-placeholder" id="zzPlaceholder">Select a block above to see zigzag scan</p>
+      </div>
+    </section>
   </div>
   <div class="section-wrapper section-wrapper--alt">
-    <section id="s-rle" class="section"><!-- Phase 07 --></section>
+    <section id="s-rle" class="section">
+      <div class="section-header reveal">
+        <span class="section-number">11</span>
+        <h2 class="section-title">Run-Length Encoding</h2>
+      </div>
+      <p class="section-body-text reveal">
+        Now that all those zeros are clustered at the end of the sequence, JPEG uses a lossless trick called Run-Length Encoding. Instead of storing each zero individually, it counts consecutive zeros and writes a single pair: (number of zeros, next non-zero value). Runs of 15+ zeros are written as (15, 0).
+      </p>
+      <p class="section-body-text reveal">
+        The sequence ends with a special EOB (End of Block) marker that says "everything after this is zero." For a heavily quantized block, this marker might appear after just a handful of values — compressing 64 numbers down to maybe 10 or 15 tokens.
+      </p>
+      <div class="demo-card reveal">
+        <div class="rle-demo">
+          <div>
+            <p class="rle-seq-label">Before RLE (zigzag sequence)</p>
+            <div class="rle-before-seq" id="rleBeforeRow"></div>
+          </div>
+          <div class="dct-controls" style="justify-content:flex-start">
+            <button class="btn-animate" id="rlePlayBtn" disabled>▶ Apply RLE</button>
+          </div>
+          <div id="rleAfterWrap" style="display:none">
+            <p class="rle-seq-label">After RLE</p>
+            <div class="rle-tokens-row" id="rleTokensRow"></div>
+          </div>
+        </div>
+        <div class="rle-stats" id="rleStats" style="display:none">
+          <span>Tokens before: <strong id="rleBefore">—</strong></span>
+          <span>Tokens after: <strong id="rleAfterCount">—</strong></span>
+          <span>Reduction: <strong id="rleReduction">—</strong></span>
+        </div>
+        <p class="section-placeholder" id="rlePlaceholder">Select a block above to see RLE encoding</p>
+      </div>
+    </section>
   </div>
   <div class="section-wrapper">
-    <section id="s-huffman" class="section"><!-- Phase 07 --></section>
+    <section id="s-huffman" class="section">
+      <div class="section-header reveal">
+        <span class="section-number">12</span>
+        <h2 class="section-title">Huffman Coding</h2>
+      </div>
+      <p class="section-body-text reveal">
+        The last step is Huffman coding — a lossless technique that replaces each RLE token with a binary code. Frequent values get very short codes (maybe 2–3 bits), while rare values get longer codes. It's the same principle that makes Morse code efficient — "E" is just a single dot.
+      </p>
+      <p class="section-body-text reveal">
+        The result is a stream of bits that's as compact as possible without losing any information. Combined with all the previous steps, your original 36 MB of raw pixel data is now compressed to around 300 KB — over 100 times smaller. That's the magic of JPEG.
+      </p>
+      <div class="demo-card reveal">
+        <div class="huffman-layout">
+          <div>
+            <p class="matrix-panel-label">Huffman tree</p>
+            <div class="huffman-tree-wrap">
+              <svg id="huffmanTreeSvg"></svg>
+            </div>
+          </div>
+          <div class="huffman-table-wrap">
+            <table class="huffman-table">
+              <thead>
+                <tr>
+                  <th>Symbol</th>
+                  <th>Freq</th>
+                  <th>Code</th>
+                  <th>Bits</th>
+                </tr>
+              </thead>
+              <tbody id="huffmanTableBody"></tbody>
+            </table>
+          </div>
+          <div class="huffman-stats" id="huffmanStats" style="display:none">
+            <span>Total bits: <strong id="huffTotalBits">—</strong></span>
+            <span>Avg bits/symbol: <strong id="huffAvgBits">—</strong></span>
+            <span>vs. fixed 8-bit: <strong id="huffSavings">—</strong> savings</span>
+          </div>
+        </div>
+        <p class="section-placeholder" id="huffmanPlaceholder">Select a block above to see Huffman coding</p>
+      </div>
+    </section>
   </div>
   <div class="section-wrapper section-wrapper--alt">
     <section id="s-quality" class="section"><!-- Phase 08 --></section>
@@ -3320,6 +3719,494 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     document.addEventListener('blockChanged', refreshQuant);
 
     document.addEventListener('imageReady', () => { if (S.block) refreshQuant(); });
+  }());
+
+  // ─── Section 10: Zigzag Scanning ─────────────────────────────────────────
+  (function () {
+    const ZIGZAG = [
+       0,  1,  8, 16,  9,  2,  3, 10,
+      17, 24, 32, 25, 18, 11,  4,  5,
+      12, 19, 26, 33, 40, 48, 41, 34,
+      27, 20, 13,  6,  7, 14, 21, 28,
+      35, 42, 49, 56, 57, 50, 43, 36,
+      29, 22, 15, 23, 30, 37, 44, 51,
+      58, 59, 52, 45, 38, 31, 39, 46,
+      53, 60, 61, 54, 47, 55, 62, 63
+    ];
+
+    // zzPos[matrixIdx] = position in zigzag sequence
+    const zzPos = new Array(64);
+    for (let i = 0; i < 64; i++) zzPos[ZIGZAG[i]] = i;
+
+    let zzTimer = null;
+    let zzAutoPlayed = false;
+
+    function zigzagScan(q) { return ZIGZAG.map(i => q[i]); }
+
+    function buildZZMatrix(quantC) {
+      const el = document.getElementById('zzMatrix');
+      if (!el) return;
+      el.innerHTML = '';
+      for (let i = 0; i < 64; i++) {
+        const v = quantC[i];
+        const cell = document.createElement('div');
+        cell.className = 'matrix-cell';
+        cell.style.background = v === 0 ? '#f8f9fb' : '#eff6ff';
+        cell.style.color      = v === 0 ? '#cbd5e1' : '#1e40af';
+        if (v !== 0) cell.style.fontWeight = '700';
+        cell.textContent = v;
+        el.appendChild(cell);
+      }
+    }
+
+    function updateZZMatrix(quantC, activeStep) {
+      const el = document.getElementById('zzMatrix');
+      if (!el || !quantC) return;
+      const cells = el.querySelectorAll('.matrix-cell');
+      for (let i = 0; i < 64; i++) {
+        const cell = cells[i];
+        const pos  = zzPos[i];
+        cell.classList.remove('zz-cursor', 'zz-visited', 'zz-unvisited');
+        cell.style.background  = '';
+        cell.style.color       = '';
+        cell.style.fontWeight  = '';
+        if (activeStep >= 0) {
+          if (pos === activeStep)    cell.classList.add('zz-cursor');
+          else if (pos < activeStep) cell.classList.add('zz-visited');
+          else                       cell.classList.add('zz-unvisited');
+        } else {
+          const v = quantC[i];
+          cell.style.background = v === 0 ? '#f8f9fb' : '#eff6ff';
+          cell.style.color      = v === 0 ? '#cbd5e1' : '#1e40af';
+          if (v !== 0) cell.style.fontWeight = '700';
+        }
+      }
+    }
+
+    function renderZZSeq(seq) {
+      const row = document.getElementById('zzSeqRow');
+      if (!row) return;
+      row.innerHTML = '';
+      seq.forEach(v => {
+        const c = document.createElement('div');
+        c.className = 'seq-cell ' + (v === 0 ? 'zero' : 'nonzero');
+        c.textContent = v;
+        row.appendChild(c);
+      });
+    }
+
+    function appendSeqCell(v) {
+      const row = document.getElementById('zzSeqRow');
+      if (!row) return;
+      const c = document.createElement('div');
+      c.className = 'seq-cell new ' + (v === 0 ? 'zero' : 'nonzero');
+      c.textContent = v;
+      row.appendChild(c);
+      setTimeout(() => c.classList.remove('new'), 200);
+    }
+
+    function updateZZStats() {
+      if (!S.zzSeq) return;
+      let lastNz = -1;
+      S.zzSeq.forEach((v, i) => { if (v !== 0) lastNz = i; });
+      const nonZero  = S.zzSeq.filter(v => v !== 0).length;
+      const trailing = lastNz >= 0 ? 63 - lastNz : 64;
+      const nzEl = document.getElementById('zzNonZero');
+      const tzEl = document.getElementById('zzTrailing');
+      if (nzEl) nzEl.textContent = nonZero;
+      if (tzEl) tzEl.textContent = trailing;
+      const statsEl = document.getElementById('zzStats');
+      const phEl    = document.getElementById('zzPlaceholder');
+      if (statsEl) statsEl.style.display = '';
+      if (phEl)    phEl.style.display    = 'none';
+    }
+
+    function stopZZ() {
+      if (zzTimer) { clearInterval(zzTimer); zzTimer = null; }
+    }
+
+    function playScan() {
+      if (!S.quantC) return;
+      stopZZ();
+      const btn = document.getElementById('zzPlayBtn');
+      const row = document.getElementById('zzSeqRow');
+      if (btn) btn.disabled = true;
+      if (row) row.innerHTML = '';
+
+      let step = 0;
+      updateZZMatrix(S.quantC, step);
+
+      zzTimer = setInterval(() => {
+        if (!pageVisible) return;
+        appendSeqCell(S.zzSeq[step]);
+        step++;
+        if (step < 64) {
+          updateZZMatrix(S.quantC, step);
+        } else {
+          clearInterval(zzTimer); zzTimer = null;
+          updateZZMatrix(S.quantC, -1);
+          if (btn) { btn.textContent = '↺ Replay Scan'; btn.disabled = false; }
+          updateZZStats();
+        }
+      }, 80);
+    }
+
+    function refreshZigzag() {
+      if (!S.quantC) return;
+      stopZZ();
+      S.zzSeq = zigzagScan(S.quantC);
+      buildZZMatrix(S.quantC);
+      renderZZSeq(S.zzSeq);
+      updateZZStats();
+      const btn = document.getElementById('zzPlayBtn');
+      if (btn) { btn.textContent = '▶ Play Scan'; btn.disabled = false; }
+      document.dispatchEvent(new CustomEvent('zigzagChanged'));
+    }
+
+    const zzBtn = document.getElementById('zzPlayBtn');
+    if (zzBtn) zzBtn.addEventListener('click', playScan);
+
+    document.addEventListener('qualityChanged', refreshZigzag);
+
+    // Auto-play once on first scroll into view
+    const zzSec = document.getElementById('s-zigzag');
+    if (zzSec) {
+      const obs = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting && !zzAutoPlayed && S.quantC) {
+          zzAutoPlayed = true;
+          setTimeout(playScan, 600);
+          obs.disconnect();
+        }
+      }, { threshold: 0.35 });
+      obs.observe(zzSec);
+    }
+  }());
+
+  // ─── Section 11: Run-Length Encoding ─────────────────────────────────────
+  (function () {
+    let rleAutoPlayed = false;
+
+    function rleEncode(seq) {
+      const tokens = [];
+      let zeros = 0;
+      let lastNz = seq.length - 1;
+      while (lastNz > 0 && seq[lastNz] === 0) lastNz--;
+      for (let i = 0; i <= lastNz; i++) {
+        if (seq[i] === 0) {
+          zeros++;
+          if (zeros === 16) { tokens.push({ skip: 15, value: 0 }); zeros = 0; }
+        } else {
+          tokens.push({ skip: zeros, value: seq[i] }); zeros = 0;
+        }
+      }
+      tokens.push({ skip: 0, value: 'EOB' });
+      return tokens;
+    }
+
+    function renderBeforeSeq(seq) {
+      const el = document.getElementById('rleBeforeRow');
+      if (!el) return;
+      el.innerHTML = '';
+      seq.forEach(v => {
+        const c = document.createElement('div');
+        c.className = 'rle-before-cell ' + (v === 0 ? 'z' : 'nz');
+        c.textContent = v;
+        el.appendChild(c);
+      });
+    }
+
+    function renderAfterTokens(tokens, staggered) {
+      const el   = document.getElementById('rleTokensRow');
+      const wrap = document.getElementById('rleAfterWrap');
+      if (!el || !wrap) return;
+      wrap.style.display = '';
+      el.innerHTML = '';
+      tokens.forEach((t, i) => {
+        const c = document.createElement('div');
+        const isEOB = t.value === 'EOB';
+        c.className = 'rle-token' + (isEOB ? ' eob' : '') + (staggered ? ' animated' : '');
+        c.textContent = isEOB ? 'EOB' : `(${t.skip},${t.value})`;
+        if (staggered) c.style.animationDelay = (i * 60) + 'ms';
+        el.appendChild(c);
+      });
+    }
+
+    function updateRLEStats(beforeLen, afterLen) {
+      const statsEl = document.getElementById('rleStats');
+      const bEl = document.getElementById('rleBefore');
+      const aEl = document.getElementById('rleAfterCount');
+      const rEl = document.getElementById('rleReduction');
+      if (bEl) bEl.textContent = beforeLen;
+      if (aEl) aEl.textContent = afterLen;
+      if (rEl) rEl.textContent = Math.round((1 - afterLen / beforeLen) * 100) + '%';
+      if (statsEl) statsEl.style.display = '';
+    }
+
+    function applyRLEAnim() {
+      if (!S.zzSeq || !S.rleSeq) return;
+      const beforeRow = document.getElementById('rleBeforeRow');
+      if (!beforeRow) return;
+      const wrap = document.getElementById('rleAfterWrap');
+      if (wrap) wrap.style.display = 'none';
+
+      const zeroCells = beforeRow.querySelectorAll('.rle-before-cell.z');
+      zeroCells.forEach((c, i) => {
+        setTimeout(() => c.classList.add('collapsing'), i * 8);
+      });
+
+      const delay = Math.min(zeroCells.length * 8 + 380, 1100);
+      setTimeout(() => {
+        renderAfterTokens(S.rleSeq, true);
+        updateRLEStats(S.zzSeq.length, S.rleSeq.length);
+        const btn = document.getElementById('rlePlayBtn');
+        if (btn) { btn.textContent = '↺ Replay RLE'; btn.disabled = false; }
+      }, delay);
+    }
+
+    function refreshRLE() {
+      if (!S.zzSeq) return;
+      S.rleSeq = rleEncode(S.zzSeq);
+      renderBeforeSeq(S.zzSeq);
+      const wrap    = document.getElementById('rleAfterWrap');
+      const statsEl = document.getElementById('rleStats');
+      const phEl    = document.getElementById('rlePlaceholder');
+      const btn     = document.getElementById('rlePlayBtn');
+      if (wrap)    wrap.style.display    = 'none';
+      if (statsEl) statsEl.style.display = 'none';
+      if (phEl)    phEl.style.display    = 'none';
+      if (btn)     { btn.textContent = '▶ Apply RLE'; btn.disabled = false; }
+      document.dispatchEvent(new CustomEvent('rleChanged'));
+    }
+
+    document.addEventListener('zigzagChanged', refreshRLE);
+
+    const rleBtn = document.getElementById('rlePlayBtn');
+    if (rleBtn) {
+      rleBtn.addEventListener('click', () => {
+        if (!S.zzSeq) return;
+        rleBtn.disabled = true;
+        renderBeforeSeq(S.zzSeq);
+        setTimeout(applyRLEAnim, 50);
+      });
+    }
+
+    // Auto-play once on first scroll into view
+    const rleSec = document.getElementById('s-rle');
+    if (rleSec) {
+      const obs = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting && !rleAutoPlayed && S.zzSeq) {
+          rleAutoPlayed = true;
+          setTimeout(applyRLEAnim, 600);
+          obs.disconnect();
+        }
+      }, { threshold: 0.35 });
+      obs.observe(rleSec);
+    }
+  }());
+
+  // ─── Section 12: Huffman Coding ──────────────────────────────────────────
+  (function () {
+    let _root = null, _codes = {};
+
+    function buildTree(tokens) {
+      const freq = {};
+      tokens.forEach(t => {
+        const k = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
+        freq[k] = (freq[k] || 0) + 1;
+      });
+      let nodes = Object.entries(freq).map(([s, c]) => ({ s, c, l: null, r: null }));
+      if (nodes.length === 0) return null;
+      if (nodes.length === 1) return { s: null, c: nodes[0].c, l: nodes[0], r: null };
+      while (nodes.length > 1) {
+        nodes.sort((a, b) => a.c - b.c);
+        const left = nodes.shift(), right = nodes.shift();
+        nodes.push({ s: null, c: left.c + right.c, l: left, r: right });
+      }
+      return nodes[0];
+    }
+
+    function genCodes(node, prefix, out) {
+      if (!node) return out;
+      if (node.s !== null) { out[node.s] = prefix || '0'; return out; }
+      genCodes(node.l, prefix + '0', out);
+      genCodes(node.r, prefix + '1', out);
+      return out;
+    }
+
+    function countLeaves(n) {
+      if (!n) return 0;
+      if (!n.l && !n.r) return 1;
+      return countLeaves(n.l) + countLeaves(n.r);
+    }
+
+    function esc(s)     { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function escAttr(s) { return String(s).replace(/"/g,'&quot;'); }
+
+    function renderTree(root) {
+      const svg = document.getElementById('huffmanTreeSvg');
+      if (!svg || !root) return;
+
+      const LEAF_W = 52, LH = 64, LEAF_R = 18, INT_R = 10, PAD = 24;
+      const leafCount = Math.max(countLeaves(root), 1);
+      const svgW = Math.max(400, leafCount * LEAF_W + PAD * 2);
+
+      const pos = new Map();
+      let maxD = 0;
+      function assign(n, x0, x1, d) {
+        if (d > maxD) maxD = d;
+        pos.set(n, { x: (x0 + x1) / 2, d });
+        if (n.l && n.r) {
+          const split = x0 + (x1 - x0) * countLeaves(n.l) / countLeaves(n);
+          assign(n.l, x0, split, d + 1);
+          assign(n.r, split, x1, d + 1);
+        } else if (n.l) {
+          assign(n.l, x0, x1, d + 1);
+        }
+      }
+      assign(root, 0, leafCount, 0);
+
+      const svgH = (maxD + 1) * LH + PAD * 2;
+      svg.setAttribute('width',   svgW);
+      svg.setAttribute('height',  svgH);
+      svg.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`);
+
+      const px = n => (PAD + pos.get(n).x * (svgW - PAD * 2) / leafCount).toFixed(1);
+      const py = n => (PAD + pos.get(n).d * LH);
+
+      let html = '';
+
+      function drawEdges(n) {
+        if (!n) return;
+        const x1 = px(n), y1 = py(n);
+        if (n.l) {
+          const x2 = px(n.l), y2 = py(n.l);
+          const mx = ((+x1 + +x2) / 2 - 8).toFixed(1), my = ((y1 + y2) / 2 + 4).toFixed(1);
+          html += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#cbd5e1" stroke-width="1.5"/>`;
+          html += `<text x="${mx}" y="${my}" font-size="10" fill="#94a3b8" font-family="JetBrains Mono,monospace">0</text>`;
+          drawEdges(n.l);
+        }
+        if (n.r) {
+          const x2 = px(n.r), y2 = py(n.r);
+          const mx = ((+x1 + +x2) / 2 + 4).toFixed(1), my = ((y1 + y2) / 2 + 4).toFixed(1);
+          html += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#cbd5e1" stroke-width="1.5"/>`;
+          html += `<text x="${mx}" y="${my}" font-size="10" fill="#94a3b8" font-family="JetBrains Mono,monospace">1</text>`;
+          drawEdges(n.r);
+        }
+      }
+      drawEdges(root);
+
+      function drawNodes(n) {
+        if (!n) return;
+        const x = px(n), y = py(n);
+        const isLeaf = !n.l && !n.r;
+        if (isLeaf) {
+          const label  = n.s === 'EOB' ? 'EOB' : n.s.slice(1, -1); // strip parens
+          const parts  = label.split(',');
+          html += `<g class="huff-leaf" data-sym="${escAttr(n.s)}" style="cursor:pointer">`;
+          html += `<circle cx="${x}" cy="${y}" r="${LEAF_R}" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>`;
+          if (parts.length === 2) {
+            html += `<text x="${x}" y="${y - 2}" text-anchor="middle" font-size="8" fill="#1e40af" font-family="JetBrains Mono,monospace" pointer-events="none">${esc(parts[0])},</text>`;
+            html += `<text x="${x}" y="${y + 8}" text-anchor="middle" font-size="8" fill="#1e40af" font-family="JetBrains Mono,monospace" pointer-events="none">${esc(parts[1])}</text>`;
+          } else {
+            html += `<text x="${x}" y="${y + 4}" text-anchor="middle" font-size="8" fill="#1e40af" font-family="JetBrains Mono,monospace" pointer-events="none">${esc(label)}</text>`;
+          }
+          html += `</g>`;
+        } else {
+          html += `<circle cx="${x}" cy="${y}" r="${INT_R}" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5"/>`;
+          html += `<text x="${x}" y="${y + 3}" text-anchor="middle" font-size="8" fill="#94a3b8" font-family="Inter,sans-serif" pointer-events="none">${n.c}</text>`;
+        }
+        drawNodes(n.l);
+        drawNodes(n.r);
+      }
+      drawNodes(root);
+
+      svg.innerHTML = html;
+
+      svg.querySelectorAll('.huff-leaf').forEach(g => {
+        const sym = g.getAttribute('data-sym');
+        g.addEventListener('mouseenter', () => setHighlight(sym));
+        g.addEventListener('mouseleave', () => setHighlight(null));
+      });
+    }
+
+    function setHighlight(sym) {
+      const svg = document.getElementById('huffmanTreeSvg');
+      if (svg) {
+        svg.querySelectorAll('.huff-leaf').forEach(g => {
+          const active = !!(sym && g.getAttribute('data-sym') === sym);
+          const c = g.querySelector('circle');
+          const texts = g.querySelectorAll('text');
+          if (c) {
+            c.setAttribute('fill', active ? '#2563eb' : '#dbeafe');
+            c.setAttribute('stroke-width', active ? '2.5' : '1.5');
+          }
+          texts.forEach(t => t.setAttribute('fill', active ? '#fff' : '#1e40af'));
+        });
+      }
+      const tbody = document.getElementById('huffmanTableBody');
+      if (tbody) {
+        tbody.querySelectorAll('tr').forEach(tr => {
+          tr.classList.toggle('huff-highlight', !!(sym && tr.getAttribute('data-sym') === sym));
+        });
+      }
+    }
+
+    function renderTable(codes, freq) {
+      const tbody = document.getElementById('huffmanTableBody');
+      if (!tbody) return;
+      const entries = Object.entries(codes).sort((a, b) => (freq[b[0]] || 0) - (freq[a[0]] || 0));
+      tbody.innerHTML = '';
+      entries.forEach(([sym, code]) => {
+        const tr = document.createElement('tr');
+        tr.setAttribute('data-sym', sym);
+        tr.innerHTML = `<td class="text-code">${esc(sym)}</td>` +
+                       `<td>${freq[sym] || 0}</td>` +
+                       `<td class="code-cell">${esc(code)}</td>` +
+                       `<td>${code.length}</td>`;
+        tr.addEventListener('mouseenter', () => setHighlight(sym));
+        tr.addEventListener('mouseleave', () => setHighlight(null));
+        tbody.appendChild(tr);
+      });
+    }
+
+    function updateHuffStats(tokens, codes) {
+      let totalBits = 0;
+      tokens.forEach(t => {
+        const k = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
+        if (codes[k]) totalBits += codes[k].length;
+      });
+      const n = tokens.length;
+      const avg      = n > 0 ? (totalBits / n).toFixed(1) : 0;
+      const savings  = n > 0 ? Math.round((1 - totalBits / (n * 8)) * 100) : 0;
+      const el1 = document.getElementById('huffTotalBits');
+      const el2 = document.getElementById('huffAvgBits');
+      const el3 = document.getElementById('huffSavings');
+      const el4 = document.getElementById('huffmanStats');
+      if (el1) el1.textContent = totalBits.toLocaleString();
+      if (el2) el2.textContent = avg;
+      if (el3) el3.textContent = savings + '%';
+      if (el4) el4.style.display = '';
+    }
+
+    function refreshHuffman() {
+      if (!S.rleSeq) return;
+      const phEl = document.getElementById('huffmanPlaceholder');
+      if (phEl) phEl.style.display = 'none';
+
+      const freq = {};
+      S.rleSeq.forEach(t => {
+        const k = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
+        freq[k] = (freq[k] || 0) + 1;
+      });
+
+      _root  = buildTree(S.rleSeq);
+      _codes = _root ? genCodes(_root, '', {}) : {};
+      renderTree(_root);
+      renderTable(_codes, freq);
+      updateHuffStats(S.rleSeq, _codes);
+    }
+
+    document.addEventListener('rleChanged', refreshHuffman);
   }());
 </script>
 </body>
