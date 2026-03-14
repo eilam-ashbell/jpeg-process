@@ -3728,9 +3728,11 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         const frac   = i / (RAY_COUNT - 1);
         const yStart = IMG_H * (1 - frac * 2);
         const yEnd   = -yStart * (SEN_H / IMG_H);
+        // Clamp the lens entry point so all rays pass through the lens disc
+        const yLens  = Math.sign(yStart) * Math.min(Math.abs(yStart), R_LENS * 0.88);
         const pts = [
           new THREE.Vector3(0, yStart, IMG_Z),
-          new THREE.Vector3(0, yStart, LENS_Z),
+          new THREE.Vector3(0, yLens,  LENS_Z),
           new THREE.Vector3(0, 0,      FOCAL_Z),
           new THREE.Vector3(0, yEnd,   SENSOR_Z),
         ];
@@ -3779,10 +3781,11 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       const lSensor = mkLabel('sensor',       'rgba(51,65,85,0.9)');
       const lFlip   = mkLabel('↕ inverted',   'rgba(220,38,38,0.80)');
 
-      // Project 3D world pos → 2D canvas pixel (using internal W×H resolution)
+      // Project 3D world pos → 2D overlay position
+      // Use % for left so it scales with the CSS-stretched canvas width
       function placeLabel(el, wx, wy, wz, dy) {
         const v = new THREE.Vector3(wx, wy, wz).project(camera);
-        el.style.left = ((v.x * 0.5 + 0.5) * W) + 'px';
+        el.style.left = ((v.x * 0.5 + 0.5) * 100) + '%';
         el.style.top  = ((-v.y * 0.5 + 0.5) * H + (dy || 14)) + 'px';
       }
 
