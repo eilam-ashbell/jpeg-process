@@ -819,6 +819,126 @@
       padding-top: 8px;
     }
 
+    /* ── Sensor eye demo ──────────────────────────────────────────────────── */
+    .sensor-eye-single {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #0a0a0f;
+    }
+
+    .sensor-eye-single canvas {
+      display: block;
+      width: 100%;
+      image-rendering: pixelated;
+    }
+
+    .sensor-eye-pane-label {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.72rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: rgba(255,255,255,0.7);
+      background: rgba(0,0,0,0.5);
+      padding: 3px 10px;
+      border-radius: 10px;
+      z-index: 2;
+      white-space: nowrap;
+      pointer-events: none;
+      margin: 0;
+    }
+
+    .sensor-eye-controls {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 14px;
+    }
+
+    .sensor-eye-btn {
+      font-size: 0.78rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+      padding: 5px 14px;
+      border-radius: 20px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .sensor-eye-btn:hover {
+      border-color: var(--accent);
+      color: var(--text-primary);
+    }
+
+    .sensor-eye-btn:active {
+      transform: scale(0.98);
+    }
+
+    .sensor-eye-btn.active {
+      color: #fff;
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+    }
+
+    .sensor-eye-btn[data-mode="R"].active { background: #dc2626; border-color: #dc2626; }
+    .sensor-eye-btn[data-mode="G"].active { background: #16a34a; border-color: #16a34a; }
+    .sensor-eye-btn[data-mode="B"].active { background: #2563eb; border-color: #2563eb; }
+    .sensor-eye-btn[data-mode="full"].active { background: #7c3aed; border-color: #7c3aed; }
+
+    .sensor-eye-play {
+      margin-left: 6px;
+      min-width: 60px;
+    }
+
+    .sensor-eye-ratio {
+      text-align: center;
+      font-size: 0.82rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+      margin-top: 10px;
+      min-height: 1.4em;
+    }
+
+    .sensor-eye-ratio .ratio-green { color: #22c55e; font-weight: 700; }
+    .sensor-eye-ratio .ratio-red { color: #ef4444; }
+    .sensor-eye-ratio .ratio-blue { color: #3b82f6; }
+
+    .sensor-eye-tooltip {
+      position: fixed;
+      pointer-events: none;
+      font-size: 0.78rem;
+      font-family: 'JetBrains Mono', monospace;
+      background: rgba(15,23,42,0.92);
+      color: #e2e8f0;
+      padding: 6px 12px;
+      border-radius: 8px;
+      z-index: 100;
+      display: none;
+      max-width: 260px;
+      line-height: 1.5;
+      box-shadow: 0 4px 16px rgba(0,0,0,.3);
+    }
+
+    .sensor-eye-magnifier {
+      position: fixed;
+      pointer-events: none;
+      z-index: 99;
+      display: none;
+      width: 160px;
+      height: 160px;
+      border: 3px solid var(--accent);
+      border-radius: 50%;
+      background: #0a0a0f;
+      box-shadow: 0 0 12px rgba(37, 99, 235, 0.4), inset 0 0 8px rgba(0,0,0,.5);
+      image-rendering: pixelated;
+    }
+
     /* ── Raw pixel inspector ───────────────────────────────────────────────── */
     .raw-dual {
       display: grid;
@@ -2164,12 +2284,22 @@
         resolution to it.
       </p>
       <div class="demo-card reveal">
-        <p class="raw-panel-label">Interactive Bayer grid — click any cell to inspect</p>
-        <div class="bayer-demo-wrap">
-          <canvas id="bayerCanvas"></canvas>
-          <div id="bayerCallout" class="bayer-callout"></div>
-          <div id="bayerHint" class="bayer-callout-hint">Click a cell to see photosite details.</div>
+        <p class="raw-panel-label">What does the sensor actually see?</p>
+        <div class="sensor-eye-single">
+          <p class="sensor-eye-pane-label" id="sensorEyeRightLabel">Bayer mosaic (sensor)</p>
+          <canvas id="sensorEyeFilterCanvas"></canvas>
         </div>
+        <div class="sensor-eye-controls">
+          <button class="sensor-eye-btn active" data-mode="bayer">RGGB Pattern</button>
+          <button class="sensor-eye-btn" data-mode="R">See through Red</button>
+          <button class="sensor-eye-btn" data-mode="G">See through Green</button>
+          <button class="sensor-eye-btn" data-mode="B">See through Blue</button>
+          <button class="sensor-eye-btn" data-mode="full">Full Color</button>
+          <button class="sensor-eye-btn sensor-eye-play" data-mode="play">&#9654; Play</button>
+        </div>
+        <div class="sensor-eye-ratio" id="sensorEyeRatio"></div>
+        <div class="sensor-eye-tooltip" id="sensorEyeTooltip"></div>
+        <canvas id="sensorEyeMagnifier" class="sensor-eye-magnifier"></canvas>
       </div>
     </section>
   </div>
@@ -4259,6 +4389,336 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     }
 
     document.addEventListener('imageReady', initSection02);
+  }());
+
+  // ─── Section 02b: One-Eyed Sensor ─────────────────────────────────────────────
+  (function () {
+    function initSensorEye() {
+      if (!S.img) return;
+      const filtCanvas = document.getElementById('sensorEyeFilterCanvas');
+      const magnifier = document.getElementById('sensorEyeMagnifier');
+      if (!filtCanvas || !magnifier) return;
+
+      const w = S.w, h = S.h;
+      filtCanvas.width = w; filtCanvas.height = h;
+      magnifier.width = 160; magnifier.height = 160;
+
+      const filtCtx = filtCanvas.getContext('2d');
+      const magCtx = magnifier.getContext('2d');
+      const tooltip = document.getElementById('sensorEyeTooltip');
+      const ratioEl = document.getElementById('sensorEyeRatio');
+      const rightLabel = document.getElementById('sensorEyeRightLabel');
+      const btns = document.querySelectorAll('.sensor-eye-btn');
+      const data = S.img.data; // RGBA Uint8ClampedArray
+
+      // Move tooltip & magnifier to <body> so position:fixed isn't broken
+      // by the ancestor .reveal transform (translateY creates a new containing block)
+      document.body.appendChild(tooltip);
+      document.body.appendChild(magnifier);
+
+      // Pre-build filtered ImageData for each mode to keep switching instant
+      function buildFiltered(filterMode) {
+        const out = filtCtx.createImageData(w, h);
+        const d = out.data;
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            const i = (y * w + x) * 4;
+            const r = data[i], g = data[i + 1], b = data[i + 2];
+
+            // Bayer filter at this pixel position
+            let bayerChannel;
+            if (y % 2 === 0) bayerChannel = x % 2 === 0 ? 'R' : 'G';
+            else             bayerChannel = x % 2 === 0 ? 'G' : 'B';
+
+            if (filterMode === 'full') {
+              d[i] = r; d[i + 1] = g; d[i + 2] = b;
+            } else {
+              const channel = filterMode === 'bayer' ? bayerChannel : filterMode;
+              const isActive = filterMode === 'bayer' || bayerChannel === filterMode;
+
+              if (isActive) {
+                const v = channel === 'R' ? r : channel === 'G' ? g : b;
+                d[i]     = channel === 'R' ? v : 0;
+                d[i + 1] = channel === 'G' ? v : 0;
+                d[i + 2] = channel === 'B' ? v : 0;
+              } else {
+                d[i] = d[i + 1] = d[i + 2] = 0;
+              }
+            }
+            d[i + 3] = 255;
+          }
+        }
+        return out;
+      }
+
+      const cache = {
+        bayer: buildFiltered('bayer'),
+        R: buildFiltered('R'),
+        G: buildFiltered('G'),
+        B: buildFiltered('B'),
+        full: buildFiltered('full')
+      };
+
+      let mode = 'bayer';
+      let currentFrameData = cache['bayer'].data; // always reflects what's on the canvas
+
+      function drawFiltered() {
+        currentFrameData = cache[mode].data;
+        filtCtx.putImageData(cache[mode], 0, 0);
+      }
+
+      function updateRatio() {
+        if (mode === 'bayer') {
+          ratioEl.innerHTML = 'Filter distribution: <span class="ratio-green">Green 50%</span> · <span class="ratio-red">Red 25%</span> · <span class="ratio-blue">Blue 25%</span>';
+        } else if (mode === 'full') {
+          ratioEl.innerHTML = 'Every pixel has full <span class="ratio-red">R</span> <span class="ratio-green">G</span> <span class="ratio-blue">B</span> values — this is the demosaiced result';
+        } else {
+          const name = mode === 'R' ? 'Red' : mode === 'G' ? 'Green' : 'Blue';
+          const cls = mode === 'R' ? 'ratio-red' : mode === 'G' ? 'ratio-green' : 'ratio-blue';
+          ratioEl.innerHTML = `Viewing all photosites through <span class="${cls}">${name}</span> filter only`;
+        }
+      }
+
+      function updateLabel() {
+        if (mode === 'bayer') {
+          rightLabel.textContent = 'Bayer mosaic (sensor)';
+        } else if (mode === 'full') {
+          rightLabel.textContent = 'Full color (demosaiced)';
+        } else {
+          const name = mode === 'R' ? 'Red' : mode === 'G' ? 'Green' : 'Blue';
+          rightLabel.textContent = name + ' channel only';
+        }
+      }
+
+      // Button handling
+      btns.forEach(btn => {
+        if (btn.dataset.mode === 'play') return;
+        btn.addEventListener('click', () => {
+          // Stop play animation if running
+          if (playRafId) {
+            cancelAnimationFrame(playRafId);
+            playRafId = null;
+            playBtn.classList.remove('active');
+            playBtn.innerHTML = '&#9654; Play';
+          }
+
+          mode = btn.dataset.mode;
+          btns.forEach(b => { if (b.dataset.mode !== 'play') b.classList.remove('active'); });
+          btn.classList.add('active');
+          drawFiltered();
+          updateRatio();
+          updateLabel();
+        });
+      });
+
+      // Play animation: morph from RGGB mosaic → full color → back
+      const playBtn = document.querySelector('.sensor-eye-play');
+      let playRafId = null;
+
+      // Pre-extract per-pixel bayer colors and full colors into flat arrays for fast lerp
+      const bayerData = cache['bayer'].data; // already computed, single channel per pixel
+      const fullData  = new Uint8ClampedArray(w * h * 4);
+      for (let i = 0; i < w * h * 4; i += 4) {
+        fullData[i]     = data[i];
+        fullData[i + 1] = data[i + 1];
+        fullData[i + 2] = data[i + 2];
+        fullData[i + 3] = 255;
+      }
+
+      const animFrame = filtCtx.createImageData(w, h);
+
+      function easeInOut(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+
+      function stopPlay() {
+        if (playRafId) { cancelAnimationFrame(playRafId); playRafId = null; }
+        playBtn.classList.remove('active');
+        playBtn.innerHTML = '&#9654; Play';
+      }
+
+      playBtn.addEventListener('click', () => {
+        if (playRafId) { stopPlay(); return; }
+
+        playBtn.classList.add('active');
+        playBtn.innerHTML = '&#9724; Stop';
+
+        // Deselect other buttons
+        btns.forEach(b => { if (b.dataset.mode !== 'play') b.classList.remove('active'); });
+
+        const MORPH_MS  = 4000; // time to morph one way
+        const HOLD_MS   = 3000; // pause at each end
+        const CYCLE_MS  = MORPH_MS * 2 + HOLD_MS * 2;
+
+        const startTime = performance.now();
+
+        function animate(now) {
+          const elapsed = (now - startTime) % CYCLE_MS;
+          let t; // 0 = full RGGB, 1 = full color
+
+          if (elapsed < HOLD_MS) {
+            t = 0;
+          } else if (elapsed < HOLD_MS + MORPH_MS) {
+            t = easeInOut((elapsed - HOLD_MS) / MORPH_MS);
+          } else if (elapsed < HOLD_MS + MORPH_MS + HOLD_MS) {
+            t = 1;
+          } else {
+            t = 1 - easeInOut((elapsed - HOLD_MS * 2 - MORPH_MS) / MORPH_MS);
+          }
+
+          // Interpolate pixel data between bayerData and fullData
+          const d = animFrame.data;
+          for (let i = 0; i < w * h * 4; i += 4) {
+            d[i]     = bayerData[i]     + (fullData[i]     - bayerData[i])     * t;
+            d[i + 1] = bayerData[i + 1] + (fullData[i + 1] - bayerData[i + 1]) * t;
+            d[i + 2] = bayerData[i + 2] + (fullData[i + 2] - bayerData[i + 2]) * t;
+            d[i + 3] = 255;
+          }
+          currentFrameData = animFrame.data;
+          filtCtx.putImageData(animFrame, 0, 0);
+          redrawMagnifier();
+          if (lastCursor) {
+            const vw = window.innerWidth, vh = window.innerHeight;
+            const magLeft = parseFloat(magnifier.style.left);
+            const magTop  = parseFloat(magnifier.style.top);
+            redrawTooltip(magLeft, magTop, vw, vh);
+          }
+
+          // Update label
+          if (t < 0.05) {
+            rightLabel.textContent = 'Bayer mosaic (sensor)';
+            ratioEl.innerHTML = 'Filter distribution: <span class="ratio-green">Green 50%</span> · <span class="ratio-red">Red 25%</span> · <span class="ratio-blue">Blue 25%</span>';
+          } else if (t > 0.95) {
+            rightLabel.textContent = 'Demosaiced — full color';
+            ratioEl.innerHTML = 'Demosaicing complete — every pixel now has full RGB values';
+          } else {
+            rightLabel.textContent = 'Demosaicing…';
+            ratioEl.innerHTML = '';
+          }
+
+          playRafId = requestAnimationFrame(animate);
+        }
+
+        playRafId = requestAnimationFrame(animate);
+      });
+
+      // Track last cursor position for magnifier refresh during animation
+      let lastCursor = null; // { col, row, clientX, clientY }
+
+      const MAG_SIZE = 160;
+      const ZOOM_GRID = 8;
+      const ZOOM_CELL = MAG_SIZE / ZOOM_GRID; // 20px per cell
+
+      function redrawTooltip(magLeft, magTop, vw, vh) {
+        if (!lastCursor) return;
+        const { col, row } = lastCursor;
+        const si = (row * w + col) * 4;
+        const tr = currentFrameData[si], tg = currentFrameData[si+1], tb = currentFrameData[si+2];
+
+        tooltip.innerHTML =
+          `<span style="color:#22c55e">green = ${tg}</span><br>` +
+          `<span style="color:#ef4444">red = ${tr}</span><br>` +
+          `<span style="color:#3b82f6">blue = ${tb}</span>`;
+        tooltip.style.display = 'block';
+
+        const tooltipRect = tooltip.getBoundingClientRect();
+        let tleft = magLeft;
+        let ttop  = magTop + MAG_SIZE + 6;
+        if (tleft + tooltipRect.width > vw - 8) tleft = magLeft + MAG_SIZE - tooltipRect.width;
+        if (ttop + tooltipRect.height > vh - 8) ttop = magTop - tooltipRect.height - 6;
+        tooltip.style.left = tleft + 'px';
+        tooltip.style.top  = ttop + 'px';
+      }
+
+      function redrawMagnifier() {
+        if (!lastCursor) return;
+        const { col, row } = lastCursor;
+
+        magCtx.clearRect(0, 0, MAG_SIZE, MAG_SIZE);
+        const startX = Math.max(0, Math.min(col - Math.floor(ZOOM_GRID / 2), w - ZOOM_GRID));
+        const startY = Math.max(0, Math.min(row - Math.floor(ZOOM_GRID / 2), h - ZOOM_GRID));
+
+        magCtx.font = `bold 7px JetBrains Mono, monospace`;
+        magCtx.textAlign = 'center';
+        magCtx.textBaseline = 'middle';
+
+        for (let y = 0; y < ZOOM_GRID; y++) {
+          for (let x = 0; x < ZOOM_GRID; x++) {
+            const si = ((startY + y) * w + (startX + x)) * 4;
+            const pr = currentFrameData[si], pg = currentFrameData[si+1], pb = currentFrameData[si+2];
+            magCtx.fillStyle = `rgb(${pr},${pg},${pb})`;
+            magCtx.fillRect(x * ZOOM_CELL, y * ZOOM_CELL, ZOOM_CELL, ZOOM_CELL);
+            magCtx.strokeStyle = 'rgba(255,255,255,0.1)';
+            magCtx.lineWidth = 0.5;
+            magCtx.strokeRect(x * ZOOM_CELL, y * ZOOM_CELL, ZOOM_CELL, ZOOM_CELL);
+
+            // Show the non-zero channel value (or max during animation)
+            const val = Math.max(pr, pg, pb);
+            if (val > 0) {
+              const cx = x * ZOOM_CELL + ZOOM_CELL / 2;
+              const cy = y * ZOOM_CELL + ZOOM_CELL / 2;
+              // Dark shadow for readability on any background
+              magCtx.fillStyle = 'rgba(0,0,0,0.6)';
+              magCtx.fillText(val, cx + 0.5, cy + 0.5);
+              // White text
+              magCtx.fillStyle = '#fff';
+              magCtx.fillText(val, cx, cy);
+            }
+          }
+        }
+        // Highlight center cell
+        magCtx.strokeStyle = 'rgba(255,215,0,0.6)';
+        magCtx.lineWidth = 2;
+        magCtx.strokeRect(Math.floor(ZOOM_GRID / 2) * ZOOM_CELL, Math.floor(ZOOM_GRID / 2) * ZOOM_CELL, ZOOM_CELL, ZOOM_CELL);
+      }
+
+      // Hover tooltip & magnifier on filtered canvas
+      filtCanvas.addEventListener('mousemove', e => {
+        const rect = filtCanvas.getBoundingClientRect();
+        const scaleX = w / rect.width;
+        const scaleY = h / rect.height;
+        const col = Math.floor((e.clientX - rect.left) * scaleX);
+        const row = Math.floor((e.clientY - rect.top) * scaleY);
+        if (col < 0 || col >= w || row < 0 || row >= h) {
+          tooltip.style.display = 'none';
+          magnifier.style.display = 'none';
+          lastCursor = null;
+          return;
+        }
+
+        lastCursor = { col, row, clientX: e.clientX, clientY: e.clientY };
+
+        const OFFSET_X = 16;
+        const vw = window.innerWidth, vh = window.innerHeight;
+
+        let magLeft = e.clientX + OFFSET_X;
+        let magTop  = e.clientY - MAG_SIZE / 2;
+        if (magLeft + MAG_SIZE > vw - 8) magLeft = e.clientX - OFFSET_X - MAG_SIZE;
+        magTop = Math.max(8, Math.min(magTop, vh - MAG_SIZE - 8));
+
+        redrawMagnifier();
+        redrawTooltip(magLeft, magTop, vw, vh);
+        magnifier.style.display = 'block';
+        magnifier.style.left = magLeft + 'px';
+        magnifier.style.top  = magTop + 'px';
+      });
+
+      filtCanvas.addEventListener('mouseleave', () => {
+        tooltip.style.display = 'none';
+        magnifier.style.display = 'none';
+        lastCursor = null;
+      });
+
+      // Add transition for crossfade
+      filtCanvas.style.transition = 'opacity 0.15s ease';
+
+      // Initial draw
+      drawFiltered();
+      updateRatio();
+
+      // Auto-start play animation
+      setTimeout(() => playBtn.click(), 100);
+    }
+
+    document.addEventListener('imageReady', initSensorEye);
   }());
 
   // ─── Section 03: Raw Pixel Data ──────────────────────────────────────────────
