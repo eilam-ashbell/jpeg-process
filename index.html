@@ -3603,15 +3603,15 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       const scene = new THREE.Scene();
       scene.add(new THREE.AmbientLight(0xffffff, 1));
 
-      // Camera: elevated + offset right so image appears upper-left, sensor lower-right
+      // Camera: ~75° side view — scene (high Z) on left, camera body (low Z) on right
       const camera = new THREE.PerspectiveCamera(44, W / H, 0.1, 100);
-      camera.position.set(3, 2.5, 8);
-      camera.lookAt(new THREE.Vector3(0, 0, 0));
+      camera.position.set(11, 3, 5);
+      camera.lookAt(new THREE.Vector3(0, 0, 2));
 
       // ── World layout (optical axis = Z) ──
-      const IMG_Z = 3.8, LENS_Z = 0, FOCAL_Z = -2.0, SENSOR_Z = -4.5;
+      const IMG_Z = 6.0, LENS_Z = 0, FOCAL_Z = 0.25, SENSOR_Z = -1.8;
       const IMG_H = 1.4;    // image plane half-height
-      const SEN_H = 0.42;   // sensor half-height (small — appears far)
+      const SEN_H = 0.40;   // sensor half-height
       const R_LENS = 1.0;
       const asp = S.w / S.h;
 
@@ -3652,34 +3652,137 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         0, 0, IMG_Z + 0.02
       );
 
-      // ── Lens (disc + ring + biconvex arcs) ──
-      addMesh(
-        new THREE.CircleGeometry(R_LENS, 64),
-        new THREE.MeshBasicMaterial({ color: 0x3b82f6, transparent: true, opacity: 0.12, side: THREE.DoubleSide }),
-        0, 0, LENS_Z
-      );
-      addMesh(
-        new THREE.RingGeometry(R_LENS - 0.07, R_LENS, 64),
-        new THREE.MeshBasicMaterial({ color: 0x2563eb, transparent: true, opacity: 0.70, side: THREE.DoubleSide }),
-        0, 0, LENS_Z
-      );
-      // Biconvex cross-section curves
-      [-1, 1].forEach(sign => {
-        const pts = [];
-        for (let a = 0; a <= 48; a++) {
-          const ang = -Math.PI / 2 + Math.PI * a / 48;
-          pts.push(new THREE.Vector3(0, Math.sin(ang) * R_LENS, LENS_Z + sign * Math.cos(ang) * 0.22));
+      // ── Lens barrel ──
+      const BARREL_R   = R_LENS + 0.22;
+      const BARREL_LEN = 1.8;
+      const BARREL_CZ  = LENS_Z + 0.55;
+      const MOUNT_Z    = BARREL_CZ - BARREL_LEN / 2;   // rear of barrel / front of body
+
+      // Barrel cylinder (open, transparent)
+      const barrelMeshGeo = new THREE.CylinderGeometry(BARREL_R, BARREL_R + 0.04, BARREL_LEN, 48, 1, true);
+      barrelMeshGeo.rotateX(Math.PI / 2);
+      addMesh(barrelMeshGeo,
+        new THREE.MeshBasicMaterial({ color: 0x1e293b, transparent: true, opacity: 0.22, side: THREE.DoubleSide }),
+        0, 0, BARREL_CZ);
+
+      // Barrel wireframe: 2 end rings + 4 longitudinal lines
+      const barrelLineMat = new THREE.LineBasicMaterial({ color: 0x475569, transparent: true, opacity: 0.60 });
+      [BARREL_CZ - BARREL_LEN / 2, BARREL_CZ + BARREL_LEN / 2].forEach(rz => {
+        const rpts = [];
+        for (let j = 0; j <= 64; j++) {
+          const a = (j / 64) * Math.PI * 2;
+          rpts.push(new THREE.Vector3(Math.cos(a) * (BARREL_R + 0.02), Math.sin(a) * (BARREL_R + 0.02), rz));
         }
-        addLine(
-          new THREE.BufferGeometry().setFromPoints(pts),
-          new THREE.LineBasicMaterial({ color: 0x2563eb, transparent: true, opacity: 0.55 })
-        );
+        addLine(new THREE.BufferGeometry().setFromPoints(rpts), barrelLineMat);
       });
+      for (let k = 0; k < 4; k++) {
+        const a = (k / 4) * Math.PI * 2;
+        const bx = Math.cos(a) * (BARREL_R + 0.02), by = Math.sin(a) * (BARREL_R + 0.02);
+        addLine(new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(bx, by, BARREL_CZ - BARREL_LEN / 2),
+          new THREE.Vector3(bx, by, BARREL_CZ + BARREL_LEN / 2),
+        ]), barrelLineMat);
+      }
+
+      // ── Camera body (mirrorless-style) ──
+      // Proportions roughly match a Sony A7-class body at scene scale.
+      // Lens mount is centered; grip protrudes right; EVF hump sits top-centre.
+      const BODY_W     = 3.2;   // left-right (x)
+      const BODY_H     = 2.3;   // up-down   (y)
+      const BODY_BACK  = SENSOR_Z - 0.42;
+      const BODY_DEPTH = Math.abs(MOUNT_Z - BODY_BACK);
+      const BODY_CZ    = (MOUNT_Z + BODY_BACK) / 2;
+
+      // Shared transparent dark material and helper
+      const bodyMat  = new THREE.MeshBasicMaterial({ color: 0x1e293b, transparent: true, opacity: 0.13, side: THREE.DoubleSide });
+      const bodyEdge = new THREE.LineBasicMaterial({ color: 0x475569, transparent: true, opacity: 0.62 });
+      function addBodyPart(w, h, d, x, y, z) {
+        const g = new THREE.BoxGeometry(w, h, d);
+        addMesh(g, bodyMat, x, y, z);
+        addLines(new THREE.EdgesGeometry(g), bodyEdge, x, y, z);
+      }
+
+      // Main body slab
+      addBodyPart(BODY_W, BODY_H, BODY_DEPTH, 0, 0, BODY_CZ);
+
+      // Right-side grip (bulges right and slightly forward)
+      const GRIP_W = 0.55, GRIP_D = BODY_DEPTH - 0.22;
+      addBodyPart(GRIP_W, BODY_H, GRIP_D,
+        BODY_W / 2 + GRIP_W / 2,          // flush with right edge
+        0,
+        BODY_CZ + 0.11);                   // shifted slightly toward lens
+
+      // Top EVF / viewfinder hump
+      const HUMP_W = 1.4, HUMP_H = 0.52, HUMP_D = BODY_DEPTH * 0.52;
+      addBodyPart(HUMP_W, HUMP_H, HUMP_D,
+        0,                                 // centred on optical axis
+        BODY_H / 2 + HUMP_H / 2,          // sits on top of body
+        BODY_CZ - BODY_DEPTH * 0.08);      // centred slightly toward rear
+
+      // Lens mount ring on body front face
+      addMesh(new THREE.RingGeometry(BARREL_R + 0.05, BARREL_R + 0.35, 48),
+        new THREE.MeshBasicMaterial({ color: 0x334155, transparent: true, opacity: 0.80, side: THREE.DoubleSide }),
+        0, 0, MOUNT_Z);
+
+      // Sensor PCB board behind the sensor chip
+      addMesh(new THREE.BoxGeometry(SEN_H * 2 + 0.30, SEN_H * 2 + 0.30, 0.12),
+        new THREE.MeshBasicMaterial({ color: 0x0f172a }),
+        0, 0, SENSOR_Z - 0.07);
+
+      // ── Lens elements (5-element design via LatheGeometry) ──
+      // Profile: revolve (radius, depth) points around Y, then rotateX(π/2) to face Z.
+      // frontSag > 0 = convex toward subject; backSag > 0 = convex toward sensor.
+      function makeLensGeo(frontSag, backSag, lensR) {
+        const N = 22, rim = 0.028;
+        const pts = [];
+        for (let i = 0; i <= N; i++) {
+          const t = i / N;
+          pts.push(new THREE.Vector2(t * lensR, frontSag * (1 - t * t) + rim / 2));
+        }
+        pts.push(new THREE.Vector2(lensR, -rim / 2));   // edge rim
+        for (let i = N; i >= 0; i--) {
+          const t = i / N;
+          pts.push(new THREE.Vector2(t * lensR, -backSag * (1 - t * t) - rim / 2));
+        }
+        const g = new THREE.LatheGeometry(pts, 48);
+        g.rotateX(Math.PI / 2);   // align lens axis with scene Z axis
+        return g;
+      }
+
+      const glassMat = new THREE.MeshBasicMaterial({
+        color: 0xbfdbfe, transparent: true, opacity: 0.15, side: THREE.DoubleSide
+      });
+      const glassEdgeMat = new THREE.LineBasicMaterial({ color: 0x3b82f6, transparent: true, opacity: 0.50 });
+
+      // [z, frontSag, backSag, radius] — roughly a 5-element portrait lens layout
+      const elemDefs = [
+        [BARREL_CZ + 0.52,  0.16,  0.05, R_LENS * 0.84],  // front biconvex
+        [BARREL_CZ + 0.18, -0.07,  0.11, R_LENS * 0.74],  // negative meniscus
+        [LENS_Z,            0.10,  0.10, R_LENS * 0.70],  // symmetric biconvex (aperture plane)
+        [LENS_Z - 0.18,     0.07, -0.09, R_LENS * 0.72],  // meniscus
+        [LENS_Z - 0.32,     0.13,  0.17, R_LENS * 0.80],  // rear biconvex
+      ];
+
+      elemDefs.forEach(([ez, fSag, bSag, er]) => {
+        addMesh(makeLensGeo(fSag, bSag, er), glassMat, 0, 0, ez);
+        // circular rim outline at each element's edge
+        const rimPts = [];
+        for (let j = 0; j <= 64; j++) {
+          const a = (j / 64) * Math.PI * 2;
+          rimPts.push(new THREE.Vector3(Math.cos(a) * er, Math.sin(a) * er, ez));
+        }
+        addLine(new THREE.BufferGeometry().setFromPoints(rimPts), glassEdgeMat);
+      });
+
+      // Aperture diaphragm (iris) at lens centre
+      addMesh(new THREE.RingGeometry(R_LENS * 0.40, R_LENS * 0.68, 48),
+        new THREE.MeshBasicMaterial({ color: 0x0f172a, transparent: true, opacity: 0.85, side: THREE.DoubleSide }),
+        0, 0, LENS_Z - 0.01);
 
       // ── Focal point ──
       addMesh(
         new THREE.SphereGeometry(0.07, 16, 16),
-        new THREE.MeshBasicMaterial({ color: 0x2563eb }),
+        new THREE.MeshBasicMaterial({ color: 0xef4444 }),
         0, 0, FOCAL_Z
       );
 
@@ -3723,16 +3826,21 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         rayColors3D.push(new THREE.Color(d[idx] / 255, d[idx + 1] / 255, d[idx + 2] / 255));
       }
 
+      // Rays enter at the front face of the barrel, converge to FOCAL_Z inside,
+      // then diverge to the sensor — all travelling in one direction (decreasing Z).
+      const BARREL_FRONT_Z = BARREL_CZ + BARREL_LEN / 2;
+      const FRONT_ELEM_R   = R_LENS * 0.84;   // matches the front lens element radius
+
       const rayPaths = [];
       for (let i = 0; i < RAY_COUNT; i++) {
         const frac   = i / (RAY_COUNT - 1);
         const yStart = IMG_H * (1 - frac * 2);
         const yEnd   = -yStart * (SEN_H / IMG_H);
-        // Clamp the lens entry point so all rays pass through the lens disc
-        const yLens  = Math.sign(yStart) * Math.min(Math.abs(yStart), R_LENS * 0.88);
+        // Clamp entry to fit within the front lens element
+        const yEntry = Math.sign(yStart) * Math.min(Math.abs(yStart), FRONT_ELEM_R * 0.90);
         const pts = [
           new THREE.Vector3(0, yStart, IMG_Z),
-          new THREE.Vector3(0, yLens,  LENS_Z),
+          new THREE.Vector3(0, yEntry, BARREL_FRONT_Z),
           new THREE.Vector3(0, 0,      FOCAL_Z),
           new THREE.Vector3(0, yEnd,   SENSOR_Z),
         ];
@@ -3743,6 +3851,52 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         rayPaths.push(pts);
       }
 
+      // ── Scattered 3D rays from random image points ──
+      // Each ray originates at a random (x, y) position on the image plane,
+      // travels to the barrel front, converges at the focal point, then hits
+      // the sensor at the geometrically inverted/scaled position.
+      const IMG_W = IMG_H * asp;
+      const tBarrel = (BARREL_FRONT_Z - IMG_Z) / (FOCAL_Z - IMG_Z); // parametric t where line crosses barrel front
+      const SCATTER_COUNT = 18;
+      const scatterData = [];   // collect {pts, col} to create photons after
+      for (let i = 0; i < SCATTER_COUNT; i++) {
+        const xImg = (Math.random() * 2 - 1) * IMG_W;
+        const yImg = (Math.random() * 2 - 1) * IMG_H;
+
+        // Sample pixel colour from the source image
+        const px  = Math.max(0, Math.min(S.w - 1, Math.floor((xImg / IMG_W + 1) / 2 * (S.w - 1))));
+        const py  = Math.max(0, Math.min(S.h - 1, Math.floor((-yImg / IMG_H + 1) / 2 * (S.h - 1))));
+        const idx = (py * S.w + px) * 4;
+        const col = new THREE.Color(S.img.data[idx] / 255, S.img.data[idx + 1] / 255, S.img.data[idx + 2] / 255);
+
+        // Entry point: where the image→focal-point line intersects the barrel front face
+        let xEntry = xImg + tBarrel * (0 - xImg);
+        let yEntry = yImg + tBarrel * (0 - yImg);
+        // Clamp to front element aperture
+        const entryR = Math.sqrt(xEntry * xEntry + yEntry * yEntry);
+        if (entryR > FRONT_ELEM_R * 0.88) {
+          const s = (FRONT_ELEM_R * 0.88) / entryR;
+          xEntry *= s; yEntry *= s;
+        }
+
+        // Sensor landing point: inverted and scaled
+        const scale = SEN_H / IMG_H;
+        const xSensor = -xImg * scale;
+        const ySensor = -yImg * scale;
+
+        const sPts = [
+          new THREE.Vector3(xImg,    yImg,    IMG_Z),
+          new THREE.Vector3(xEntry,  yEntry,  BARREL_FRONT_Z),
+          new THREE.Vector3(0,       0,       FOCAL_Z),
+          new THREE.Vector3(xSensor, ySensor, SENSOR_Z),
+        ];
+        addLine(
+          new THREE.BufferGeometry().setFromPoints(sPts),
+          new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0.25 })
+        );
+        scatterData.push({ pts: sPts, col });
+      }
+
       const photons = rayPaths.map((pts, i) => {
         const m = addMesh(
           new THREE.SphereGeometry(0.06, 8, 8),
@@ -3750,6 +3904,17 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           0, 0, 0
         );
         return { mesh: m, pts, phase: i / RAY_COUNT };
+      });
+
+      // Scatter photons — smaller spheres, spread phases so they don't clump
+      const TOTAL = RAY_COUNT + SCATTER_COUNT;
+      scatterData.forEach(({ pts, col }, i) => {
+        const m = addMesh(
+          new THREE.SphereGeometry(0.045, 8, 8),
+          new THREE.MeshBasicMaterial({ color: col }),
+          0, 0, 0
+        );
+        photons.push({ mesh: m, pts, phase: (RAY_COUNT + i) / TOTAL });
       });
 
       function pathPoint(pts, t) {
@@ -3776,10 +3941,9 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         return el;
       }
       const lScene  = mkLabel('scene',        'rgba(100,116,139,0.9)');
-      const lLens   = mkLabel('lens',         'rgba(37,99,235,0.9)');
-      const lFocal  = mkLabel('focal point',  'rgba(37,99,235,0.85)');
+      const lLens   = mkLabel('lens barrel',  'rgba(37,99,235,0.9)');
+      const lFocal  = mkLabel('focal point',  'rgba(239,68,68,0.9)');
       const lSensor = mkLabel('sensor',       'rgba(51,65,85,0.9)');
-      const lFlip   = mkLabel('↕ inverted',   'rgba(220,38,38,0.80)');
 
       // Project 3D world pos → 2D overlay position
       // Use % for left so it scales with the CSS-stretched canvas width
@@ -3793,7 +3957,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       const controls = new THREE.OrbitControls(camera, cv);
       controls.enableDamping  = true;
       controls.dampingFactor  = 0.06;
-      controls.target.set(0, 0, 0);
+      controls.target.set(0, 0, 2);
       controls.minDistance    = 3;
       controls.maxDistance    = 20;
       controls.update();
@@ -3808,10 +3972,9 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         controls.update();
 
         placeLabel(lScene,  0, -IMG_H - 0.1, IMG_Z);
-        placeLabel(lLens,   0, -R_LENS - 0.05, LENS_Z);
+        placeLabel(lLens,   0, -(BARREL_R + 0.12), BARREL_CZ);
         placeLabel(lFocal,  0, -0.18, FOCAL_Z);
         placeLabel(lSensor, 0, -SEN_H - 0.1, SENSOR_Z);
-        placeLabel(lFlip,   0, -SEN_H - 0.1, SENSOR_Z, 26);
 
         renderer.render(scene, camera);
       }
