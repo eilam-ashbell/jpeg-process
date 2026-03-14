@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <script defer src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+  <script defer src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <style>
     *, *::before, *::after {
       box-sizing: border-box;
@@ -753,9 +754,15 @@
     }
 
     /* ── Lens canvas ───────────────────────────────────────────────────────── */
-    #lensCanvas {
+    #lensCanvas3d {
       width: 100%;
-      height: auto;
+      height: 360px;
+      display: block;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+    #lensCanvas3d canvas {
       display: block;
       border-radius: 8px;
     }
@@ -2124,7 +2131,7 @@
         them precisely onto the tiny sensor chip waiting behind it.
       </p>
       <div class="demo-card reveal">
-        <canvas id="lensCanvas" width="700" height="240"></canvas>
+        <div id="lensCanvas3d"></div>
       </div>
     </section>
   </div>
@@ -3572,171 +3579,250 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     let animId = null;
 
     function initSection01() {
-      if (!S.img) return;
-      const canvas = document.getElementById('lensCanvas');
-      if (!canvas) return;
+      if (!S.img || !window.THREE) return;
+      const container = document.getElementById('lensCanvas3d');
+      if (!container) return;
 
-      const W = 700, H = 240;
-      canvas.width = W;
-      canvas.height = H;
-      const ctx = canvas.getContext('2d');
+      // Clear any previous Three.js canvas
+      while (container.firstChild) container.removeChild(container.firstChild);
 
-      // Layout
-      const midY = H / 2;
-      const thumbW = 56, thumbH = 56;
-      const thumbX = 18, thumbY = midY - thumbH / 2;
-      const lensX = W * 0.43, lensHalfH = 66, lensHalfW = 18;
-      const focalX = W * 0.71;
-      const sensorX = W - 38, sensorHalfH = 52, sensorW = 12;
+      // Use fixed internal resolution; CSS scales the canvas to fill the container
+      const W = 700, H = 360;
 
-      // Create thumbnail from uploaded image
-      const thumbCanvas = document.createElement('canvas');
-      thumbCanvas.width = thumbW; thumbCanvas.height = thumbH;
-      thumbCanvas.getContext('2d').drawImage(S.origCanvas, 0, 0, thumbW, thumbH);
+      // ── Renderer ──
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(W, H, false);           // false = don't set style; let CSS do it
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setClearColor(0xf1f4f8, 1);
+      const cv = renderer.domElement;
+      cv.style.width  = '100%';
+      cv.style.height = H + 'px';
+      cv.style.display = 'block';
+      container.appendChild(cv);
 
-      // Sample ray colors from image
+      const scene = new THREE.Scene();
+      scene.add(new THREE.AmbientLight(0xffffff, 1));
+
+      // Camera: elevated + offset right so image appears upper-left, sensor lower-right
+      const camera = new THREE.PerspectiveCamera(44, W / H, 0.1, 100);
+      camera.position.set(3, 2.5, 8);
+      camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+      // ── World layout (optical axis = Z) ──
+      const IMG_Z = 3.8, LENS_Z = 0, FOCAL_Z = -2.0, SENSOR_Z = -4.5;
+      const IMG_H = 1.4;    // image plane half-height
+      const SEN_H = 0.42;   // sensor half-height (small — appears far)
+      const R_LENS = 1.0;
+      const asp = S.w / S.h;
+
+      function addMesh(geo, mat, x, y, z) {
+        const m = new THREE.Mesh(geo, mat);
+        m.position.set(x, y, z);
+        scene.add(m);
+        return m;
+      }
+      function addLines(geo, mat, x, y, z) {
+        const m = new THREE.LineSegments(geo, mat);
+        m.position.set(x, y, z);
+        scene.add(m);
+        return m;
+      }
+      function addLine(geo, mat) {
+        const m = new THREE.Line(geo, mat);
+        scene.add(m);
+        return m;
+      }
+
+      // ── Floor grid ──
+      const grid = new THREE.GridHelper(12, 10, 0xc8d0da, 0xdce2e9);
+      grid.position.set(0, -IMG_H - 0.05, (IMG_Z + SENSOR_Z) / 2);
+      scene.add(grid);
+
+      // ── Image plane (close, large) ──
+      const imgTex = new THREE.CanvasTexture(S.origCanvas);
+      imgTex.minFilter = THREE.LinearFilter;
+      addMesh(
+        new THREE.PlaneGeometry(IMG_H * 2 * asp, IMG_H * 2),
+        new THREE.MeshBasicMaterial({ map: imgTex, side: THREE.DoubleSide }),
+        0, 0, IMG_Z
+      );
+      addLines(
+        new THREE.EdgesGeometry(new THREE.PlaneGeometry(IMG_H * 2 * asp + 0.1, IMG_H * 2 + 0.1)),
+        new THREE.LineBasicMaterial({ color: 0x94a3b8 }),
+        0, 0, IMG_Z + 0.02
+      );
+
+      // ── Lens (disc + ring + biconvex arcs) ──
+      addMesh(
+        new THREE.CircleGeometry(R_LENS, 64),
+        new THREE.MeshBasicMaterial({ color: 0x3b82f6, transparent: true, opacity: 0.12, side: THREE.DoubleSide }),
+        0, 0, LENS_Z
+      );
+      addMesh(
+        new THREE.RingGeometry(R_LENS - 0.07, R_LENS, 64),
+        new THREE.MeshBasicMaterial({ color: 0x2563eb, transparent: true, opacity: 0.70, side: THREE.DoubleSide }),
+        0, 0, LENS_Z
+      );
+      // Biconvex cross-section curves
+      [-1, 1].forEach(sign => {
+        const pts = [];
+        for (let a = 0; a <= 48; a++) {
+          const ang = -Math.PI / 2 + Math.PI * a / 48;
+          pts.push(new THREE.Vector3(0, Math.sin(ang) * R_LENS, LENS_Z + sign * Math.cos(ang) * 0.22));
+        }
+        addLine(
+          new THREE.BufferGeometry().setFromPoints(pts),
+          new THREE.LineBasicMaterial({ color: 0x2563eb, transparent: true, opacity: 0.55 })
+        );
+      });
+
+      // ── Focal point ──
+      addMesh(
+        new THREE.SphereGeometry(0.07, 16, 16),
+        new THREE.MeshBasicMaterial({ color: 0x2563eb }),
+        0, 0, FOCAL_Z
+      );
+
+      // ── Sensor (far, small — shows vertically flipped image) ──
+      const senCvs = document.createElement('canvas');
+      senCvs.width = 64; senCvs.height = 64;
+      const sCtx = senCvs.getContext('2d');
+      sCtx.translate(0, 64); sCtx.scale(1, -1);
+      sCtx.drawImage(S.origCanvas, 0, 0, 64, 64);
+      const senTex = new THREE.CanvasTexture(senCvs);
+      senTex.minFilter = THREE.LinearFilter;
+      addMesh(
+        new THREE.PlaneGeometry(SEN_H * 2, SEN_H * 2),
+        new THREE.MeshBasicMaterial({ map: senTex, side: THREE.DoubleSide }),
+        0, 0, SENSOR_Z
+      );
+      addLines(
+        new THREE.EdgesGeometry(new THREE.PlaneGeometry(SEN_H * 2 + 0.06, SEN_H * 2 + 0.06)),
+        new THREE.LineBasicMaterial({ color: 0x334155 }),
+        0, 0, SENSOR_Z - 0.02
+      );
+
+      // ── Optical axis (dashed line) ──
+      const axLine = addLine(
+        new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(0, 0, IMG_Z + 0.4),
+          new THREE.Vector3(0, 0, SENSOR_Z - 0.4)
+        ]),
+        new THREE.LineDashedMaterial({ color: 0xb0bec5, dashSize: 0.22, gapSize: 0.16 })
+      );
+      axLine.computeLineDistances();
+
+      // ── Light rays + animated photons ──
       const RAY_COUNT = 7;
-      const rayColors = [];
+      const rayColors3D = [];
       for (let i = 0; i < RAY_COUNT; i++) {
         const px = Math.floor(S.w * 0.5);
         const py = Math.floor(S.h * (i / (RAY_COUNT - 1)) * 0.7 + S.h * 0.15);
         const idx = (Math.min(py, S.h - 1) * S.w + Math.min(px, S.w - 1)) * 4;
         const d = S.img.data;
-        rayColors.push([d[idx], d[idx + 1], d[idx + 2]]);
+        rayColors3D.push(new THREE.Color(d[idx] / 255, d[idx + 1] / 255, d[idx + 2] / 255));
       }
 
-      // Get point along ray path at t (0–1)
-      function getRayPoint(i, t) {
-        const y0 = thumbY + (thumbH / (RAY_COUNT - 1)) * i;
-        const x0 = thumbX + thumbW;
-        const yEnd = midY + (i - (RAY_COUNT - 1) / 2) * (sensorHalfH / ((RAY_COUNT - 1) / 2)) * 0.75;
-
-        const seg1 = lensX - x0;
-        const seg2 = Math.hypot(focalX - lensX, midY - y0);
-        const seg3 = sensorX - focalX;
-        const total = seg1 + seg2 + seg3;
-        const t1 = seg1 / total, t2 = (seg1 + seg2) / total;
-
-        if (t <= t1) {
-          const s = t / t1;
-          return { x: x0 + s * seg1, y: y0 };
-        } else if (t <= t2) {
-          const s = (t - t1) / (t2 - t1);
-          return { x: lensX + s * (focalX - lensX), y: y0 + s * (midY - y0) };
-        } else {
-          const s = (t - t2) / (1 - t2);
-          return { x: focalX + s * (sensorX - focalX), y: midY + s * (yEnd - midY) };
-        }
+      const rayPaths = [];
+      for (let i = 0; i < RAY_COUNT; i++) {
+        const frac   = i / (RAY_COUNT - 1);
+        const yStart = IMG_H * (1 - frac * 2);
+        const yEnd   = -yStart * (SEN_H / IMG_H);
+        const pts = [
+          new THREE.Vector3(0, yStart, IMG_Z),
+          new THREE.Vector3(0, yStart, LENS_Z),
+          new THREE.Vector3(0, 0,      FOCAL_Z),
+          new THREE.Vector3(0, yEnd,   SENSOR_Z),
+        ];
+        addLine(
+          new THREE.BufferGeometry().setFromPoints(pts),
+          new THREE.LineBasicMaterial({ color: rayColors3D[i], transparent: true, opacity: 0.40 })
+        );
+        rayPaths.push(pts);
       }
 
-      function draw(ts) {
-        ctx.clearRect(0, 0, W, H);
+      const photons = rayPaths.map((pts, i) => {
+        const m = addMesh(
+          new THREE.SphereGeometry(0.06, 8, 8),
+          new THREE.MeshBasicMaterial({ color: rayColors3D[i] }),
+          0, 0, 0
+        );
+        return { mesh: m, pts, phase: i / RAY_COUNT };
+      });
 
-        // Background
-        ctx.fillStyle = '#f8f9fb';
-        ctx.fillRect(0, 0, W, H);
-
-        // Draw thumbnail
-        ctx.save();
-        ctx.strokeStyle = '#e2e8f0';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(thumbX - 1, thumbY - 1, thumbW + 2, thumbH + 2);
-        ctx.drawImage(thumbCanvas, thumbX, thumbY);
-        ctx.restore();
-
-        // Draw static ray lines (faint)
-        for (let i = 0; i < RAY_COUNT; i++) {
-          const [r, g, b] = rayColors[i];
-          const y0 = thumbY + (thumbH / (RAY_COUNT - 1)) * i;
-          const x0 = thumbX + thumbW;
-          const yEnd = midY + (i - (RAY_COUNT - 1) / 2) * (sensorHalfH / ((RAY_COUNT - 1) / 2)) * 0.75;
-          ctx.save();
-          ctx.globalAlpha = 0.12;
-          ctx.strokeStyle = `rgb(${r},${g},${b})`;
-          ctx.lineWidth = 1.5;
-          ctx.setLineDash([4, 5]);
-          ctx.beginPath();
-          ctx.moveTo(x0, y0);
-          ctx.lineTo(lensX, y0);
-          ctx.lineTo(focalX, midY);
-          ctx.lineTo(sensorX, yEnd);
-          ctx.stroke();
-          ctx.restore();
+      function pathPoint(pts, t) {
+        const dists = pts.slice(0, -1).map((p, j) => p.distanceTo(pts[j + 1]));
+        const total = dists.reduce((a, b) => a + b, 0);
+        let rem = t * total;
+        for (let j = 0; j < dists.length; j++) {
+          if (rem <= dists[j]) return new THREE.Vector3().lerpVectors(pts[j], pts[j + 1], rem / dists[j]);
+          rem -= dists[j];
         }
+        return pts[pts.length - 1].clone();
+      }
 
-        // Draw convex lens
-        ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(lensX, midY - lensHalfH);
-        ctx.quadraticCurveTo(lensX + lensHalfW * 2.2, midY, lensX, midY + lensHalfH);
-        ctx.quadraticCurveTo(lensX - lensHalfW * 2.2, midY, lensX, midY - lensHalfH);
-        ctx.closePath();
-        ctx.fillStyle = 'rgba(37,99,235,0.07)';
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(37,99,235,0.45)';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        ctx.restore();
+      // ── HTML label overlay ──
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:' + H + 'px;pointer-events:none;font:10px Inter,sans-serif;';
+      container.appendChild(overlay);
 
-        // Focal point marker
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(focalX, midY, 3.5, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(37,99,235,0.35)';
-        ctx.fill();
-        ctx.restore();
+      function mkLabel(txt, col) {
+        const el = document.createElement('span');
+        el.textContent = txt;
+        el.style.cssText = `position:absolute;color:${col};white-space:nowrap;transform:translate(-50%,0);background:rgba(241,244,248,0.55);padding:1px 3px;border-radius:3px;`;
+        overlay.appendChild(el);
+        return el;
+      }
+      const lScene  = mkLabel('scene',        'rgba(100,116,139,0.9)');
+      const lLens   = mkLabel('lens',         'rgba(37,99,235,0.9)');
+      const lFocal  = mkLabel('focal point',  'rgba(37,99,235,0.85)');
+      const lSensor = mkLabel('sensor',       'rgba(51,65,85,0.9)');
+      const lFlip   = mkLabel('↕ inverted',   'rgba(220,38,38,0.80)');
 
-        // Sensor
-        ctx.save();
-        ctx.fillStyle = 'rgba(15,23,42,0.08)';
-        ctx.fillRect(sensorX, midY - sensorHalfH, sensorW, sensorHalfH * 2);
-        ctx.strokeStyle = 'rgba(15,23,42,0.25)';
-        ctx.lineWidth = 1.5;
-        ctx.strokeRect(sensorX, midY - sensorHalfH, sensorW, sensorHalfH * 2);
-        ctx.restore();
+      // Project 3D world pos → 2D canvas pixel (using internal W×H resolution)
+      function placeLabel(el, wx, wy, wz, dy) {
+        const v = new THREE.Vector3(wx, wy, wz).project(camera);
+        el.style.left = ((v.x * 0.5 + 0.5) * W) + 'px';
+        el.style.top  = ((-v.y * 0.5 + 0.5) * H + (dy || 14)) + 'px';
+      }
 
-        // Labels
-        ctx.save();
-        ctx.fillStyle = 'rgba(100,116,139,0.8)';
-        ctx.font = '10px Inter, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('lens', lensX, midY + lensHalfH + 16);
-        ctx.fillText('focal point', focalX, midY + 16);
-        ctx.fillText('sensor', sensorX + sensorW / 2, midY + sensorHalfH + 16);
-        ctx.restore();
+      // ── Orbit controls ──
+      const controls = new THREE.OrbitControls(camera, cv);
+      controls.enableDamping  = true;
+      controls.dampingFactor  = 0.06;
+      controls.target.set(0, 0, 0);
+      controls.minDistance    = 3;
+      controls.maxDistance    = 20;
+      controls.update();
 
-        // Animated photon dots
-        const animT = ts / 1000;
-        for (let i = 0; i < RAY_COUNT; i++) {
-          const [r, g, b] = rayColors[i];
-          const phase = i / RAY_COUNT;
-          const t = ((animT * 0.35 + phase) % 1);
-          const pt = getRayPoint(i, t);
-          const grd = ctx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, 7);
-          grd.addColorStop(0, `rgba(${r},${g},${b},0.95)`);
-          grd.addColorStop(0.5, `rgba(${r},${g},${b},0.4)`);
-          grd.addColorStop(1, 'transparent');
-          ctx.beginPath();
-          ctx.arc(pt.x, pt.y, 7, 0, Math.PI * 2);
-          ctx.fillStyle = grd;
-          ctx.fill();
-        }
+      // ── Animation loop ──
+      function animate(ts) {
+        animId = requestAnimationFrame(animate);
+        const t = ts / 1000;
+        photons.forEach(({ mesh, pts, phase }) => {
+          mesh.position.copy(pathPoint(pts, ((t * 0.28 + phase) % 1)));
+        });
+        controls.update();
 
-        animId = requestAnimationFrame(draw);
+        placeLabel(lScene,  0, -IMG_H - 0.1, IMG_Z);
+        placeLabel(lLens,   0, -R_LENS - 0.05, LENS_Z);
+        placeLabel(lFocal,  0, -0.18, FOCAL_Z);
+        placeLabel(lSensor, 0, -SEN_H - 0.1, SENSOR_Z);
+        placeLabel(lFlip,   0, -SEN_H - 0.1, SENSOR_Z, 26);
+
+        renderer.render(scene, camera);
       }
 
       if (animId) cancelAnimationFrame(animId);
-      animId = requestAnimationFrame(draw);
+      animId = requestAnimationFrame(animate);
 
       document.addEventListener('visibilitychange', () => {
         if (document.hidden) {
           if (animId) { cancelAnimationFrame(animId); animId = null; }
         } else if (!animId) {
-          animId = requestAnimationFrame(draw);
+          animId = requestAnimationFrame(animate);
         }
       });
-
-      window.addEventListener('resize', () => {});
     }
 
     document.addEventListener('imageReady', initSection01);
