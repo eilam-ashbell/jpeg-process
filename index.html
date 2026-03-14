@@ -721,6 +721,17 @@
       opacity: 1;
     }
 
+    /* Photo overlay that bridges fly-through → Section 01 */
+    .lens-photo-overlay {
+      position: fixed;
+      z-index: 10000;
+      pointer-events: none;
+      will-change: transform, opacity;
+      transform-origin: center center;
+      border-radius: 4px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+    }
+
     /* ── Section 01–03 shared ──────────────────────────────────────────────── */
     .section-header {
       margin-bottom: 28px;
@@ -2921,6 +2932,11 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
             renderer.domElement.parentNode.removeChild(renderer.domElement);
           }
         }
+        // Remove photo overlay if it exists
+        const existingOverlay = document.querySelector('.lens-photo-overlay');
+        if (existingOverlay && existingOverlay.parentNode) {
+          existingOverlay.parentNode.removeChild(existingOverlay);
+        }
         renderer = null;
         scene = null;
         camera = null;
@@ -3149,12 +3165,51 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           photoMesh.scale.x = 1;
         }
 
-        // ── Phase: Handoff (2000-2200ms) — fade out WebGL, show result ──
+        // ── Phase: Handoff (2000ms) — create overlay, fade out WebGL ──
         if (elapsed >= 2000 && !animate._handoffStarted) {
           animate._handoffStarted = true;
           renderer.setClearColor(new THREE.Color(1, 1, 1), 1);
 
-          // Show result state underneath
+          // Project the photo mesh corners to screen space
+          photoMesh.updateMatrixWorld();
+          const hw = planeW / 2, hh = planeH / 2;
+          const photoCorners = [
+            new THREE.Vector3(-hw, -hh, 0),
+            new THREE.Vector3( hw, -hh, 0),
+            new THREE.Vector3( hw,  hh, 0),
+            new THREE.Vector3(-hw,  hh, 0),
+          ].map(c => {
+            c.applyMatrix4(photoMesh.matrixWorld);
+            c.project(camera);
+            return {
+              x: (c.x * 0.5 + 0.5) * window.innerWidth,
+              y: (-c.y * 0.5 + 0.5) * window.innerHeight
+            };
+          });
+          const pxs = photoCorners.map(c => c.x);
+          const pys = photoCorners.map(c => c.y);
+          animate._srcRect = {
+            left: Math.min(...pxs),
+            top: Math.min(...pys),
+            width: Math.max(...pxs) - Math.min(...pxs),
+            height: Math.max(...pys) - Math.min(...pys)
+          };
+
+          // Create the photo overlay
+          const overlayCanvas = document.createElement('canvas');
+          overlayCanvas.className = 'lens-photo-overlay';
+          overlayCanvas.width = S.origCanvas.width;
+          overlayCanvas.height = S.origCanvas.height;
+          overlayCanvas.getContext('2d').drawImage(S.origCanvas, 0, 0);
+          const sr = animate._srcRect;
+          overlayCanvas.style.left = sr.left + 'px';
+          overlayCanvas.style.top = sr.top + 'px';
+          overlayCanvas.style.width = sr.width + 'px';
+          overlayCanvas.style.height = sr.height + 'px';
+          document.body.appendChild(overlayCanvas);
+          animate._overlayEl = overlayCanvas;
+
+          // Prepare result state (hidden for now)
           uploadState.style.display = 'none';
           resultState.style.display = 'flex';
           resultState.style.opacity = '0';
@@ -3164,22 +3219,19 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           renderer.domElement.classList.remove('visible');
           renderer.domElement.classList.add('fading-out');
 
-          // Fade in result state
-          requestAnimationFrame(() => {
-            resultState.style.transition = 'opacity 200ms ease-out';
-            resultState.style.opacity = '1';
-          });
+          // Force-reveal Section 01 elements so the 3D scene is visible when we scroll there
+          const lensSection = document.getElementById('s-lens');
+          if (lensSection) {
+            lensSection.querySelectorAll('.reveal').forEach(el => el.classList.add('revealed'));
+          }
         }
 
-        // ── Phase: Result info fade in (2200ms) ──
-        if (elapsed >= 2200 && !animate._infoShown) {
-          animate._infoShown = true;
-          scrollCue.classList.add('visible');
-        }
+        // ── Phase: Begin scroll + slide animation (2200ms) ──
+        if (elapsed >= 2200 && !animate._slideStarted) {
+          animate._slideStarted = true;
+          animate._slideT0 = elapsed;
 
-        // ── Phase: Auto-scroll to lens section (2400ms) ──
-        if (elapsed >= 2400 && !animate._scrollStarted) {
-          animate._scrollStarted = true;
+          // Start scrolling to Section 01
           const lensSection = document.getElementById('s-lens');
           if (lensSection) {
             const top = lensSection.getBoundingClientRect().top + window.scrollY;
@@ -3187,11 +3239,60 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           }
         }
 
+        // ── Phase: Animate overlay slide (2200-3000ms) ──
+        if (elapsed >= 2200 && elapsed < 3200 && animate._overlayEl) {
+          const slideDuration = 800;
+          const st = easeInOut(clamp01((elapsed - 2200) / slideDuration));
+          const sr = animate._srcRect;
+
+          // Get the target rect from Section 01's 3D scene (recalculated each frame to track scroll)
+          let targetRect;
+          if (S.getS01ImageScreenRect) {
+            targetRect = S.getS01ImageScreenRect();
+          } else {
+            // Fallback: just shrink to center
+            targetRect = { left: window.innerWidth / 2 - 100, top: window.innerHeight / 2 - 75, width: 200, height: 150 };
+          }
+
+          const curLeft   = lerp(sr.left,   targetRect.left,   st);
+          const curTop    = lerp(sr.top,    targetRect.top,    st);
+          const curWidth  = lerp(sr.width,  targetRect.width,  st);
+          const curHeight = lerp(sr.height, targetRect.height, st);
+
+          // Perspective rotation: the Section 01 camera views the image plane at a side angle
+          // Approximate with rotateY to match the foreshortening
+          const targetRotateY = 62; // degrees — calibrated to match Section 01 camera angle
+          const curRotateY = lerp(0, targetRotateY, st);
+
+          const ol = animate._overlayEl;
+          ol.style.left = curLeft + 'px';
+          ol.style.top = curTop + 'px';
+          ol.style.width = curWidth + 'px';
+          ol.style.height = curHeight + 'px';
+          ol.style.transform = 'perspective(800px) rotateY(' + curRotateY + 'deg)';
+
+          // Cross-fade out the overlay in the last 200ms of the slide
+          if (elapsed >= 2800) {
+            const fadeT = clamp01((elapsed - 2800) / 400);
+            ol.style.opacity = String(1 - fadeT);
+          }
+
+          // Also fade away the box-shadow during the slide
+          const shadowOpacity = lerp(0.12, 0, st);
+          ol.style.boxShadow = '0 4px 24px rgba(0,0,0,' + shadowOpacity.toFixed(3) + ')';
+        }
+
         // ── Phase: Complete (3200ms) — cleanup ──
         if (elapsed >= 3200) {
-          cleanup();
-          // Remove transition style from result
+          // Remove overlay
+          if (animate._overlayEl && animate._overlayEl.parentNode) {
+            animate._overlayEl.parentNode.removeChild(animate._overlayEl);
+          }
+          // Show result state (visible when user scrolls back up)
+          resultState.style.opacity = '1';
           resultState.style.transition = '';
+          scrollCue.classList.add('visible');
+          cleanup();
           return;
         }
 
@@ -3200,8 +3301,10 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
       animate._shutterFired = false;
       animate._handoffStarted = false;
-      animate._infoShown = false;
-      animate._scrollStarted = false;
+      animate._slideStarted = false;
+      animate._overlayEl = null;
+      animate._srcRect = null;
+      animate._slideT0 = 0;
       animate();
     }
 
@@ -3989,6 +4092,46 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           animId = requestAnimationFrame(animate);
         }
       });
+
+      // ── Expose helper for fly-through → Section 01 transition ──
+      // Returns the screen-space bounding rect of the image plane in Section 01's 3D scene,
+      // expressed in fixed (viewport) coordinates so a CSS overlay can target it.
+      S.getS01ImageScreenRect = function () {
+        const planeW = IMG_H * 2 * asp;
+        const planeHH = IMG_H * 2;
+        const corners3d = [
+          new THREE.Vector3(-planeW / 2, -planeHH / 2, IMG_Z),
+          new THREE.Vector3( planeW / 2, -planeHH / 2, IMG_Z),
+          new THREE.Vector3( planeW / 2,  planeHH / 2, IMG_Z),
+          new THREE.Vector3(-planeW / 2,  planeHH / 2, IMG_Z),
+        ];
+        // Project to NDC then to canvas pixel coords (internal 700×360)
+        const projected = corners3d.map(c => {
+          const v = c.clone().project(camera);
+          return {
+            x: (v.x * 0.5 + 0.5) * W,
+            y: (-v.y * 0.5 + 0.5) * H
+          };
+        });
+        // Convert from internal canvas coords to viewport coords
+        const canvasRect = cv.getBoundingClientRect();
+        const scaleX = canvasRect.width / W;
+        const scaleY = canvasRect.height / H;
+        const screenCorners = projected.map(p => ({
+          x: canvasRect.left + p.x * scaleX,
+          y: canvasRect.top + p.y * scaleY
+        }));
+        // Bounding rect
+        const xs = screenCorners.map(c => c.x);
+        const ys = screenCorners.map(c => c.y);
+        return {
+          left: Math.min(...xs),
+          top: Math.min(...ys),
+          width: Math.max(...xs) - Math.min(...xs),
+          height: Math.max(...ys) - Math.min(...ys),
+          corners: screenCorners  // for perspective matching
+        };
+      };
     }
 
     document.addEventListener('imageReady', initSection01);
