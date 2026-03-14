@@ -2933,6 +2933,12 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     let _lensTransitionCleanup = null; // set by triggerLensTransition for early abort
 
     changeBtn.addEventListener('click', () => {
+      // Clear persisted session so fresh upload starts clean
+      try {
+        localStorage.removeItem('jpeg-journey-image');
+        localStorage.removeItem('jpeg-journey-section');
+      } catch (e) {}
+
       // Abort any in-progress lens transition
       if (_lensTransitionCleanup) {
         _lensTransitionCleanup();
@@ -3451,7 +3457,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       reader.readAsDataURL(file);
     }
 
-    function processImage(dataURL) {
+    function processImage(dataURL, skipTransition = false) {
       const img = new Image();
       img.onerror = () => showError('Image failed to load. Please try another file.');
       img.onload = () => {
@@ -3497,14 +3503,29 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         resultDims.textContent = `Your photo: ${origW} × ${origH} pixels`;
         resultDimsNote.textContent = `Scaled to ${w} × ${h} px for this presentation`;
 
+        // 6b. Persist the resized image to localStorage for session restore
+        try {
+          localStorage.setItem('jpeg-journey-image', canvas.toDataURL('image/jpeg', 0.9));
+        } catch (e) { /* quota exceeded or private browsing — fail silently */ }
+
         // 7. Notify other sections early so they can initialize during animation
         document.dispatchEvent(new CustomEvent('imageReady'));
 
-        // 8. Transition UI — 3D lens fly-through
-        triggerLensTransition(canvas);
+        // 8. Transition UI — skip animation on silent restore, full 3D fly-through otherwise
+        if (skipTransition) {
+          uploadState.style.display = 'none';
+          resultState.style.display = 'flex';
+          scrollCue.classList.add('visible');
+          document.body.classList.remove('scroll-locked');
+        } else {
+          triggerLensTransition(canvas);
+        }
       };
       img.src = dataURL;
     }
+
+    // Expose for session restore (called before the IIFE closes)
+    window._processImageSilent = (url) => processImage(url, true);
   }());
 
   // ─── Phase 3: Data Size Bar & Sidebar Navigation ────────────────────────────
@@ -3683,6 +3704,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
   function updateSidebarActive(sectionId) {
     _visitedSections.add(sectionId);
+    try { localStorage.setItem('jpeg-journey-section', sectionId); } catch (e) {}
     const idx = SECTION_DATA.findIndex(s => s.id === sectionId);
     SECTION_DATA.forEach((sd, i) => {
       const btn = document.getElementById('navItem-' + sd.id);
@@ -6571,6 +6593,57 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     document.addEventListener('imageReady',     build);
     document.addEventListener('qualityChanged', () => { if (S.img) build(); });
     build(); // render with defaults before any image is uploaded
+  }());
+
+  // ─── Session Restore ──────────────────────────────────────────────────────
+  // On page load, silently restore the last image and scroll to the last section
+  // the user was viewing, so they continue without friction.
+  (function () {
+    let savedImage, savedSection;
+    try {
+      savedImage   = localStorage.getItem('jpeg-journey-image');
+      savedSection = localStorage.getItem('jpeg-journey-section');
+    } catch (e) { return; }
+
+    if (!savedImage) return;
+
+    // After imageReady fires (all sections initialized), scroll to last section
+    document.addEventListener('imageReady', function onRestore() {
+      document.removeEventListener('imageReady', onRestore);
+      if (!savedSection || savedSection === 'hero') return;
+
+      // Give the IntersectionObserver a tick to attach, then jump
+      setTimeout(() => {
+        const target = document.getElementById(savedSection);
+        if (target) {
+          target.scrollIntoView({ behavior: 'instant' });
+          // Show a brief "welcome back" toast
+          const sd    = SECTION_DATA.find(s => s.id === savedSection);
+          const label = sd ? sd.shortLabel : savedSection;
+          const toast = document.createElement('div');
+          toast.style.cssText = [
+            'position:fixed', 'bottom:80px', 'left:50%', 'transform:translateX(-50%)',
+            'background:rgba(20,20,20,0.88)', 'color:#fff', 'padding:9px 20px',
+            'border-radius:999px', 'font-size:13px', 'font-family:inherit',
+            'letter-spacing:0.01em', 'z-index:9999',
+            'box-shadow:0 4px 20px rgba(0,0,0,0.45)', 'pointer-events:none',
+            'transition:opacity 0.4s', 'opacity:0'
+          ].join(';');
+          toast.textContent = `Picked up where you left off · ${label}`;
+          document.body.appendChild(toast);
+          requestAnimationFrame(() => { toast.style.opacity = '1'; });
+          setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.addEventListener('transitionend', () => toast.remove(), { once: true });
+          }, 3000);
+        }
+      }, 100);
+    }, { once: true });
+
+    // Trigger silent image restore (no lens animation, no shutter)
+    if (window._processImageSilent) {
+      window._processImageSilent(savedImage);
+    }
   }());
 </script>
 </body>
