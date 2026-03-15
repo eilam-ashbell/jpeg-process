@@ -1008,50 +1008,109 @@
       image-rendering: pixelated;
     }
 
-    /* ── Raw pixel inspector ───────────────────────────────────────────────── */
-    .raw-dual {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
+    /* ── Quality Lens ────────────────────────────────────────────────────── */
+    .quality-lens-container {
+      position: relative;
+      overflow: hidden;
+      border-radius: 8px;
+      cursor: none; /* hide cursor, lens replaces it */
     }
 
-    @media (max-width: 680px) {
-      .raw-dual { grid-template-columns: 1fr; }
+    .quality-lens-container canvas {
+      width: 100%;
+      height: auto;
+      display: block;
     }
 
-    .raw-panel-label {
-      font-size: 0.75rem;
+    .quality-lens-toggle {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .quality-lens-btn {
+      padding: 6px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 999px;
+      background: var(--bg-card);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.82rem;
       font-weight: 600;
       color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
 
-    #rawSrcCanvas {
-      width: 100%;
-      height: auto;
-      display: block;
-      cursor: crosshair;
-      border-radius: 6px;
+    .quality-lens-btn:hover {
+      border-color: var(--accent-blue);
+      color: var(--text-primary);
     }
 
-    #rawZoomCanvas {
-      width: 100%;
-      height: auto;
-      display: block;
-      border-radius: 6px;
-      image-rendering: pixelated;
-      cursor: default;
+    .quality-lens-btn.active {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+      color: #fff;
     }
 
-    .raw-rgb-tooltip {
-      margin-top: 8px;
+    .lens-info {
+      margin-top: 12px;
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.82rem;
       font-weight: 600;
       color: var(--text-primary);
       min-height: 1.4em;
+    }
+
+    .cost-comparison {
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .cost-box {
+      padding: 14px 16px;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .cost-box-raw {
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+
+    .cost-box-jpeg {
+      background: rgba(37, 99, 235, 0.08);
+      border: 1px solid rgba(37, 99, 235, 0.2);
+    }
+
+    .cost-box .cost-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .cost-box .cost-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .cost-box-raw .cost-value { color: #22c55e; }
+    .cost-box-jpeg .cost-value { color: var(--accent-blue); }
+
+    .cost-box .cost-detail {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    @media (max-width: 680px) {
+      .quality-lens-container { cursor: default; }
+      .cost-comparison { grid-template-columns: 1fr; }
     }
 
     .stats-callout {
@@ -2389,15 +2448,24 @@
         of raw data. JPEG's job is to shrink this dramatically without ruining the image.
       </p>
       <div class="demo-card reveal">
-        <div class="raw-dual">
-          <div>
-            <p class="raw-panel-label">Click image to inspect pixels</p>
-            <canvas id="rawSrcCanvas"></canvas>
+        <div class="quality-lens-toggle">
+          <button class="quality-lens-btn active" data-lens="raw">Raw</button>
+          <button class="quality-lens-btn" data-lens="jpeg">JPEG</button>
+        </div>
+        <div class="quality-lens-container" id="qualityLensContainer">
+          <canvas id="qualityLensCanvas"></canvas>
+        </div>
+        <div class="lens-info" id="lensInfo">Hover over the image to inspect</div>
+        <div class="cost-comparison">
+          <div class="cost-box cost-box-raw">
+            <div class="cost-label">Raw</div>
+            <div class="cost-value" id="rawCostValue">36.0 MB</div>
+            <div class="cost-detail">3 bytes per pixel, always</div>
           </div>
-          <div>
-            <p class="raw-panel-label">Zoomed pixel grid</p>
-            <canvas id="rawZoomCanvas"></canvas>
-            <div class="raw-rgb-tooltip" id="rawRGBTooltip"></div>
+          <div class="cost-box cost-box-jpeg">
+            <div class="cost-label">JPEG</div>
+            <div class="cost-value" id="jpegCostValue">~300 KB</div>
+            <div class="cost-detail">Smart — spends where it matters</div>
           </div>
         </div>
         <div class="stats-callout" id="rawStats">
@@ -2405,7 +2473,6 @@
           <p id="rawStatsSize"></p>
           <p id="rawStatsRatio"></p>
         </div>
-
       </div>
 
       <!-- Data Size Bar — first appears inline here, then sticks to bottom -->
@@ -5059,124 +5126,224 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         `Uncompressed: ${rawMB} MB`;
       document.getElementById('rawStatsRatio').textContent =
         `That's ~${ratio}× larger than the final JPEG`;
+      document.getElementById('rawCostValue').textContent = `${rawMB} MB`;
 
-      // Source canvas
-      const srcCanvas = document.getElementById('rawSrcCanvas');
-      const srcCtx = srcCanvas.getContext('2d', { willReadFrequently: true });
-      srcCanvas.width = S.w;
-      srcCanvas.height = S.h;
-      srcCtx.drawImage(S.origCanvas, 0, 0);
+      // Main canvas
+      const container = document.getElementById('qualityLensContainer');
+      const canvas = document.getElementById('qualityLensCanvas');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      canvas.width = S.w;
+      canvas.height = S.h;
 
-      // Zoom canvas
-      const zoomCanvas = document.getElementById('rawZoomCanvas');
-      const zoomCtx = zoomCanvas.getContext('2d');
-      const ZOOM = 10, CELL = 28;
-      zoomCanvas.width = ZOOM * CELL;
-      zoomCanvas.height = ZOOM * CELL;
+      // Create JPEG version by encoding then decoding
+      const jpegCanvas = document.createElement('canvas');
+      jpegCanvas.width = S.origW;
+      jpegCanvas.height = S.origH;
+      const jpegCtx = jpegCanvas.getContext('2d', { willReadFrequently: true });
+      jpegCtx.drawImage(S.origCanvas, 0, 0);
 
-      let clickX = Math.floor(S.w / 2);
-      let clickY = Math.floor(S.h / 2);
-      let hoveredCell = null;
+      const jpegUrl = jpegCanvas.toDataURL('image/jpeg', 0.5);
+      const jpegImg = new Image();
+      let jpegReady = false;
+      let jpegImageData = null;
 
-      function getPixelAt(px, py) {
-        const x = Math.max(0, Math.min(px, S.w - 1));
-        const y = Math.max(0, Math.min(py, S.h - 1));
-        const i = (y * S.w + x) * 4;
-        return { r: S.img.data[i], g: S.img.data[i + 1], b: S.img.data[i + 2] };
+      jpegImg.onload = function () {
+        jpegCtx.clearRect(0, 0, jpegCanvas.width, jpegCanvas.height);
+        jpegCtx.drawImage(jpegImg, 0, 0, S.origW, S.origH);
+        jpegImageData = jpegCtx.getImageData(0, 0, S.origW, S.origH);
+        jpegReady = true;
+        // Calculate JPEG size approximation
+        const base64Len = jpegUrl.split(',')[1].length;
+        const jpegBytes = Math.round(base64Len * 3 / 4);
+        const jpegKB = (jpegBytes / 1000).toFixed(0);
+        document.getElementById('jpegCostValue').textContent = `~${jpegKB} KB`;
+      };
+      jpegImg.src = jpegUrl;
+
+      // State
+      let mode = 'raw'; // 'raw' or 'jpeg'
+      let mouseX = -1, mouseY = -1;
+      let isHovering = false;
+
+      const LENS_RADIUS = 75; // in image pixels
+      const LENS_ZOOM = 4;
+      const lensInfo = document.getElementById('lensInfo');
+
+      // Toggle buttons
+      const btns = document.querySelectorAll('.quality-lens-btn');
+      btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          btns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          mode = btn.dataset.lens;
+          drawScene();
+        });
+      });
+
+      // Compute local variance for an 8x8 block to estimate JPEG cost
+      function blockVariance(imgData, bx, by, w, h) {
+        let sumR = 0, sumG = 0, sumB = 0, count = 0;
+        for (let y = by; y < Math.min(by + 8, h); y++) {
+          for (let x = bx; x < Math.min(bx + 8, w); x++) {
+            const i = (y * w + x) * 4;
+            sumR += imgData.data[i];
+            sumG += imgData.data[i + 1];
+            sumB += imgData.data[i + 2];
+            count++;
+          }
+        }
+        const meanR = sumR / count, meanG = sumG / count, meanB = sumB / count;
+        let variance = 0;
+        for (let y = by; y < Math.min(by + 8, h); y++) {
+          for (let x = bx; x < Math.min(bx + 8, w); x++) {
+            const i = (y * w + x) * 4;
+            variance += (imgData.data[i] - meanR) ** 2;
+            variance += (imgData.data[i + 1] - meanG) ** 2;
+            variance += (imgData.data[i + 2] - meanB) ** 2;
+          }
+        }
+        return variance / (count * 3);
       }
 
-      function drawSrc() {
-        srcCtx.drawImage(S.origCanvas, 0, 0);
-        const half = Math.floor(ZOOM / 2);
-        const boxX = Math.max(0, Math.min(clickX - half, S.w - ZOOM));
-        const boxY = Math.max(0, Math.min(clickY - half, S.h - ZOOM));
+      function drawScene() {
+        // Draw base image
+        ctx.drawImage(S.origCanvas, 0, 0);
 
-        // Crosshair
-        srcCtx.save();
-        srcCtx.strokeStyle = 'rgba(255,255,255,0.6)';
-        srcCtx.lineWidth = 1;
-        srcCtx.setLineDash([3, 3]);
-        srcCtx.beginPath();
-        srcCtx.moveTo(clickX, 0); srcCtx.lineTo(clickX, S.h);
-        srcCtx.moveTo(0, clickY); srcCtx.lineTo(S.w, clickY);
-        srcCtx.stroke();
+        if (!isHovering || mouseX < 0 || mouseY < 0) return;
 
-        // Selection box
-        srcCtx.setLineDash([]);
-        srcCtx.strokeStyle = '#3b82f6';
-        srcCtx.lineWidth = 2;
-        srcCtx.strokeRect(boxX, boxY, ZOOM, ZOOM);
-        srcCtx.restore();
-      }
+        // Calculate lens bounds in image coords
+        const lensR = LENS_RADIUS;
+        const srcR = lensR / LENS_ZOOM; // source region radius
 
-      function drawZoom() {
-        zoomCtx.clearRect(0, 0, zoomCanvas.width, zoomCanvas.height);
-        const half = Math.floor(ZOOM / 2);
-        const startX = Math.max(0, Math.min(clickX - half, S.w - ZOOM));
-        const startY = Math.max(0, Math.min(clickY - half, S.h - ZOOM));
+        // Draw lens
+        ctx.save();
 
-        for (let row = 0; row < ZOOM; row++) {
-          for (let col = 0; col < ZOOM; col++) {
-            const px = getPixelAt(startX + col, startY + row);
-            const x = col * CELL, y = row * CELL;
+        // Clip to circle
+        ctx.beginPath();
+        ctx.arc(mouseX, mouseY, lensR, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.clip();
 
-            zoomCtx.fillStyle = `rgb(${px.r},${px.g},${px.b})`;
-            zoomCtx.fillRect(x, y, CELL, CELL);
+        // Draw zoomed region inside lens
+        const srcX = mouseX - srcR;
+        const srcY = mouseY - srcR;
+        const srcSize = srcR * 2;
+        const destX = mouseX - lensR;
+        const destY = mouseY - lensR;
+        const destSize = lensR * 2;
 
-            if (hoveredCell && hoveredCell.row === row && hoveredCell.col === col) {
-              zoomCtx.fillStyle = 'rgba(255,255,255,0.25)';
-              zoomCtx.fillRect(x, y, CELL, CELL);
-            }
+        if (mode === 'raw') {
+          // Draw raw (original) zoomed
+          ctx.drawImage(S.origCanvas, srcX, srcY, srcSize, srcSize,
+                        destX, destY, destSize, destSize);
+        } else if (jpegReady) {
+          // Draw JPEG zoomed
+          ctx.drawImage(jpegCanvas, srcX, srcY, srcSize, srcSize,
+                        destX, destY, destSize, destSize);
+        }
 
-            // Center marker
-            if (row === half && col === half) {
-              zoomCtx.strokeStyle = 'rgba(255,255,255,0.9)';
-              zoomCtx.lineWidth = 2;
-              zoomCtx.strokeRect(x + 1, y + 1, CELL - 2, CELL - 2);
-            }
+        // Pixel grid inside lens
+        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+        ctx.lineWidth = 0.5;
+        const cellSize = LENS_ZOOM; // each pixel = LENS_ZOOM screen pixels
+        const gridStartX = destX - ((srcX % 1) * LENS_ZOOM);
+        const gridStartY = destY - ((srcY % 1) * LENS_ZOOM);
 
-            zoomCtx.strokeStyle = 'rgba(255,255,255,0.12)';
-            zoomCtx.lineWidth = 0.5;
-            zoomCtx.strokeRect(x, y, CELL, CELL);
+        for (let gx = gridStartX; gx < destX + destSize; gx += cellSize) {
+          ctx.beginPath();
+          ctx.moveTo(gx, destY);
+          ctx.lineTo(gx, destY + destSize);
+          ctx.stroke();
+        }
+        for (let gy = gridStartY; gy < destY + destSize; gy += cellSize) {
+          ctx.beginPath();
+          ctx.moveTo(destX, gy);
+          ctx.lineTo(destX + destSize, gy);
+          ctx.stroke();
+        }
+
+        // Center crosshair
+        ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([2, 2]);
+        ctx.beginPath();
+        ctx.moveTo(mouseX - 8, mouseY);
+        ctx.lineTo(mouseX + 8, mouseY);
+        ctx.moveTo(mouseX, mouseY - 8);
+        ctx.lineTo(mouseX, mouseY + 8);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.restore();
+
+        // Lens border
+        ctx.beginPath();
+        ctx.arc(mouseX, mouseY, lensR, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Outer glow
+        ctx.beginPath();
+        ctx.arc(mouseX, mouseY, lensR + 1, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Update info text
+        const px = Math.floor(mouseX);
+        const py = Math.floor(mouseY);
+        if (px >= 0 && px < S.w && py >= 0 && py < S.h) {
+          const i = (py * S.w + px) * 4;
+          const r = S.img.data[i], g = S.img.data[i + 1], b = S.img.data[i + 2];
+
+          if (mode === 'raw') {
+            lensInfo.textContent = `R: ${r}  G: ${g}  B: ${b}  —  3 bytes per pixel, always`;
+          } else {
+            // Estimate local cost based on block variance
+            const bx = px - (px % 8);
+            const by = py - (py % 8);
+            const v = blockVariance(S.img, bx, by, S.w, S.h);
+            // Map variance to approximate bytes: low variance ~ 0.1-0.5, high ~ 2-3
+            const cost = Math.min(3, 0.1 + (v / 1000) * 2.9).toFixed(1);
+            lensInfo.textContent = `R: ${r}  G: ${g}  B: ${b}  —  ~${cost} bytes here`;
           }
         }
       }
 
-      srcCanvas.addEventListener('click', e => {
-        const rect = srcCanvas.getBoundingClientRect();
-        clickX = Math.round((e.clientX - rect.left) * (S.w / rect.width));
-        clickY = Math.round((e.clientY - rect.top) * (S.h / rect.height));
-        drawSrc();
-        drawZoom();
+      // Mouse tracking
+      canvas.addEventListener('mousemove', e => {
+        const rect = canvas.getBoundingClientRect();
+        mouseX = Math.round((e.clientX - rect.left) * (S.w / rect.width));
+        mouseY = Math.round((e.clientY - rect.top) * (S.h / rect.height));
+        isHovering = true;
+        drawScene();
       });
 
-      zoomCanvas.addEventListener('mousemove', e => {
-        const rect = zoomCanvas.getBoundingClientRect();
-        const col = Math.floor((e.clientX - rect.left) * (zoomCanvas.width / rect.width) / CELL);
-        const row = Math.floor((e.clientY - rect.top) * (zoomCanvas.height / rect.height) / CELL);
-        const half = Math.floor(ZOOM / 2);
-        const startX = Math.max(0, Math.min(clickX - half, S.w - ZOOM));
-        const startY = Math.max(0, Math.min(clickY - half, S.h - ZOOM));
-        if (col >= 0 && col < ZOOM && row >= 0 && row < ZOOM) {
-          hoveredCell = { row, col };
-          const px = getPixelAt(startX + col, startY + row);
-          document.getElementById('rawRGBTooltip').textContent =
-            `R: ${px.r}  G: ${px.g}  B: ${px.b}`;
-        } else {
-          hoveredCell = null;
-          document.getElementById('rawRGBTooltip').textContent = '';
-        }
-        drawZoom();
+      canvas.addEventListener('mouseleave', () => {
+        isHovering = false;
+        lensInfo.textContent = 'Hover over the image to inspect';
+        drawScene();
       });
 
-      zoomCanvas.addEventListener('mouseleave', () => {
-        hoveredCell = null;
-        document.getElementById('rawRGBTooltip').textContent = '';
-        drawZoom();
+      // Touch support
+      canvas.addEventListener('touchmove', e => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        mouseX = Math.round((touch.clientX - rect.left) * (S.w / rect.width));
+        mouseY = Math.round((touch.clientY - rect.top) * (S.h / rect.height));
+        isHovering = true;
+        drawScene();
+      }, { passive: false });
+
+      canvas.addEventListener('touchend', () => {
+        isHovering = false;
+        lensInfo.textContent = 'Hover over the image to inspect';
+        drawScene();
       });
 
-      drawSrc();
-      drawZoom();
+      drawScene();
     }
 
     document.addEventListener('imageReady', initSection03);
