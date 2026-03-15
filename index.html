@@ -1008,50 +1008,127 @@
       image-rendering: pixelated;
     }
 
-    /* ── Raw pixel inspector ───────────────────────────────────────────────── */
-    .raw-dual {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
+    /* ── Difference Map ─────────────────────────────────────────────────────── */
+    .diff-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
     }
 
-    @media (max-width: 680px) {
-      .raw-dual { grid-template-columns: 1fr; }
-    }
-
-    .raw-panel-label {
-      font-size: 0.75rem;
+    .diff-tab-btn {
+      padding: 6px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 999px;
+      background: var(--bg-card);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.82rem;
       font-weight: 600;
       color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
 
-    #rawSrcCanvas {
+    .diff-tab-btn:hover {
+      border-color: var(--accent-blue);
+      color: var(--text-primary);
+    }
+
+    .diff-tab-btn.active {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+      color: #fff;
+    }
+
+    .diff-tab-btn[data-tab="diff"].active {
+      background: #7c3aed;
+      border-color: #7c3aed;
+    }
+
+    .diff-canvas-wrap {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .diff-canvas-wrap canvas {
       width: 100%;
       height: auto;
       display: block;
-      cursor: crosshair;
-      border-radius: 6px;
     }
 
-    #rawZoomCanvas {
-      width: 100%;
-      height: auto;
-      display: block;
-      border-radius: 6px;
-      image-rendering: pixelated;
-      cursor: default;
+    .diff-size-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      background: rgba(0,0,0,0.65);
+      color: #fff;
+      backdrop-filter: blur(6px);
+      pointer-events: none;
     }
 
-    .raw-rgb-tooltip {
-      margin-top: 8px;
+    .diff-quality-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .diff-quality-label {
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.82rem;
       font-weight: 600;
       color: var(--text-primary);
+      white-space: nowrap;
+      min-width: 100px;
+    }
+
+    .diff-quality-slider {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--border);
+      outline: none;
+    }
+
+    .diff-quality-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--accent-blue);
+      cursor: pointer;
+      border: 2px solid #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+
+    .diff-quality-slider::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--accent-blue);
+      cursor: pointer;
+      border: 2px solid #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+
+    .diff-caption {
+      margin-top: 12px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-style: italic;
       min-height: 1.4em;
+    }
+
+    @media (max-width: 680px) {
+      .diff-tabs { flex-wrap: wrap; }
+      .diff-quality-row { flex-direction: column; gap: 8px; }
     }
 
     .stats-callout {
@@ -2389,23 +2466,25 @@
         of raw data. JPEG's job is to shrink this dramatically without ruining the image.
       </p>
       <div class="demo-card reveal">
-        <div class="raw-dual">
-          <div>
-            <p class="raw-panel-label">Click image to inspect pixels</p>
-            <canvas id="rawSrcCanvas"></canvas>
-          </div>
-          <div>
-            <p class="raw-panel-label">Zoomed pixel grid</p>
-            <canvas id="rawZoomCanvas"></canvas>
-            <div class="raw-rgb-tooltip" id="rawRGBTooltip"></div>
-          </div>
+        <div class="diff-tabs">
+          <button class="diff-tab-btn active" data-tab="original">Original</button>
+          <button class="diff-tab-btn" data-tab="jpeg">JPEG</button>
+          <button class="diff-tab-btn" data-tab="diff">What Was Removed</button>
         </div>
+        <div class="diff-canvas-wrap">
+          <canvas id="diffCanvas"></canvas>
+          <span class="diff-size-badge" id="diffSizeBadge"></span>
+        </div>
+        <div class="diff-quality-row">
+          <label class="diff-quality-label" id="diffQualityLabel">Quality: 75</label>
+          <input type="range" class="diff-quality-slider" id="diffQualitySlider" min="1" max="100" value="75">
+        </div>
+        <div class="diff-caption" id="diffCaption">Your original image — every pixel stored at full precision</div>
         <div class="stats-callout" id="rawStats">
           <p><strong id="rawStatsPixels">Upload a photo to see stats</strong></p>
           <p id="rawStatsSize"></p>
           <p id="rawStatsRatio"></p>
         </div>
-
       </div>
 
       <!-- Data Size Bar — first appears inline here, then sticks to bottom -->
@@ -5060,123 +5139,147 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       document.getElementById('rawStatsRatio').textContent =
         `That's ~${ratio}× larger than the final JPEG`;
 
-      // Source canvas
-      const srcCanvas = document.getElementById('rawSrcCanvas');
-      const srcCtx = srcCanvas.getContext('2d', { willReadFrequently: true });
-      srcCanvas.width = S.w;
-      srcCanvas.height = S.h;
-      srcCtx.drawImage(S.origCanvas, 0, 0);
+      // Canvas setup
+      const canvas = document.getElementById('diffCanvas');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      canvas.width = S.w;
+      canvas.height = S.h;
 
-      // Zoom canvas
-      const zoomCanvas = document.getElementById('rawZoomCanvas');
-      const zoomCtx = zoomCanvas.getContext('2d');
-      const ZOOM = 10, CELL = 28;
-      zoomCanvas.width = ZOOM * CELL;
-      zoomCanvas.height = ZOOM * CELL;
+      // Original image data
+      const origData = S.img;
 
-      let clickX = Math.floor(S.w / 2);
-      let clickY = Math.floor(S.h / 2);
-      let hoveredCell = null;
+      // State
+      let currentTab = 'original';
+      let quality = 75;
+      let jpegData = null;
+      let jpegSizeKB = 0;
+      let debounceTimer = null;
 
-      function getPixelAt(px, py) {
-        const x = Math.max(0, Math.min(px, S.w - 1));
-        const y = Math.max(0, Math.min(py, S.h - 1));
-        const i = (y * S.w + x) * 4;
-        return { r: S.img.data[i], g: S.img.data[i + 1], b: S.img.data[i + 2] };
+      const badge = document.getElementById('diffSizeBadge');
+      const caption = document.getElementById('diffCaption');
+      const qualityLabel = document.getElementById('diffQualityLabel');
+      const slider = document.getElementById('diffQualitySlider');
+
+      // Generate JPEG at given quality and compute diff
+      function generateJPEG(q) {
+        return new Promise(resolve => {
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = S.origW;
+          tempCanvas.height = S.origH;
+          const tempCtx = tempCanvas.getContext('2d');
+          tempCtx.drawImage(S.origCanvas, 0, 0);
+
+          const url = tempCanvas.toDataURL('image/jpeg', q / 100);
+          const base64Len = url.split(',')[1].length;
+          jpegSizeKB = Math.round(base64Len * 3 / 4 / 1000);
+
+          const img = new Image();
+          img.onload = () => {
+            // Draw at display size to get pixel data
+            const jCanvas = document.createElement('canvas');
+            jCanvas.width = S.w;
+            jCanvas.height = S.h;
+            const jCtx = jCanvas.getContext('2d', { willReadFrequently: true });
+            jCtx.drawImage(img, 0, 0, S.w, S.h);
+            jpegData = jCtx.getImageData(0, 0, S.w, S.h);
+            resolve();
+          };
+          img.src = url;
+        });
       }
 
-      function drawSrc() {
-        srcCtx.drawImage(S.origCanvas, 0, 0);
-        const half = Math.floor(ZOOM / 2);
-        const boxX = Math.max(0, Math.min(clickX - half, S.w - ZOOM));
-        const boxY = Math.max(0, Math.min(clickY - half, S.h - ZOOM));
-
-        // Crosshair
-        srcCtx.save();
-        srcCtx.strokeStyle = 'rgba(255,255,255,0.6)';
-        srcCtx.lineWidth = 1;
-        srcCtx.setLineDash([3, 3]);
-        srcCtx.beginPath();
-        srcCtx.moveTo(clickX, 0); srcCtx.lineTo(clickX, S.h);
-        srcCtx.moveTo(0, clickY); srcCtx.lineTo(S.w, clickY);
-        srcCtx.stroke();
-
-        // Selection box
-        srcCtx.setLineDash([]);
-        srcCtx.strokeStyle = '#3b82f6';
-        srcCtx.lineWidth = 2;
-        srcCtx.strokeRect(boxX, boxY, ZOOM, ZOOM);
-        srcCtx.restore();
+      function drawOriginal() {
+        ctx.drawImage(S.origCanvas, 0, 0);
+        badge.textContent = `${rawMB} MB`;
+        caption.textContent = 'Your original image — every pixel stored at full precision';
       }
 
-      function drawZoom() {
-        zoomCtx.clearRect(0, 0, zoomCanvas.width, zoomCanvas.height);
-        const half = Math.floor(ZOOM / 2);
-        const startX = Math.max(0, Math.min(clickX - half, S.w - ZOOM));
-        const startY = Math.max(0, Math.min(clickY - half, S.h - ZOOM));
+      function drawJPEG() {
+        if (!jpegData) return;
+        ctx.putImageData(jpegData, 0, 0);
+        badge.textContent = `~${jpegSizeKB} KB`;
+        caption.textContent = `JPEG at quality ${quality} — looks nearly identical, ${Math.round(parseFloat(rawMB) * 1000 / jpegSizeKB)}× smaller`;
+      }
 
-        for (let row = 0; row < ZOOM; row++) {
-          for (let col = 0; col < ZOOM; col++) {
-            const px = getPixelAt(startX + col, startY + row);
-            const x = col * CELL, y = row * CELL;
+      function drawDiff() {
+        if (!jpegData) return;
+        const diffImgData = ctx.createImageData(S.w, S.h);
+        const orig = origData.data;
+        const jpeg = jpegData.data;
+        const diff = diffImgData.data;
+        const amplify = 10;
 
-            zoomCtx.fillStyle = `rgb(${px.r},${px.g},${px.b})`;
-            zoomCtx.fillRect(x, y, CELL, CELL);
+        for (let i = 0; i < orig.length; i += 4) {
+          // Amplified absolute difference
+          const dr = Math.min(255, Math.abs(orig[i] - jpeg[i]) * amplify);
+          const dg = Math.min(255, Math.abs(orig[i + 1] - jpeg[i + 1]) * amplify);
+          const db = Math.min(255, Math.abs(orig[i + 2] - jpeg[i + 2]) * amplify);
 
-            if (hoveredCell && hoveredCell.row === row && hoveredCell.col === col) {
-              zoomCtx.fillStyle = 'rgba(255,255,255,0.25)';
-              zoomCtx.fillRect(x, y, CELL, CELL);
-            }
+          // Map to a thermal/neon color scheme
+          const brightness = (dr + dg + db) / 3;
 
-            // Center marker
-            if (row === half && col === half) {
-              zoomCtx.strokeStyle = 'rgba(255,255,255,0.9)';
-              zoomCtx.lineWidth = 2;
-              zoomCtx.strokeRect(x + 1, y + 1, CELL - 2, CELL - 2);
-            }
-
-            zoomCtx.strokeStyle = 'rgba(255,255,255,0.12)';
-            zoomCtx.lineWidth = 0.5;
-            zoomCtx.strokeRect(x, y, CELL, CELL);
+          if (brightness < 5) {
+            // Near-zero difference: very dark blue
+            diff[i] = 2;
+            diff[i + 1] = 2;
+            diff[i + 2] = 12;
+          } else {
+            // Use the amplified diff values with a cyan/magenta/yellow tint
+            diff[i] = Math.min(255, dr * 1.2 + brightness * 0.3);     // R: warm for edges
+            diff[i + 1] = Math.min(255, dg * 0.6 + brightness * 0.5); // G: medium
+            diff[i + 2] = Math.min(255, db * 1.4 + brightness * 0.4); // B: cool for smooth
           }
+          diff[i + 3] = 255;
         }
+
+        ctx.putImageData(diffImgData, 0, 0);
+
+        // Calculate total removed bytes
+        let totalDiff = 0;
+        for (let i = 0; i < orig.length; i += 4) {
+          totalDiff += Math.abs(orig[i] - jpeg[i]);
+          totalDiff += Math.abs(orig[i + 1] - jpeg[i + 1]);
+          totalDiff += Math.abs(orig[i + 2] - jpeg[i + 2]);
+        }
+        const avgDiff = (totalDiff / (S.w * S.h * 3)).toFixed(1);
+
+        badge.textContent = `×10 amplified`;
+        caption.textContent = `What JPEG discarded (amplified 10×). Average difference per channel: ${avgDiff} out of 255`;
       }
 
-      srcCanvas.addEventListener('click', e => {
-        const rect = srcCanvas.getBoundingClientRect();
-        clickX = Math.round((e.clientX - rect.left) * (S.w / rect.width));
-        clickY = Math.round((e.clientY - rect.top) * (S.h / rect.height));
-        drawSrc();
-        drawZoom();
+      function updateView() {
+        if (currentTab === 'original') drawOriginal();
+        else if (currentTab === 'jpeg') drawJPEG();
+        else if (currentTab === 'diff') drawDiff();
+      }
+
+      // Tab buttons
+      const tabs = document.querySelectorAll('.diff-tab-btn');
+      tabs.forEach(btn => {
+        btn.addEventListener('click', () => {
+          tabs.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentTab = btn.dataset.tab;
+          updateView();
+        });
       });
 
-      zoomCanvas.addEventListener('mousemove', e => {
-        const rect = zoomCanvas.getBoundingClientRect();
-        const col = Math.floor((e.clientX - rect.left) * (zoomCanvas.width / rect.width) / CELL);
-        const row = Math.floor((e.clientY - rect.top) * (zoomCanvas.height / rect.height) / CELL);
-        const half = Math.floor(ZOOM / 2);
-        const startX = Math.max(0, Math.min(clickX - half, S.w - ZOOM));
-        const startY = Math.max(0, Math.min(clickY - half, S.h - ZOOM));
-        if (col >= 0 && col < ZOOM && row >= 0 && row < ZOOM) {
-          hoveredCell = { row, col };
-          const px = getPixelAt(startX + col, startY + row);
-          document.getElementById('rawRGBTooltip').textContent =
-            `R: ${px.r}  G: ${px.g}  B: ${px.b}`;
-        } else {
-          hoveredCell = null;
-          document.getElementById('rawRGBTooltip').textContent = '';
-        }
-        drawZoom();
+      // Quality slider
+      slider.addEventListener('input', () => {
+        quality = parseInt(slider.value);
+        qualityLabel.textContent = `Quality: ${quality}`;
+
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(async () => {
+          await generateJPEG(quality);
+          if (currentTab !== 'original') updateView();
+        }, 80);
       });
 
-      zoomCanvas.addEventListener('mouseleave', () => {
-        hoveredCell = null;
-        document.getElementById('rawRGBTooltip').textContent = '';
-        drawZoom();
+      // Initial render
+      generateJPEG(quality).then(() => {
+        drawOriginal();
       });
-
-      drawSrc();
-      drawZoom();
     }
 
     document.addEventListener('imageReady', initSection03);
