@@ -1008,50 +1008,108 @@
       image-rendering: pixelated;
     }
 
-    /* ── Raw pixel inspector ───────────────────────────────────────────────── */
-    .raw-dual {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
+    /* ── Data Heat Map ────────────────────────────────────────────────────── */
+    .heatmap-controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
     }
 
-    @media (max-width: 680px) {
-      .raw-dual { grid-template-columns: 1fr; }
-    }
-
-    .raw-panel-label {
-      font-size: 0.75rem;
+    .heatmap-btn {
+      padding: 6px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 999px;
+      background: var(--bg-card);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.82rem;
       font-weight: 600;
       color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
 
-    #rawSrcCanvas {
+    .heatmap-btn:hover {
+      border-color: var(--accent-blue);
+      color: var(--text-primary);
+    }
+
+    .heatmap-btn.active {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+      color: #fff;
+    }
+
+    .heatmap-btn[data-mode="raw"].active {
+      background: #22c55e;
+      border-color: #22c55e;
+    }
+
+    .heatmap-btn[data-mode="skeleton"].active {
+      background: #7c3aed;
+      border-color: #7c3aed;
+    }
+
+    .heatmap-canvas-wrap {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .heatmap-canvas-wrap canvas {
       width: 100%;
       height: auto;
       display: block;
-      cursor: crosshair;
-      border-radius: 6px;
     }
 
-    #rawZoomCanvas {
-      width: 100%;
-      height: auto;
-      display: block;
-      border-radius: 6px;
-      image-rendering: pixelated;
-      cursor: default;
+    .heatmap-legend {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
     }
 
-    .raw-rgb-tooltip {
+    .heatmap-legend-bar {
+      flex: 1;
+      height: 8px;
+      border-radius: 4px;
+      background: linear-gradient(to right, #3b82f6, #22d3ee, #22c55e, #eab308, #f97316, #ef4444);
+    }
+
+    .heatmap-legend-labels {
+      display: flex;
+      justify-content: space-between;
+      flex: 1;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+    }
+
+    .heatmap-insight {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 10px;
+      background: rgba(37, 99, 235, 0.06);
+      border: 1px solid rgba(37, 99, 235, 0.15);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      color: var(--text-primary);
+      min-height: 1.4em;
+    }
+
+    .heatmap-block-info {
       margin-top: 8px;
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.82rem;
       font-weight: 600;
       color: var(--text-primary);
       min-height: 1.4em;
+    }
+
+    @media (max-width: 680px) {
+      .heatmap-controls { gap: 6px; }
+      .heatmap-btn { padding: 5px 12px; font-size: 0.78rem; }
     }
 
     .stats-callout {
@@ -2389,23 +2447,32 @@
         of raw data. JPEG's job is to shrink this dramatically without ruining the image.
       </p>
       <div class="demo-card reveal">
-        <div class="raw-dual">
-          <div>
-            <p class="raw-panel-label">Click image to inspect pixels</p>
-            <canvas id="rawSrcCanvas"></canvas>
-          </div>
-          <div>
-            <p class="raw-panel-label">Zoomed pixel grid</p>
-            <canvas id="rawZoomCanvas"></canvas>
-            <div class="raw-rgb-tooltip" id="rawRGBTooltip"></div>
-          </div>
+        <div class="heatmap-controls">
+          <button class="heatmap-btn" data-mode="raw">Raw Cost</button>
+          <button class="heatmap-btn active" data-mode="jpeg">JPEG Cost</button>
+          <button class="heatmap-btn" data-mode="skeleton">Show Skeleton</button>
         </div>
+        <div class="heatmap-canvas-wrap" id="heatmapWrap">
+          <canvas id="heatmapCanvas"></canvas>
+        </div>
+        <div class="heatmap-legend" id="heatmapLegend" style="display:none">
+          <span>Cheap</span>
+          <div style="flex:1">
+            <div class="heatmap-legend-bar"></div>
+            <div class="heatmap-legend-labels">
+              <span>~0 B</span>
+              <span>~3 B/px</span>
+            </div>
+          </div>
+          <span>Expensive</span>
+        </div>
+        <div class="heatmap-block-info" id="heatmapBlockInfo">Click on the image to inspect a region</div>
+        <div class="heatmap-insight" id="heatmapInsight"></div>
         <div class="stats-callout" id="rawStats">
           <p><strong id="rawStatsPixels">Upload a photo to see stats</strong></p>
           <p id="rawStatsSize"></p>
           <p id="rawStatsRatio"></p>
         </div>
-
       </div>
 
       <!-- Data Size Bar — first appears inline here, then sticks to bottom -->
@@ -5060,123 +5127,246 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       document.getElementById('rawStatsRatio').textContent =
         `That's ~${ratio}× larger than the final JPEG`;
 
-      // Source canvas
-      const srcCanvas = document.getElementById('rawSrcCanvas');
-      const srcCtx = srcCanvas.getContext('2d', { willReadFrequently: true });
-      srcCanvas.width = S.w;
-      srcCanvas.height = S.h;
-      srcCtx.drawImage(S.origCanvas, 0, 0);
+      // Canvas setup
+      const canvas = document.getElementById('heatmapCanvas');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      canvas.width = S.w;
+      canvas.height = S.h;
 
-      // Zoom canvas
-      const zoomCanvas = document.getElementById('rawZoomCanvas');
-      const zoomCtx = zoomCanvas.getContext('2d');
-      const ZOOM = 10, CELL = 28;
-      zoomCanvas.width = ZOOM * CELL;
-      zoomCanvas.height = ZOOM * CELL;
+      const legend = document.getElementById('heatmapLegend');
+      const blockInfo = document.getElementById('heatmapBlockInfo');
+      const insight = document.getElementById('heatmapInsight');
 
-      let clickX = Math.floor(S.w / 2);
-      let clickY = Math.floor(S.h / 2);
-      let hoveredCell = null;
+      // Pre-compute block variances (8x8 grid)
+      const blocksX = Math.ceil(S.w / 8);
+      const blocksY = Math.ceil(S.h / 8);
+      const variances = new Float32Array(blocksX * blocksY);
+      let maxVar = 0;
 
-      function getPixelAt(px, py) {
-        const x = Math.max(0, Math.min(px, S.w - 1));
-        const y = Math.max(0, Math.min(py, S.h - 1));
-        const i = (y * S.w + x) * 4;
-        return { r: S.img.data[i], g: S.img.data[i + 1], b: S.img.data[i + 2] };
+      for (let by = 0; by < blocksY; by++) {
+        for (let bx = 0; bx < blocksX; bx++) {
+          let sumR = 0, sumG = 0, sumB = 0, count = 0;
+          const x0 = bx * 8, y0 = by * 8;
+          const x1 = Math.min(x0 + 8, S.w), y1 = Math.min(y0 + 8, S.h);
+
+          for (let y = y0; y < y1; y++) {
+            for (let x = x0; x < x1; x++) {
+              const i = (y * S.w + x) * 4;
+              sumR += S.img.data[i];
+              sumG += S.img.data[i + 1];
+              sumB += S.img.data[i + 2];
+              count++;
+            }
+          }
+
+          const meanR = sumR / count, meanG = sumG / count, meanB = sumB / count;
+          let variance = 0;
+          for (let y = y0; y < y1; y++) {
+            for (let x = x0; x < x1; x++) {
+              const i = (y * S.w + x) * 4;
+              variance += (S.img.data[i] - meanR) ** 2;
+              variance += (S.img.data[i + 1] - meanG) ** 2;
+              variance += (S.img.data[i + 2] - meanB) ** 2;
+            }
+          }
+          variance /= (count * 3);
+          variances[by * blocksX + bx] = variance;
+          if (variance > maxVar) maxVar = variance;
+        }
       }
 
-      function drawSrc() {
-        srcCtx.drawImage(S.origCanvas, 0, 0);
-        const half = Math.floor(ZOOM / 2);
-        const boxX = Math.max(0, Math.min(clickX - half, S.w - ZOOM));
-        const boxY = Math.max(0, Math.min(clickY - half, S.h - ZOOM));
+      // Compute distribution stats
+      let cheapBlocks = 0, expensiveBlocks = 0;
+      const threshold = maxVar * 0.3;
+      for (let i = 0; i < variances.length; i++) {
+        if (variances[i] < threshold) cheapBlocks++;
+        else expensiveBlocks++;
+      }
+      const cheapPct = Math.round(cheapBlocks / variances.length * 100);
+      const expensivePct = 100 - cheapPct;
 
-        // Crosshair
-        srcCtx.save();
-        srcCtx.strokeStyle = 'rgba(255,255,255,0.6)';
-        srcCtx.lineWidth = 1;
-        srcCtx.setLineDash([3, 3]);
-        srcCtx.beginPath();
-        srcCtx.moveTo(clickX, 0); srcCtx.lineTo(clickX, S.h);
-        srcCtx.moveTo(0, clickY); srcCtx.lineTo(S.w, clickY);
-        srcCtx.stroke();
+      // State
+      let mode = 'jpeg';
 
-        // Selection box
-        srcCtx.setLineDash([]);
-        srcCtx.strokeStyle = '#3b82f6';
-        srcCtx.lineWidth = 2;
-        srcCtx.strokeRect(boxX, boxY, ZOOM, ZOOM);
-        srcCtx.restore();
+      // Color mapping: variance → heatmap color
+      function varianceToColor(v, maxV) {
+        const t = Math.pow(Math.min(v / maxV, 1), 0.5); // sqrt for better spread
+        // Blue → Cyan → Green → Yellow → Orange → Red
+        let r, g, b;
+        if (t < 0.2) {
+          const p = t / 0.2;
+          r = 59; g = 130 + p * 81; b = 246 - p * 30; // blue → cyan
+        } else if (t < 0.4) {
+          const p = (t - 0.2) / 0.2;
+          r = 34 + p * (34 - 34); g = 211 - p * 16; b = 216 - p * 171; // cyan → green
+        } else if (t < 0.6) {
+          const p = (t - 0.4) / 0.2;
+          r = 34 + p * 200; g = 195 + p * 4; b = 45 - p * 21; // green → yellow
+        } else if (t < 0.8) {
+          const p = (t - 0.6) / 0.2;
+          r = 234 + p * 15; g = 199 - p * 84; b = 24 - p * 1; // yellow → orange
+        } else {
+          const p = (t - 0.8) / 0.2;
+          r = 249 - p * 10; g = 115 - p * 47; b = 23 - p * 23; // orange → red
+        }
+        return { r: Math.round(r), g: Math.round(g), b: Math.round(b) };
       }
 
-      function drawZoom() {
-        zoomCtx.clearRect(0, 0, zoomCanvas.width, zoomCanvas.height);
-        const half = Math.floor(ZOOM / 2);
-        const startX = Math.max(0, Math.min(clickX - half, S.w - ZOOM));
-        const startY = Math.max(0, Math.min(clickY - half, S.h - ZOOM));
+      function drawRawCost() {
+        // Draw image with uniform green overlay
+        ctx.drawImage(S.origCanvas, 0, 0);
+        ctx.fillStyle = 'rgba(34, 197, 94, 0.15)';
+        ctx.fillRect(0, 0, S.w, S.h);
 
-        for (let row = 0; row < ZOOM; row++) {
-          for (let col = 0; col < ZOOM; col++) {
-            const px = getPixelAt(startX + col, startY + row);
-            const x = col * CELL, y = row * CELL;
+        // Draw subtle uniform grid
+        ctx.strokeStyle = 'rgba(34, 197, 94, 0.2)';
+        ctx.lineWidth = 0.5;
+        const gridStep = 8;
+        for (let x = 0; x < S.w; x += gridStep) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, S.h);
+          ctx.stroke();
+        }
+        for (let y = 0; y < S.h; y += gridStep) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(S.w, y);
+          ctx.stroke();
+        }
 
-            zoomCtx.fillStyle = `rgb(${px.r},${px.g},${px.b})`;
-            zoomCtx.fillRect(x, y, CELL, CELL);
+        legend.style.display = 'none';
+        insight.textContent = `In raw format, every pixel is equal. 3 bytes each. No exceptions. Total: ${rawMB} MB`;
+      }
 
-            if (hoveredCell && hoveredCell.row === row && hoveredCell.col === col) {
-              zoomCtx.fillStyle = 'rgba(255,255,255,0.25)';
-              zoomCtx.fillRect(x, y, CELL, CELL);
-            }
+      function drawJPEGCost() {
+        // Draw image
+        ctx.drawImage(S.origCanvas, 0, 0);
 
-            // Center marker
-            if (row === half && col === half) {
-              zoomCtx.strokeStyle = 'rgba(255,255,255,0.9)';
-              zoomCtx.lineWidth = 2;
-              zoomCtx.strokeRect(x + 1, y + 1, CELL - 2, CELL - 2);
-            }
-
-            zoomCtx.strokeStyle = 'rgba(255,255,255,0.12)';
-            zoomCtx.lineWidth = 0.5;
-            zoomCtx.strokeRect(x, y, CELL, CELL);
+        // Overlay heat map per 8x8 block
+        for (let by = 0; by < blocksY; by++) {
+          for (let bx = 0; bx < blocksX; bx++) {
+            const v = variances[by * blocksX + bx];
+            const color = varianceToColor(v, maxVar);
+            ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, 0.45)`;
+            ctx.fillRect(bx * 8, by * 8, 8, 8);
           }
         }
+
+        legend.style.display = 'flex';
+        insight.textContent = `${cheapPct}% of your image is "boring" (smooth areas) — JPEG compresses these almost for free. The remaining ${expensivePct}% (edges, detail) uses most of the file size.`;
       }
 
-      srcCanvas.addEventListener('click', e => {
-        const rect = srcCanvas.getBoundingClientRect();
-        clickX = Math.round((e.clientX - rect.left) * (S.w / rect.width));
-        clickY = Math.round((e.clientY - rect.top) * (S.h / rect.height));
-        drawSrc();
-        drawZoom();
-      });
+      function drawSkeleton() {
+        // Dark background
+        ctx.fillStyle = '#0a0a0f';
+        ctx.fillRect(0, 0, S.w, S.h);
 
-      zoomCanvas.addEventListener('mousemove', e => {
-        const rect = zoomCanvas.getBoundingClientRect();
-        const col = Math.floor((e.clientX - rect.left) * (zoomCanvas.width / rect.width) / CELL);
-        const row = Math.floor((e.clientY - rect.top) * (zoomCanvas.height / rect.height) / CELL);
-        const half = Math.floor(ZOOM / 2);
-        const startX = Math.max(0, Math.min(clickX - half, S.w - ZOOM));
-        const startY = Math.max(0, Math.min(clickY - half, S.h - ZOOM));
-        if (col >= 0 && col < ZOOM && row >= 0 && row < ZOOM) {
-          hoveredCell = { row, col };
-          const px = getPixelAt(startX + col, startY + row);
-          document.getElementById('rawRGBTooltip').textContent =
-            `R: ${px.r}  G: ${px.g}  B: ${px.b}`;
-        } else {
-          hoveredCell = null;
-          document.getElementById('rawRGBTooltip').textContent = '';
+        // Only show expensive blocks, with the image showing through
+        const imgData = ctx.createImageData(S.w, S.h);
+        const src = S.img.data;
+        const dst = imgData.data;
+
+        for (let by = 0; by < blocksY; by++) {
+          for (let bx = 0; bx < blocksX; bx++) {
+            const v = variances[by * blocksX + bx];
+            const t = Math.min(v / maxVar, 1);
+            // Exponential falloff: only show high-variance blocks
+            const alpha = Math.pow(t, 1.5);
+
+            const x0 = bx * 8, y0 = by * 8;
+            const x1 = Math.min(x0 + 8, S.w), y1 = Math.min(y0 + 8, S.h);
+
+            for (let y = y0; y < y1; y++) {
+              for (let x = x0; x < x1; x++) {
+                const i = (y * S.w + x) * 4;
+                // Blend original image with glow tint
+                const color = varianceToColor(v, maxVar);
+                const blend = 0.5; // mix image color with heat color
+                dst[i] = Math.round(src[i] * (1 - blend) * alpha + color.r * blend * alpha);
+                dst[i + 1] = Math.round(src[i + 1] * (1 - blend) * alpha + color.g * blend * alpha);
+                dst[i + 2] = Math.round(src[i + 2] * (1 - blend) * alpha + color.b * blend * alpha);
+                dst[i + 3] = Math.max(8, Math.round(alpha * 255)); // minimum subtle visibility
+              }
+            }
+          }
         }
-        drawZoom();
+
+        ctx.putImageData(imgData, 0, 0);
+
+        legend.style.display = 'flex';
+        insight.textContent = `Your photo's "skeleton" — only the information-rich regions glow. This is where ${expensivePct}% of JPEG's file size goes. Everything else compresses to nearly nothing.`;
+      }
+
+      function updateView() {
+        if (mode === 'raw') drawRawCost();
+        else if (mode === 'jpeg') drawJPEGCost();
+        else if (mode === 'skeleton') drawSkeleton();
+      }
+
+      // Button handlers
+      const btns = document.querySelectorAll('.heatmap-btn');
+      btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          btns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          mode = btn.dataset.mode;
+          updateView();
+        });
       });
 
-      zoomCanvas.addEventListener('mouseleave', () => {
-        hoveredCell = null;
-        document.getElementById('rawRGBTooltip').textContent = '';
-        drawZoom();
+      // Click to inspect block
+      canvas.addEventListener('click', e => {
+        const rect = canvas.getBoundingClientRect();
+        const imgX = Math.floor((e.clientX - rect.left) * (S.w / rect.width));
+        const imgY = Math.floor((e.clientY - rect.top) * (S.h / rect.height));
+        const bx = Math.floor(imgX / 8);
+        const by = Math.floor(imgY / 8);
+
+        if (bx >= 0 && bx < blocksX && by >= 0 && by < blocksY) {
+          const v = variances[by * blocksX + bx];
+          const complexity = Math.round((v / maxVar) * 10);
+          const costPerPx = (0.1 + (v / maxVar) * 2.9).toFixed(1);
+          blockInfo.textContent = `Block (${bx}, ${by}): Complexity ${complexity}/10 — ~${costPerPx} bytes/pixel in JPEG`;
+
+          // Highlight the clicked block
+          updateView();
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(bx * 8, by * 8, 8, 8);
+
+          // Draw zoomed block nearby
+          const zoomSize = 80;
+          const zoomX = Math.min(bx * 8 + 12, S.w - zoomSize - 4);
+          const zoomY = Math.max(by * 8 - zoomSize - 4, 4);
+
+          ctx.save();
+          ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(zoomX - 1, zoomY - 1, zoomSize + 2, zoomSize + 2);
+          ctx.imageSmoothingEnabled = false;
+          ctx.drawImage(S.origCanvas, bx * 8, by * 8, 8, 8, zoomX, zoomY, zoomSize, zoomSize);
+
+          // Grid on zoomed
+          ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+          ctx.lineWidth = 0.5;
+          const cellSize = zoomSize / 8;
+          for (let i = 0; i <= 8; i++) {
+            ctx.beginPath();
+            ctx.moveTo(zoomX + i * cellSize, zoomY);
+            ctx.lineTo(zoomX + i * cellSize, zoomY + zoomSize);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(zoomX, zoomY + i * cellSize);
+            ctx.lineTo(zoomX + zoomSize, zoomY + i * cellSize);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
       });
 
-      drawSrc();
-      drawZoom();
+      // Initial render
+      updateView();
     }
 
     document.addEventListener('imageReady', initSection03);
