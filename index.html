@@ -143,24 +143,91 @@
     }
 
     /* ── Data Size Bar ──────────────────────────────────────────────────── */
+    /* Connect the demo card to the data bar below it */
+    #s-raw .demo-card {
+      border-radius: var(--radius) var(--radius) 0 0;
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+
     #dataBar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      position: relative;
       height: 52px;
       z-index: 1000;
-      background: rgba(255,255,255,0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-top: 1px solid var(--border);
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 var(--radius) var(--radius);
+      box-shadow: 0 4px 16px rgba(0,0,0,.06);
       cursor: pointer;
       overflow: visible;
-      transition: height 0.2s ease, opacity 0.4s ease;
     }
 
     #dataBar:hover {
       height: 72px;
+      transition: height 0.2s ease;
+    }
+
+    /* When transitioning — position/size/radius all driven by JS */
+    #dataBar.databar-transitioning {
+      position: fixed;
+      border: none;
+      /* left, width, top, border-radius, height set by JS */
+    }
+
+    /* Final fixed mode — settled at viewport bottom */
+    #dataBar.databar-fixed {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      border-radius: 0;
+      border: none;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    /* Placeholder preserves layout when bar leaves flow */
+    .databar-placeholder {
+      display: none;
+      height: 52px;
+    }
+    .databar-placeholder.visible {
+      display: block;
+    }
+
+    /* Dark scrim overlay behind bar during hold phase */
+    #dataBarScrim {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      z-index: 999;
+      opacity: 0;
+      pointer-events: none;
+      transition: none;
+    }
+
+    /* Explainer text — appears above bar during hold phase */
+    .databar-explainer-fixed {
+      position: absolute;
+      bottom: calc(100% + 14px);
+      left: 50%;
+      transform: translateX(-50%) translateY(6px);
+      background: rgba(255, 255, 255, 0.95);
+      color: var(--text-primary);
+      border-radius: 10px;
+      padding: 12px 24px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      line-height: 1.5;
+      max-width: 460px;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+      white-space: nowrap;
     }
 
     .databar-inner {
@@ -309,6 +376,8 @@
       .databar-label { font-size: 0.72rem; min-width: 60px; }
       .databar-size { font-size: 0.78rem; min-width: 56px; }
       .databar-ratio { display: none; }
+      .databar-placeholder.visible { height: 40px; }
+      .databar-explainer-fixed { font-size: 0.74rem; padding: 8px 16px; white-space: normal; max-width: 300px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -2336,7 +2405,29 @@
           <p id="rawStatsSize"></p>
           <p id="rawStatsRatio"></p>
         </div>
+
       </div>
+
+      <!-- Data Size Bar — first appears inline here, then sticks to bottom -->
+      <!-- Placed outside .demo-card to avoid transform containment from .reveal -->
+      <div id="dataBarScrim"></div>
+      <div id="dataBarInlineAnchor">
+        <div id="dataBar" role="status" aria-label="Current pipeline stage and file size" style="display:none">
+          <div class="databar-inner" id="dataBarInner">
+            <span class="databar-label" id="dataBarLabel">Raw sensor data</span>
+            <div class="databar-track">
+              <div class="databar-fill" id="dataBarFill"></div>
+            </div>
+            <span class="databar-size" id="dataBarSize" aria-live="polite">36.0 MB</span>
+            <span class="databar-ratio" id="dataBarRatio"></span>
+          </div>
+          <div class="databar-tooltip" id="dataBarTooltip" role="dialog" aria-label="File size at each pipeline stage"></div>
+          <p id="dataBarExplainerFixed" class="databar-explainer-fixed">
+            This bar tracks your image's file size as JPEG compression progresses
+          </p>
+        </div>
+      </div>
+      <div id="dataBarPlaceholder" class="databar-placeholder"></div>
     </section>
   </div>
   <div class="section-wrapper">
@@ -2795,18 +2886,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
   </div>
 </main>
 
-<!-- ── Data Size Bar ──────────────────────────────────────────────────────── -->
-<div id="dataBar" role="status" aria-label="Current pipeline stage and file size" style="display:none">
-  <div class="databar-inner" id="dataBarInner">
-    <span class="databar-label" id="dataBarLabel">Raw sensor data</span>
-    <div class="databar-track">
-      <div class="databar-fill" id="dataBarFill"></div>
-    </div>
-    <span class="databar-size" id="dataBarSize" aria-live="polite">36.0 MB</span>
-    <span class="databar-ratio" id="dataBarRatio"></span>
-  </div>
-  <div class="databar-tooltip" id="dataBarTooltip" role="dialog" aria-label="File size at each pipeline stage"></div>
-</div>
+<!-- Data Size Bar moved into Section 03 demo card -->
 
 <!-- ── Sidebar Navigation ─────────────────────────────────────────────────── -->
 <button class="sidebar-tab" id="sidebarTab" aria-label="Open section navigation" aria-expanded="false" aria-controls="sidebarPanel" style="display:none">
@@ -3676,6 +3756,226 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     });
   }
 
+  // ── Data Bar Scroll-Driven Transition ─────────────────────────────────────
+  //
+  // Phases driven by scroll progress (0 → 1):
+  //   Phase 0  (inline)       : bar sits in the card, no special treatment
+  //   Phase 1  (0.00 – 0.15) : detach — bar lifts off card, slight scale-up
+  //   Phase 2  (0.15 – 0.55) : hold — scrim darkens, explainer fades in
+  //   Phase 3  (0.55 – 1.00) : travel — scrim fades, bar slides to bottom
+  //   Phase 4  (done)        : bar is position:fixed at viewport bottom
+  //
+  let _dataBarState = 'inline';   // inline | transitioning | fixed
+  let _dataBarRAF = null;
+  let _transitionStartY = null;   // scroll position when transition begins
+  let _transitionRange = 0;       // px of scroll the transition spans
+  let _barInlineTop = 0;          // bar's top when it was inline
+  let _barInlineLeft = 0;         // bar's left when inline
+  let _barInlineWidth = 0;        // bar's width when inline
+  let _barInlineHeight = 52;      // bar's height when inline
+
+  function initDataBarTransition() {
+    const bar         = document.getElementById('dataBar');
+    const placeholder = document.getElementById('dataBarPlaceholder');
+    const explainer   = document.getElementById('dataBarExplainerFixed');
+    const scrim       = document.getElementById('dataBarScrim');
+    const rawSection  = document.getElementById('s-raw');
+
+    if (!bar || !placeholder || !rawSection || !scrim) return;
+
+    if (_dataBarRAF) cancelAnimationFrame(_dataBarRAF);
+    _dataBarState = 'inline';
+    _transitionStartY = null;
+
+    // The transition spans this many pixels of scrolling
+    _transitionRange = window.innerHeight * 0.9;
+
+    function tick() {
+      _dataBarRAF = requestAnimationFrame(tick);
+      if (bar.style.display === 'none') return;
+
+      const vh = window.innerHeight;
+      const scrollY = window.scrollY;
+
+      // ── STATE: inline ──────────────────────────────────────────────────
+      if (_dataBarState === 'inline') {
+        const barRect = bar.getBoundingClientRect();
+        const rawRect = rawSection.getBoundingClientRect();
+
+        // Trigger: section bottom is near top-60% of viewport & bar is on screen
+        if (rawRect.bottom < vh * 0.55 && barRect.top < vh) {
+          // Capture inline geometry before taking bar out of flow
+          _barInlineTop = barRect.top;
+          _barInlineLeft = barRect.left;
+          _barInlineWidth = barRect.width;
+          _barInlineHeight = barRect.height;
+          _transitionStartY = scrollY;
+          _transitionRange = Math.max(vh * 0.9, 400);
+
+          // Begin transition — take bar out of flow
+          _dataBarState = 'transitioning';
+          placeholder.classList.add('visible');
+          bar.classList.add('databar-transitioning');
+          bar.style.top = _barInlineTop + 'px';
+          bar.style.left = _barInlineLeft + 'px';
+          bar.style.width = _barInlineWidth + 'px';
+          bar.style.height = _barInlineHeight + 'px';
+          bar.style.borderRadius = '0 0 14px 14px';
+        }
+        return;
+      }
+
+      // ── STATE: transitioning (scroll-driven) ──────────────────────────
+      if (_dataBarState === 'transitioning') {
+        const scrollDelta = scrollY - _transitionStartY;
+        const t = Math.max(0, Math.min(1, scrollDelta / _transitionRange));
+
+        // Allow scrolling back to cancel
+        if (t <= 0) {
+          _dataBarState = 'inline';
+          bar.classList.remove('databar-transitioning');
+          bar.style.top = '';
+          bar.style.left = '';
+          bar.style.width = '';
+          bar.style.height = '';
+          bar.style.borderRadius = '';
+          bar.style.transform = '';
+          bar.style.background = '';
+          bar.style.boxShadow = '';
+          placeholder.classList.remove('visible');
+          scrim.style.opacity = '0';
+          explainer.style.opacity = '0';
+          explainer.style.transform = 'translateX(-50%) translateY(6px)';
+          document.body.style.paddingBottom = '';
+          return;
+        }
+
+        const vh2 = window.innerHeight;
+        const startTop = _barInlineTop;
+        const startLeft = _barInlineLeft;
+        const startW = _barInlineWidth;
+        const startH = _barInlineHeight;
+        const endTop = vh2 - startH;
+        const endLeft = 0;
+        const endW = window.innerWidth;
+        const startRadius = 14;  // matches var(--radius)
+
+        // Pop-out size bump
+        const popW = startW + 24;
+        const popH = startH + 6;
+        const popLeft = startLeft - 12;
+
+        // ── Phase 1: Detach & pop (t 0→0.15) ────────────────────────────
+        if (t <= 0.15) {
+          const p = t / 0.15;
+          const ep = easeOutCubic(p);
+          // Expand from card size to slightly larger "pop" size
+          bar.style.width  = (startW + (popW - startW) * ep) + 'px';
+          bar.style.height = (startH + (popH - startH) * ep) + 'px';
+          bar.style.left   = (startLeft + (popLeft - startLeft) * ep) + 'px';
+          bar.style.top    = (startTop - 8 * ep) + 'px';
+          bar.style.borderRadius = startRadius + 'px';
+          bar.style.background = '';
+          bar.style.boxShadow = `0 4px ${16 + 12 * ep}px rgba(0,0,0,${0.06 + 0.08 * ep})`;
+          bar.style.transform = '';
+          scrim.style.opacity = '0';
+          explainer.style.opacity = '0';
+          explainer.style.transform = 'translateX(-50%) translateY(6px)';
+        }
+
+        // ── Phase 2: Hold, darken scrim, show explainer (t 0.15→0.55) ───
+        else if (t <= 0.55) {
+          const p = (t - 0.15) / 0.40;
+          const ep = easeOutCubic(p);
+          // Bar stays at pop size
+          bar.style.width  = popW + 'px';
+          bar.style.height = popH + 'px';
+          bar.style.left   = popLeft + 'px';
+          bar.style.top    = (startTop - 8) + 'px';
+          bar.style.borderRadius = startRadius + 'px';
+          bar.style.transform = '';
+          // Scrim darkens
+          scrim.style.opacity = String(0.55 * ep);
+          // Bar brightens for contrast
+          const bgAlpha = 0.92 + 0.08 * ep;
+          bar.style.background = `rgba(255,255,255,${bgAlpha})`;
+          bar.style.boxShadow = `0 0 ${28 + 16 * ep}px rgba(0,0,0,${0.14 + 0.10 * ep})`;
+          // Explainer fades in
+          explainer.style.opacity = String(ep);
+          explainer.style.transform = `translateX(-50%) translateY(${6 - 6 * ep}px)`;
+        }
+
+        // ── Phase 3: Scrim fades, bar travels to bottom & full width (t 0.55→1.0)
+        else {
+          const p = (t - 0.55) / 0.45;
+          const ep = easeOutCubic(p);
+          // Bar moves from pop position/size → full-width at viewport bottom
+          bar.style.width  = (popW + (endW - popW) * ep) + 'px';
+          bar.style.height = (popH + (startH - popH) * ep) + 'px';  // shrink back
+          bar.style.left   = (popLeft + (endLeft - popLeft) * ep) + 'px';
+          const holdTop = startTop - 8;
+          bar.style.top    = (holdTop + (endTop - holdTop) * ep) + 'px';
+          // Radius shrinks to 0
+          bar.style.borderRadius = (startRadius * (1 - ep)) + 'px';
+          bar.style.transform = '';
+          // Scrim fades out
+          scrim.style.opacity = String(0.55 * (1 - ep));
+          // Explainer fades out quickly
+          const explainerFade = Math.max(0, 1 - p * 2.5);
+          explainer.style.opacity = String(explainerFade);
+          // Styling settles
+          const bgAlpha = 1 - 0.08 * ep;
+          bar.style.background = `rgba(255,255,255,${bgAlpha})`;
+          bar.style.boxShadow = `0 -4px ${20 + 8 * (1 - ep)}px rgba(0,0,0,${0.08 + 0.16 * (1 - ep)})`;
+        }
+
+        // ── Complete: lock to fixed ──────────────────────────────────────
+        if (t >= 1) {
+          _dataBarState = 'fixed';
+          bar.classList.remove('databar-transitioning');
+          bar.classList.add('databar-fixed');
+          bar.style.top = '';
+          bar.style.left = '';
+          bar.style.width = '';
+          bar.style.height = '';
+          bar.style.borderRadius = '';
+          bar.style.transform = '';
+          bar.style.background = '';
+          bar.style.boxShadow = '';
+          scrim.style.opacity = '0';
+          explainer.style.opacity = '0';
+          document.body.style.paddingBottom = '60px';
+        }
+        return;
+      }
+
+      // ── STATE: fixed ───────────────────────────────────────────────────
+      if (_dataBarState === 'fixed') {
+        // Check if user scrolled back up past the transition start
+        const phRect = placeholder.getBoundingClientRect();
+        if (phRect.top < window.innerHeight * 0.55) {
+          // Stay fixed — placeholder is still above the trigger zone
+        } else {
+          // User scrolled back — revert to inline
+          _dataBarState = 'inline';
+          bar.classList.remove('databar-fixed');
+          placeholder.classList.remove('visible');
+          bar.style.top = '';
+          bar.style.left = '';
+          bar.style.width = '';
+          bar.style.height = '';
+          bar.style.borderRadius = '';
+          bar.style.transform = '';
+          bar.style.background = '';
+          bar.style.boxShadow = '';
+          document.body.style.paddingBottom = '';
+        }
+      }
+    }
+
+    tick();
+  }
+
   // ── Sidebar Navigation ────────────────────────────────────────────────────
   let _sidebarOpen = false;
   const _visitedSections = new Set();
@@ -3818,12 +4118,13 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     bar.style.display   = '';
     tab.style.display   = '';
     panel.style.display = '';
-    document.body.style.paddingBottom = '60px';
+    // Body padding now managed by initDataBarTransition (only when bar is fixed)
 
     updateDataBar('hero');
     updateSidebarActive('hero');
     initDataBar();
     initSectionObserver();
+    initDataBarTransition();
   });
 
   // Init sidebar DOM (independent of image upload)
