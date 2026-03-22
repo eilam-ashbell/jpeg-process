@@ -181,6 +181,7 @@
 
     @media (max-width: 560px) {
       .rgb-split-row { flex-direction: column; }
+      .ycbcr-split-row { flex-direction: column; }
     }
 
     /* Responsive grid */
@@ -1193,6 +1194,102 @@
       color: var(--text-primary);
       white-space: pre;
       line-height: 1.8;
+    }
+
+    /* ── YCbCr scroll-split (S04) ──────────────────────────────────────── */
+    .ycbcr-combined-wrap {
+      width: 100%;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 2;
+    }
+    .ycbcr-combined-wrap canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 8px;
+    }
+
+    .ycbcr-split-row {
+      display: flex;
+      gap: 12px;
+      overflow: visible;
+    }
+
+    .ycbcr-channel-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      min-width: 0;
+      overflow: visible;
+    }
+    .ycbcr-channel-col canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 6px;
+      will-change: transform, opacity;
+      transform-origin: top left;
+    }
+
+    .ycbcr-channel-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin: 0;
+    }
+    .ycbcr-channel-label--y  { color: #6b7280; }
+    .ycbcr-channel-label--cb { color: #2563eb; }
+    .ycbcr-channel-label--cr { color: #dc2626; }
+
+    .ycbcr-channel-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .ycbcr-sublabel {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      margin: 0;
+      text-align: center;
+    }
+
+    .channel-color-legend {
+      height: 6px;
+      width: 100%;
+      border-radius: 3px;
+      margin-top: 4px;
+      align-self: stretch;
+    }
+    .channel-color-legend--cb {
+      background: linear-gradient(to right, #FFFF00, #808080, #0000FF);
+    }
+    .channel-color-legend--cr {
+      background: linear-gradient(to right, #00FFFF, #808080, #FF0000);
+    }
+    .channel-legend-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.62rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-secondary);
+      margin-top: 2px;
+      align-self: stretch;
+    }
+
+    .ycbcr-insight {
+      background: var(--bg-secondary);
+      border-left: 3px solid var(--accent-blue);
+      padding: 12px 16px;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.85rem;
+      margin-top: 20px;
+      color: var(--text-secondary);
+      line-height: 1.6;
     }
 
     /* ── Chroma Compare (S06) ────────────────────────────────────────────── */
@@ -2500,24 +2597,46 @@
         <pre class="ycbcr-formula"><code>Y  =  0.299 × R  +  0.587 × G  +  0.114 × B
 Cb = −0.169 × R  −  0.331 × G  +  0.500 × B  +  128
 Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
-        <div class="channel-grid channel-grid--3" id="ycbcrGrid">
-          <div class="channel-panel">
-            <p class="channel-label">Y — Luma</p>
+        <div class="ycbcr-combined-wrap">
+          <canvas id="ycbcrCombined"></canvas>
+        </div>
+        <div class="ycbcr-split-row" id="ycbcrSplitRow">
+          <div class="ycbcr-channel-col channel-panel">
+            <div class="ycbcr-channel-header">
+              <p class="ycbcr-channel-label ycbcr-channel-label--y">Y — Luma</p>
+            </div>
             <canvas id="ycbcrY"></canvas>
-            <p class="channel-sublabel">Brightness</p>
+            <p class="ycbcr-sublabel">Notice the sharp edges and fine detail — your eyes need this</p>
           </div>
-          <div class="channel-panel">
-            <p class="channel-label">Cb — Blue-diff</p>
+          <div class="ycbcr-channel-col channel-panel">
+            <div class="ycbcr-channel-header">
+              <p class="ycbcr-channel-label ycbcr-channel-label--cb">Cb — Blue-diff</p>
+            </div>
             <canvas id="ycbcrCb"></canvas>
-            <p class="channel-sublabel">Cool tones</p>
+            <p class="ycbcr-sublabel">Mostly flat — barely any detail to lose</p>
+            <div class="channel-color-legend channel-color-legend--cb"></div>
+            <div class="channel-legend-labels">
+              <span>Less blue</span><span>More blue</span>
+            </div>
           </div>
-          <div class="channel-panel">
-            <p class="channel-label">Cr — Red-diff</p>
+          <div class="ycbcr-channel-col channel-panel">
+            <div class="ycbcr-channel-header">
+              <p class="ycbcr-channel-label ycbcr-channel-label--cr">Cr — Red-diff</p>
+            </div>
             <canvas id="ycbcrCr"></canvas>
-            <p class="channel-sublabel">Warm tones</p>
+            <p class="ycbcr-sublabel">Mostly flat — barely any detail to lose</p>
+            <div class="channel-color-legend channel-color-legend--cr"></div>
+            <div class="channel-legend-labels">
+              <span>Less red</span><span>More red</span>
+            </div>
           </div>
         </div>
         <div class="carousel-dots" id="ycbcrDots"></div>
+        <div class="ycbcr-insight">
+          Cb and Cr store only the <em>difference</em> from brightness.
+          Their values cluster around 128 (neutral) — much less variation than Y.
+          This is why JPEG can aggressively compress them in the next step.
+        </div>
       </div>
     </section>
   </div>
@@ -5289,6 +5408,73 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       ctx.putImageData(imgData, 0, 0);
     }
 
+    // False-color mapping: interpolate between two colors via a midpoint
+    function lerp3(a, b, t) {
+      return [
+        Math.round(a[0] + (b[0] - a[0]) * t),
+        Math.round(a[1] + (b[1] - a[1]) * t),
+        Math.round(a[2] + (b[2] - a[2]) * t),
+      ];
+    }
+
+    function mapCb(v) {
+      // 0 → yellow (255,255,0), 128 → gray (128,128,128), 255 → blue (0,0,255)
+      if (v <= 128) return lerp3([255,255,0], [128,128,128], v / 128);
+      return lerp3([128,128,128], [0,0,255], (v - 128) / 127);
+    }
+
+    function mapCr(v) {
+      // 0 → cyan (0,255,255), 128 → gray (128,128,128), 255 → red (255,0,0)
+      if (v <= 128) return lerp3([0,255,255], [128,128,128], v / 128);
+      return lerp3([128,128,128], [255,0,0], (v - 128) / 127);
+    }
+
+    function renderFalseColor(canvasId, data, mapFn) {
+      const canvas  = document.getElementById(canvasId);
+      canvas.width  = S.w;
+      canvas.height = S.h;
+      const ctx     = canvas.getContext('2d');
+      const imgData = ctx.createImageData(S.w, S.h);
+      const dst     = imgData.data;
+      const N       = S.w * S.h;
+      for (let i = 0; i < N; i++) {
+        const di = i * 4;
+        const c  = mapFn(data[i]);
+        dst[di]   = c[0];
+        dst[di+1] = c[1];
+        dst[di+2] = c[2];
+        dst[di+3] = 255;
+      }
+      ctx.putImageData(imgData, 0, 0);
+    }
+
+    function ycbcrToRgb(y, cb, cr) {
+      return [
+        Math.max(0, Math.min(255, Math.round(y + 1.402    * (cr - 128)))),
+        Math.max(0, Math.min(255, Math.round(y - 0.344136 * (cb - 128) - 0.714136 * (cr - 128)))),
+        Math.max(0, Math.min(255, Math.round(y + 1.772    * (cb - 128)))),
+      ];
+    }
+
+    function renderYCbCrCombined() {
+      const canvas  = document.getElementById('ycbcrCombined');
+      canvas.width  = S.w;
+      canvas.height = S.h;
+      const ctx     = canvas.getContext('2d');
+      const imgData = ctx.createImageData(S.w, S.h);
+      const dst     = imgData.data;
+      const N       = S.w * S.h;
+      for (let i = 0; i < N; i++) {
+        const di  = i * 4;
+        const rgb = ycbcrToRgb(S.yChannel[i], S.cbChannel[i], S.crChannel[i]);
+        dst[di]   = rgb[0];
+        dst[di+1] = rgb[1];
+        dst[di+2] = rgb[2];
+        dst[di+3] = 255;
+      }
+      ctx.putImageData(imgData, 0, 0);
+    }
+
     function initSection05() {
       if (!S.img) return;
       const src = S.img.data;
@@ -5305,10 +5491,86 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         S.crChannel[i] = Math.max(0, Math.min(255, Math.round( 0.5      * r - 0.418688 * g - 0.081312 * b + 128)));
       }
 
-      renderGray('ycbcrY',  S.yChannel);
-      renderGray('ycbcrCb', S.cbChannel);
-      renderGray('ycbcrCr', S.crChannel);
-      setupCarouselDots('ycbcrGrid', 'ycbcrDots', 3);
+      renderYCbCrCombined();
+      renderGray('ycbcrY', S.yChannel);
+      renderFalseColor('ycbcrCb', S.cbChannel, mapCb);
+      renderFalseColor('ycbcrCr', S.crChannel, mapCr);
+      setupCarouselDots('ycbcrSplitRow', 'ycbcrDots', 3);
+
+      // ── Scroll-driven split animation ──
+      // Each channel canvas starts at the size & position of the combined
+      // image, then shrinks and moves to its column as the user scrolls.
+
+      const combinedCanvas = document.getElementById('ycbcrCombined');
+      const channelCanvases = [
+        document.getElementById('ycbcrY'),
+        document.getElementById('ycbcrCb'),
+        document.getElementById('ycbcrCr'),
+      ];
+      const headers   = document.querySelectorAll('.ycbcr-channel-header');
+      const legends   = document.querySelectorAll('.channel-color-legend');
+      const legendLabels = document.querySelectorAll('.channel-legend-labels');
+      const insight   = document.querySelector('.ycbcr-insight');
+      const stagger   = [0, 0.10, 0.20];
+
+      let meas = null;
+
+      function measure() {
+        channelCanvases.forEach(c => { c.style.transform = ''; });
+        meas = channelCanvases.map(canvas => {
+          const cR = combinedCanvas.getBoundingClientRect();
+          const r  = canvas.getBoundingClientRect();
+          return {
+            dx: cR.left - r.left,
+            dy: cR.top  - r.top,
+            sx: cR.width  / r.width,
+            sy: cR.height / r.height,
+          };
+        });
+      }
+
+      requestAnimationFrame(() => {
+        measure();
+
+        function tickYCbCrSplit() {
+          if (!meas) { requestAnimationFrame(tickYCbCrSplit); return; }
+
+          const cRect = combinedCanvas.getBoundingClientRect();
+          const vh = window.innerHeight;
+
+          // p=0 when combined-image top is at ~50% of viewport
+          // p=1 when combined-image top is at ~15% of viewport
+          const p = Math.max(0, Math.min(1,
+            (vh * 0.5 - cRect.top) / (vh * 0.35)
+          ));
+
+          // Keep combined canvas visible throughout the split
+
+          channelCanvases.forEach((canvas, i) => {
+            const t = Math.max(0, Math.min(1,
+              (p - stagger[i]) / (1 - stagger[i])
+            ));
+            const m  = meas[i];
+            const s  = 1 + (1 - t) * (m.sx - 1);
+            const tx = (1 - t) * m.dx;
+            const ty = (1 - t) * m.dy;
+            canvas.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + s + ')';
+            canvas.style.opacity = t;
+          });
+
+          // Headers, legends & insight fade in during last 40%
+          const uiT = Math.max(0, Math.min(1, (p - 0.6) / 0.4));
+          headers.forEach(l => { l.style.opacity = uiT; });
+          legends.forEach(l => { l.style.opacity = uiT; });
+          legendLabels.forEach(l => { l.style.opacity = uiT; });
+          if (insight) insight.style.opacity = uiT;
+
+          requestAnimationFrame(tickYCbCrSplit);
+        }
+        tickYCbCrSplit();
+
+        window.addEventListener('resize', measure);
+      });
     }
 
     document.addEventListener('imageReady', initSection05);
