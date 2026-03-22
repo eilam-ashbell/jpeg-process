@@ -109,6 +109,85 @@
       margin-bottom: 32px;
     }
 
+    /* ─── RGB Channel Mixer ─────────────────────────── */
+    .rgb-combined-wrap {
+      width: 100%;
+      margin-bottom: 16px;
+    }
+    .rgb-combined-wrap canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 8px;
+    }
+
+    .rgb-split-row {
+      display: flex;
+      gap: 12px;
+      opacity: 0;
+      transform: translateY(-12px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+    .rgb-split-row.is-split {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .rgb-split-row.is-split .rgb-channel-col:nth-child(1) { transition-delay: 0s;    }
+    .rgb-split-row.is-split .rgb-channel-col:nth-child(2) { transition-delay: 0.08s; }
+    .rgb-split-row.is-split .rgb-channel-col:nth-child(3) { transition-delay: 0.16s; }
+
+    .rgb-channel-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .rgb-channel-col canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 6px;
+    }
+
+    .rgb-channel-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin: 0;
+    }
+    .rgb-channel-label--r { color: #d93025; }
+    .rgb-channel-label--g { color: #1e7e34; }
+    .rgb-channel-label--b { color: #1a56c4; }
+
+    .rgb-slider-wrap {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .rgb-slider {
+      width: 100%;
+      cursor: pointer;
+    }
+    .rgb-slider--r { accent-color: #d93025; }
+    .rgb-slider--g { accent-color: #1e7e34; }
+    .rgb-slider--b { accent-color: #1a56c4; }
+
+    .rgb-slider-val {
+      font-size: 0.72rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-secondary);
+    }
+
+    @media (max-width: 560px) {
+      .rgb-split-row { flex-direction: column; }
+    }
+
     /* Responsive grid */
     .grid-2 {
       display: grid;
@@ -2375,25 +2454,38 @@
         JPEG processes these channels, but not in RGB form. The first clever trick is converting to a different color space that's better suited for compression. But first, let's see what RGB separation looks like.
       </p>
       <div class="demo-card reveal">
-        <div class="channel-grid" id="rgbGrid">
-          <div class="channel-panel">
-            <p class="channel-label">Combined</p>
-            <canvas id="rgbCombined"></canvas>
-          </div>
-          <div class="channel-panel">
-            <p class="channel-label">Red Channel</p>
+        <div class="rgb-combined-wrap">
+          <canvas id="rgbCombined"></canvas>
+        </div>
+        <div class="rgb-split-row" id="rgbSplitRow">
+          <div class="rgb-channel-col">
+            <p class="rgb-channel-label rgb-channel-label--r">Red</p>
             <canvas id="rgbRed"></canvas>
+            <div class="rgb-slider-wrap">
+              <input type="range" id="rgbSliderR" class="rgb-slider rgb-slider--r"
+                     min="0" max="100" value="100">
+              <span class="rgb-slider-val" id="rgbValR">100%</span>
+            </div>
           </div>
-          <div class="channel-panel">
-            <p class="channel-label">Green Channel</p>
+          <div class="rgb-channel-col">
+            <p class="rgb-channel-label rgb-channel-label--g">Green</p>
             <canvas id="rgbGreen"></canvas>
+            <div class="rgb-slider-wrap">
+              <input type="range" id="rgbSliderG" class="rgb-slider rgb-slider--g"
+                     min="0" max="100" value="100">
+              <span class="rgb-slider-val" id="rgbValG">100%</span>
+            </div>
           </div>
-          <div class="channel-panel">
-            <p class="channel-label">Blue Channel</p>
+          <div class="rgb-channel-col">
+            <p class="rgb-channel-label rgb-channel-label--b">Blue</p>
             <canvas id="rgbBlue"></canvas>
+            <div class="rgb-slider-wrap">
+              <input type="range" id="rgbSliderB" class="rgb-slider rgb-slider--b"
+                     min="0" max="100" value="100">
+              <span class="rgb-slider-val" id="rgbValB">100%</span>
+            </div>
           </div>
         </div>
-        <div class="carousel-dots" id="rgbDots"></div>
       </div>
     </section>
   </div>
@@ -5030,34 +5122,90 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
   // ─── Section 04: RGB Color Channels ──────────────────────────────────────────
   (function () {
-    function fillChannel(canvas, channel) {
+
+    function renderChannel(canvas, ch) {
       canvas.width  = S.w;
       canvas.height = S.h;
-      const ctx     = canvas.getContext('2d');
-      const imgData = ctx.createImageData(S.w, S.h);
-      const src     = S.img.data;
-      const dst     = imgData.data;
-      const N       = S.w * S.h;
+      const ctx = canvas.getContext('2d');
+      const img = ctx.createImageData(S.w, S.h);
+      const src = S.img.data, dst = img.data;
+      const N = S.w * S.h;
       for (let i = 0; i < N; i++) {
         const si = i * 4;
-        const r = src[si], g = src[si + 1], b = src[si + 2];
-        let v;
-        if      (channel === 'combined') { dst[si] = r; dst[si+1] = g; dst[si+2] = b; }
-        else if (channel === 'r')        { v = r; dst[si] = dst[si+1] = dst[si+2] = v; }
-        else if (channel === 'g')        { v = g; dst[si] = dst[si+1] = dst[si+2] = v; }
-        else                             { v = b; dst[si] = dst[si+1] = dst[si+2] = v; }
-        dst[si + 3] = 255;
+        const v = src[si + (ch === 'r' ? 0 : ch === 'g' ? 1 : 2)];
+        dst[si]   = ch === 'r' ? v : 0;
+        dst[si+1] = ch === 'g' ? v : 0;
+        dst[si+2] = ch === 'b' ? v : 0;
+        dst[si+3] = 255;
       }
-      ctx.putImageData(imgData, 0, 0);
+      ctx.putImageData(img, 0, 0);
+    }
+
+    function renderCombined(rMix, gMix, bMix) {
+      const canvas = document.getElementById('rgbCombined');
+      canvas.width  = S.w;
+      canvas.height = S.h;
+      const ctx = canvas.getContext('2d');
+      const img = ctx.createImageData(S.w, S.h);
+      const src = S.img.data, dst = img.data;
+      const N = S.w * S.h;
+      for (let i = 0; i < N; i++) {
+        const si = i * 4;
+        dst[si]   = src[si]   * rMix + 0.5 | 0;
+        dst[si+1] = src[si+1] * gMix + 0.5 | 0;
+        dst[si+2] = src[si+2] * bMix + 0.5 | 0;
+        dst[si+3] = 255;
+      }
+      ctx.putImageData(img, 0, 0);
     }
 
     function initSection04() {
       if (!S.img) return;
-      fillChannel(document.getElementById('rgbCombined'), 'combined');
-      fillChannel(document.getElementById('rgbRed'),      'r');
-      fillChannel(document.getElementById('rgbGreen'),    'g');
-      fillChannel(document.getElementById('rgbBlue'),     'b');
-      setupCarouselDots('rgbGrid', 'rgbDots', 4);
+
+      renderChannel(document.getElementById('rgbRed'),   'r');
+      renderChannel(document.getElementById('rgbGreen'), 'g');
+      renderChannel(document.getElementById('rgbBlue'),  'b');
+
+      renderCombined(1, 1, 1);
+
+      const sliders = {
+        r: document.getElementById('rgbSliderR'),
+        g: document.getElementById('rgbSliderG'),
+        b: document.getElementById('rgbSliderB'),
+      };
+      const vals = {
+        r: document.getElementById('rgbValR'),
+        g: document.getElementById('rgbValG'),
+        b: document.getElementById('rgbValB'),
+      };
+
+      function onSliderChange() {
+        const rMix = sliders.r.value / 100;
+        const gMix = sliders.g.value / 100;
+        const bMix = sliders.b.value / 100;
+        vals.r.textContent = sliders.r.value + '%';
+        vals.g.textContent = sliders.g.value + '%';
+        vals.b.textContent = sliders.b.value + '%';
+        renderCombined(rMix, gMix, bMix);
+      }
+
+      sliders.r.addEventListener('input', onSliderChange);
+      sliders.g.addEventListener('input', onSliderChange);
+      sliders.b.addEventListener('input', onSliderChange);
+
+      const splitRow = document.getElementById('rgbSplitRow');
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach(e => {
+            if (e.isIntersecting) {
+              splitRow.classList.add('is-split');
+              observer.disconnect();
+            }
+          });
+        },
+        { threshold: 0.25 }
+      );
+      observer.observe(splitRow);
     }
 
     document.addEventListener('imageReady', initSection04);
