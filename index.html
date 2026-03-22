@@ -106,6 +106,7 @@
       border-radius: var(--radius);
       box-shadow: var(--shadow-card);
       padding: 24px;
+      margin-bottom: 32px;
     }
 
     /* Responsive grid */
@@ -143,30 +144,19 @@
     }
 
     /* ── Data Size Bar ──────────────────────────────────────────────────── */
-    /* Connect the demo card to the data bar below it */
-    #s-raw .demo-card {
-      border-radius: var(--radius) var(--radius) 0 0;
-      border-bottom: none;
-      margin-bottom: 0;
-    }
-
     #dataBar {
       position: relative;
       height: 52px;
       z-index: 1000;
-      background: var(--bg-primary);
-      border: 1px solid var(--border);
+      background: var(--bg-accent);
+      border: 1px solid var(--accent-blue-tint);
       border-top: none;
-      border-radius: 0 0 var(--radius) var(--radius);
+      border-radius: 0 0 10px 10px;
       box-shadow: 0 4px 16px rgba(0,0,0,.06);
       cursor: pointer;
       overflow: visible;
     }
 
-    #dataBar:hover {
-      height: 72px;
-      transition: height 0.2s ease;
-    }
 
     /* When transitioning — position/size/radius all driven by JS */
     #dataBar.databar-transitioning {
@@ -211,8 +201,8 @@
 
     /* Explainer text — appears above bar during hold phase */
     .databar-explainer-fixed {
-      position: absolute;
-      bottom: calc(100% + 14px);
+      position: fixed;
+      bottom: auto;
       left: 50%;
       transform: translateX(-50%) translateY(6px);
       background: rgba(255, 255, 255, 0.95);
@@ -222,12 +212,12 @@
       font-size: 0.85rem;
       font-weight: 500;
       line-height: 1.5;
-      max-width: 460px;
+      max-width: min(460px, 90vw);
       text-align: center;
       opacity: 0;
       pointer-events: none;
+      z-index: 1001;
       box-shadow: 0 4px 24px rgba(0,0,0,0.12);
-      white-space: nowrap;
     }
 
     .databar-inner {
@@ -238,11 +228,6 @@
       padding: 0 24px;
       max-width: 960px;
       margin: 0 auto;
-      transition: height 0.2s ease;
-    }
-
-    #dataBar:hover .databar-inner {
-      height: 72px;
     }
 
     .databar-label {
@@ -370,9 +355,7 @@
 
     @media (max-width: 680px) {
       #dataBar { height: 40px; }
-      #dataBar:hover { height: 56px; }
       .databar-inner { height: 40px; padding: 0 12px; gap: 8px; }
-      #dataBar:hover .databar-inner { height: 56px; }
       .databar-label { font-size: 0.72rem; min-width: 60px; }
       .databar-size { font-size: 0.78rem; min-width: 56px; }
       .databar-ratio { display: none; }
@@ -1009,16 +992,6 @@
     }
 
     /* ── Raw pixel inspector ───────────────────────────────────────────────── */
-    .raw-dual {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-
-    @media (max-width: 680px) {
-      .raw-dual { grid-template-columns: 1fr; }
-    }
-
     .raw-panel-label {
       font-size: 0.75rem;
       font-weight: 600;
@@ -1028,38 +1001,19 @@
       margin-bottom: 8px;
     }
 
-    #rawSrcCanvas {
-      width: 100%;
-      height: auto;
-      display: block;
-      cursor: crosshair;
-      border-radius: 6px;
-    }
-
-    #rawZoomCanvas {
-      width: 100%;
-      height: auto;
-      display: block;
-      border-radius: 6px;
-      image-rendering: pixelated;
-      cursor: default;
-    }
-
-    .raw-rgb-tooltip {
-      margin-top: 8px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      min-height: 1.4em;
-    }
-
     .stats-callout {
       margin-top: 24px;
       background: var(--bg-accent);
       border: 1px solid var(--accent-blue-tint);
       border-radius: 10px;
       padding: 16px 20px;
+    }
+
+    /* When stats-callout is directly above the data bar, join them visually */
+    #rawStats {
+      border-radius: 10px 10px 0 0;
+      border-bottom: none;
+      margin-bottom: 0;
     }
 
     .stats-callout p {
@@ -2370,14 +2324,6 @@
         <div class="sensor-eye-tooltip" id="sensorEyeTooltip"></div>
         <canvas id="sensorEyeMagnifier" class="sensor-eye-magnifier"></canvas>
       </div>
-    </section>
-  </div>
-  <div class="section-wrapper section-wrapper--alt">
-    <section id="s-raw" class="section">
-      <div class="section-header reveal">
-        <span class="section-number">03</span>
-        <h2 class="section-title">Raw Pixel Data</h2>
-      </div>
       <p class="section-body-text reveal">
         After demosaicing — a clever algorithm that fills in the missing color values for each
         photosite — every pixel now has a full set of three numbers: Red, Green, and Blue. These three
@@ -2388,24 +2334,10 @@
         (one per channel). For a typical 12-megapixel photo, that's over 36 million bytes — about 36 MB
         of raw data. JPEG's job is to shrink this dramatically without ruining the image.
       </p>
-      <div class="demo-card reveal">
-        <div class="raw-dual">
-          <div>
-            <p class="raw-panel-label">Click image to inspect pixels</p>
-            <canvas id="rawSrcCanvas"></canvas>
-          </div>
-          <div>
-            <p class="raw-panel-label">Zoomed pixel grid</p>
-            <canvas id="rawZoomCanvas"></canvas>
-            <div class="raw-rgb-tooltip" id="rawRGBTooltip"></div>
-          </div>
-        </div>
-        <div class="stats-callout" id="rawStats">
-          <p><strong id="rawStatsPixels">Upload a photo to see stats</strong></p>
-          <p id="rawStatsSize"></p>
-          <p id="rawStatsRatio"></p>
-        </div>
-
+      <div class="stats-callout reveal" id="rawStats">
+        <p><strong id="rawStatsPixels">Upload a photo to see stats</strong></p>
+        <p id="rawStatsSize"></p>
+        <p id="rawStatsRatio"></p>
       </div>
 
       <!-- Data Size Bar — first appears inline here, then sticks to bottom -->
@@ -2430,10 +2362,10 @@
       <div id="dataBarPlaceholder" class="databar-placeholder"></div>
     </section>
   </div>
-  <div class="section-wrapper">
+  <div class="section-wrapper section-wrapper--alt">
     <section id="s-rgb" class="section">
       <div class="section-header reveal">
-        <span class="section-number">04</span>
+        <span class="section-number">03</span>
         <h2 class="section-title">RGB Color Channels</h2>
       </div>
       <p class="section-body-text reveal">
@@ -2465,10 +2397,10 @@
       </div>
     </section>
   </div>
-  <div class="section-wrapper section-wrapper--alt">
+  <div class="section-wrapper">
     <section id="s-ycbcr" class="section">
       <div class="section-header reveal">
-        <span class="section-number">05</span>
+        <span class="section-number">04</span>
         <h2 class="section-title">YCbCr Color Space</h2>
       </div>
       <p class="section-body-text reveal">
@@ -2502,10 +2434,10 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       </div>
     </section>
   </div>
-  <div class="section-wrapper">
+  <div class="section-wrapper section-wrapper--alt">
     <section id="s-chroma" class="section">
       <div class="section-header reveal">
-        <span class="section-number">06</span>
+        <span class="section-number">05</span>
         <h2 class="section-title">Chroma Subsampling 4:2:0</h2>
       </div>
       <p class="section-body-text reveal">
@@ -2525,10 +2457,10 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       </div>
     </section>
   </div>
-  <div class="section-wrapper section-wrapper--alt">
+  <div class="section-wrapper">
     <section id="s-blocks" class="section">
       <div class="section-header reveal">
-        <span class="section-number">07</span>
+        <span class="section-number">06</span>
         <h2 class="section-title">8×8 Block Division</h2>
       </div>
       <p class="section-body-text reveal">
@@ -2563,10 +2495,10 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       </div>
     </section>
   </div>
-  <div class="section-wrapper">
+  <div class="section-wrapper section-wrapper--alt">
     <section id="s-dct" class="section">
       <div class="section-header reveal">
-        <span class="section-number">08</span>
+        <span class="section-number">07</span>
         <h2 class="section-title">Discrete Cosine Transform</h2>
       </div>
       <p class="section-body-text reveal">
@@ -2599,10 +2531,10 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       </div>
     </section>
   </div>
-  <div class="section-wrapper section-wrapper--alt">
+  <div class="section-wrapper">
     <section id="s-quant" class="section">
       <div class="section-header reveal">
-        <span class="section-number">09</span>
+        <span class="section-number">08</span>
         <h2 class="section-title">Quantization</h2>
       </div>
       <p class="section-body-text reveal">
@@ -2642,10 +2574,10 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       </div>
     </section>
   </div>
-  <div class="section-wrapper">
+  <div class="section-wrapper section-wrapper--alt">
     <section id="s-zigzag" class="section">
       <div class="section-header reveal">
-        <span class="section-number">10</span>
+        <span class="section-number">09</span>
         <h2 class="section-title">Zigzag Scanning</h2>
       </div>
       <p class="section-body-text reveal">
@@ -2678,10 +2610,10 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       </div>
     </section>
   </div>
-  <div class="section-wrapper section-wrapper--alt">
+  <div class="section-wrapper">
     <section id="s-rle" class="section">
       <div class="section-header reveal">
-        <span class="section-number">11</span>
+        <span class="section-number">10</span>
         <h2 class="section-title">Run-Length Encoding</h2>
       </div>
       <p class="section-body-text reveal">
@@ -2713,10 +2645,10 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       </div>
     </section>
   </div>
-  <div class="section-wrapper">
+  <div class="section-wrapper section-wrapper--alt">
     <section id="s-huffman" class="section">
       <div class="section-header reveal">
-        <span class="section-number">12</span>
+        <span class="section-number">11</span>
         <h2 class="section-title">Huffman Coding</h2>
       </div>
       <p class="section-body-text reveal">
@@ -2756,10 +2688,10 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       </div>
     </section>
   </div>
-  <div class="section-wrapper section-wrapper--alt">
+  <div class="section-wrapper">
     <section id="s-quality" class="section">
       <div class="section-header reveal">
-        <span class="section-number">13</span>
+        <span class="section-number">12</span>
         <h2 class="section-title">Live JPEG Compression</h2>
       </div>
       <p class="section-body-text reveal">
@@ -2791,10 +2723,10 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       </div>
     </section>
   </div>
-  <div class="section-wrapper">
+  <div class="section-wrapper section-wrapper--alt">
     <section id="s-compare" class="section">
       <div class="section-header reveal">
-        <span class="section-number">14</span>
+        <span class="section-number">13</span>
         <h2 class="section-title">Original vs Compressed</h2>
       </div>
       <p class="section-body-text reveal">
@@ -2833,10 +2765,10 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       </div>
     </section>
   </div>
-  <div class="section-wrapper section-wrapper--alt">
+  <div class="section-wrapper">
     <section id="s-undo" class="section">
       <div class="section-header reveal">
-        <span class="section-number">15</span>
+        <span class="section-number">14</span>
         <h2 class="section-title">Undo JPEG: Decode Pipeline</h2>
       </div>
       <p class="section-body-text reveal">
@@ -2870,7 +2802,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       </div>
     </section>
   </div>
-  <div class="section-wrapper">
+  <div class="section-wrapper section-wrapper--alt">
     <section id="s-summary" class="section">
       <div class="section-header reveal">
         <span class="section-number">★</span>
@@ -3614,8 +3546,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
   const SECTION_DATA = [
     { id: 'hero',      stageLabel: 'Raw sensor data',         shortLabel: 'Upload Your Photo',  icon: '📷', mobileLabel: 'Raw',     rawMB: 36,   pct: 100 },
     { id: 's-lens',    stageLabel: 'Raw sensor data',          shortLabel: 'Light & Lens',       icon: '🔆', mobileLabel: 'Lens',     rawMB: 36,   pct: 100 },
-    { id: 's-bayer',   stageLabel: 'Full RGB pixels',          shortLabel: 'Bayer Sensor',       icon: '🟩', mobileLabel: 'Bayer',    rawMB: 36,   pct: 100 },
-    { id: 's-raw',     stageLabel: 'Full RGB pixels',          shortLabel: 'Raw Pixels',         icon: '🔍', mobileLabel: 'Raw',      rawMB: 36,   pct: 100 },
+    { id: 's-bayer',   stageLabel: 'Full RGB pixels',          shortLabel: 'Sensor & Raw Data',  icon: '🟩', mobileLabel: 'Sensor',   rawMB: 36,   pct: 100 },
     { id: 's-rgb',     stageLabel: 'RGB channels',             shortLabel: 'RGB Channels',       icon: '🎨', mobileLabel: 'RGB',      rawMB: 36,   pct: 100 },
     { id: 's-ycbcr',   stageLabel: 'After YCbCr conversion',   shortLabel: 'YCbCr Space',        icon: '🌈', mobileLabel: 'YCbCr',    rawMB: 36,   pct: 100 },
     { id: 's-chroma',  stageLabel: 'After 4:2:0 subsampling',  shortLabel: 'Chroma Subsampling', icon: '⬇️', mobileLabel: 'Chroma',   rawMB: 18,   pct: 50  },
@@ -3779,7 +3710,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     const placeholder = document.getElementById('dataBarPlaceholder');
     const explainer   = document.getElementById('dataBarExplainerFixed');
     const scrim       = document.getElementById('dataBarScrim');
-    const rawSection  = document.getElementById('s-raw');
+    const rawSection  = document.getElementById('s-bayer');
 
     if (!bar || !placeholder || !rawSection || !scrim) return;
 
@@ -3788,7 +3719,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     _transitionStartY = null;
 
     // The transition spans this many pixels of scrolling
-    _transitionRange = window.innerHeight * 0.9;
+    _transitionRange = window.innerHeight * 0.45;
 
     function tick() {
       _dataBarRAF = requestAnimationFrame(tick);
@@ -3810,7 +3741,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           _barInlineWidth = barRect.width;
           _barInlineHeight = barRect.height;
           _transitionStartY = scrollY;
-          _transitionRange = Math.max(vh * 0.9, 400);
+          _transitionRange = Math.max(vh * 0.45, 300);
 
           // Begin transition — take bar out of flow
           _dataBarState = 'transitioning';
@@ -3820,7 +3751,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           bar.style.left = _barInlineLeft + 'px';
           bar.style.width = _barInlineWidth + 'px';
           bar.style.height = _barInlineHeight + 'px';
-          bar.style.borderRadius = '0 0 14px 14px';
+          bar.style.borderRadius = '0 0 10px 10px';
         }
         return;
       }
@@ -3845,6 +3776,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           placeholder.classList.remove('visible');
           scrim.style.opacity = '0';
           explainer.style.opacity = '0';
+          explainer.style.top = '';
+          explainer.style.left = '';
           explainer.style.transform = 'translateX(-50%) translateY(6px)';
           document.body.style.paddingBottom = '';
           return;
@@ -3858,7 +3791,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         const endTop = vh2 - startH;
         const endLeft = 0;
         const endW = window.innerWidth;
-        const startRadius = 14;  // matches var(--radius)
+        const startRadius = 10;
 
         // Pop-out size bump
         const popW = startW + 24;
@@ -3880,6 +3813,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           bar.style.transform = '';
           scrim.style.opacity = '0';
           explainer.style.opacity = '0';
+          explainer.style.left = (popLeft + popW / 2) + 'px';
+          explainer.style.top = ((startTop - 8) - 100) + 'px';
           explainer.style.transform = 'translateX(-50%) translateY(6px)';
         }
 
@@ -3900,7 +3835,11 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           const bgAlpha = 0.92 + 0.08 * ep;
           bar.style.background = `rgba(255,255,255,${bgAlpha})`;
           bar.style.boxShadow = `0 0 ${28 + 16 * ep}px rgba(0,0,0,${0.14 + 0.10 * ep})`;
-          // Explainer fades in
+          // Explainer fades in (centered above bar)
+          const barCenterX = popLeft + popW / 2;
+          const barTopNow = startTop - 8;
+          explainer.style.left = barCenterX + 'px';
+          explainer.style.top = (barTopNow - 100) + 'px';
           explainer.style.opacity = String(ep);
           explainer.style.transform = `translateX(-50%) translateY(${6 - 6 * ep}px)`;
         }
@@ -3910,9 +3849,11 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           const p = (t - 0.55) / 0.45;
           const ep = easeOutCubic(p);
           // Bar moves from pop position/size → full-width at viewport bottom
-          bar.style.width  = (popW + (endW - popW) * ep) + 'px';
+          const curW = popW + (endW - popW) * ep;
+          const curLeft = popLeft + (endLeft - popLeft) * ep;
+          bar.style.width  = curW + 'px';
           bar.style.height = (popH + (startH - popH) * ep) + 'px';  // shrink back
-          bar.style.left   = (popLeft + (endLeft - popLeft) * ep) + 'px';
+          bar.style.left   = curLeft + 'px';
           const holdTop = startTop - 8;
           bar.style.top    = (holdTop + (endTop - holdTop) * ep) + 'px';
           // Radius shrinks to 0
@@ -3920,7 +3861,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           bar.style.transform = '';
           // Scrim fades out
           scrim.style.opacity = String(0.55 * (1 - ep));
-          // Explainer fades out quickly
+          // Explainer stays centered above bar, fades out quickly
+          explainer.style.left = (curLeft + curW / 2) + 'px';
           const explainerFade = Math.max(0, 1 - p * 2.5);
           explainer.style.opacity = String(explainerFade);
           // Styling settles
@@ -3944,6 +3886,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           bar.style.boxShadow = '';
           scrim.style.opacity = '0';
           explainer.style.opacity = '0';
+          explainer.style.top = '';
+          explainer.style.left = '';
           document.body.style.paddingBottom = '60px';
         }
         return;
@@ -5039,17 +4983,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
       // Auto-start play animation
       setTimeout(() => playBtn.click(), 100);
-    }
 
-    document.addEventListener('imageReady', initSensorEye);
-  }());
-
-  // ─── Section 03: Raw Pixel Data ──────────────────────────────────────────────
-  (function () {
-    function initSection03() {
-      if (!S.img) return;
-
-      // Stats
+      // Stats (previously Section 03)
       const pixels = S.origW * S.origH;
       const rawMB = (pixels * 3 / 1_000_000).toFixed(1);
       const ratio = Math.round(pixels * 3 / 300_000);
@@ -5059,128 +4994,11 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         `Uncompressed: ${rawMB} MB`;
       document.getElementById('rawStatsRatio').textContent =
         `That's ~${ratio}× larger than the final JPEG`;
-
-      // Source canvas
-      const srcCanvas = document.getElementById('rawSrcCanvas');
-      const srcCtx = srcCanvas.getContext('2d', { willReadFrequently: true });
-      srcCanvas.width = S.w;
-      srcCanvas.height = S.h;
-      srcCtx.drawImage(S.origCanvas, 0, 0);
-
-      // Zoom canvas
-      const zoomCanvas = document.getElementById('rawZoomCanvas');
-      const zoomCtx = zoomCanvas.getContext('2d');
-      const ZOOM = 10, CELL = 28;
-      zoomCanvas.width = ZOOM * CELL;
-      zoomCanvas.height = ZOOM * CELL;
-
-      let clickX = Math.floor(S.w / 2);
-      let clickY = Math.floor(S.h / 2);
-      let hoveredCell = null;
-
-      function getPixelAt(px, py) {
-        const x = Math.max(0, Math.min(px, S.w - 1));
-        const y = Math.max(0, Math.min(py, S.h - 1));
-        const i = (y * S.w + x) * 4;
-        return { r: S.img.data[i], g: S.img.data[i + 1], b: S.img.data[i + 2] };
-      }
-
-      function drawSrc() {
-        srcCtx.drawImage(S.origCanvas, 0, 0);
-        const half = Math.floor(ZOOM / 2);
-        const boxX = Math.max(0, Math.min(clickX - half, S.w - ZOOM));
-        const boxY = Math.max(0, Math.min(clickY - half, S.h - ZOOM));
-
-        // Crosshair
-        srcCtx.save();
-        srcCtx.strokeStyle = 'rgba(255,255,255,0.6)';
-        srcCtx.lineWidth = 1;
-        srcCtx.setLineDash([3, 3]);
-        srcCtx.beginPath();
-        srcCtx.moveTo(clickX, 0); srcCtx.lineTo(clickX, S.h);
-        srcCtx.moveTo(0, clickY); srcCtx.lineTo(S.w, clickY);
-        srcCtx.stroke();
-
-        // Selection box
-        srcCtx.setLineDash([]);
-        srcCtx.strokeStyle = '#3b82f6';
-        srcCtx.lineWidth = 2;
-        srcCtx.strokeRect(boxX, boxY, ZOOM, ZOOM);
-        srcCtx.restore();
-      }
-
-      function drawZoom() {
-        zoomCtx.clearRect(0, 0, zoomCanvas.width, zoomCanvas.height);
-        const half = Math.floor(ZOOM / 2);
-        const startX = Math.max(0, Math.min(clickX - half, S.w - ZOOM));
-        const startY = Math.max(0, Math.min(clickY - half, S.h - ZOOM));
-
-        for (let row = 0; row < ZOOM; row++) {
-          for (let col = 0; col < ZOOM; col++) {
-            const px = getPixelAt(startX + col, startY + row);
-            const x = col * CELL, y = row * CELL;
-
-            zoomCtx.fillStyle = `rgb(${px.r},${px.g},${px.b})`;
-            zoomCtx.fillRect(x, y, CELL, CELL);
-
-            if (hoveredCell && hoveredCell.row === row && hoveredCell.col === col) {
-              zoomCtx.fillStyle = 'rgba(255,255,255,0.25)';
-              zoomCtx.fillRect(x, y, CELL, CELL);
-            }
-
-            // Center marker
-            if (row === half && col === half) {
-              zoomCtx.strokeStyle = 'rgba(255,255,255,0.9)';
-              zoomCtx.lineWidth = 2;
-              zoomCtx.strokeRect(x + 1, y + 1, CELL - 2, CELL - 2);
-            }
-
-            zoomCtx.strokeStyle = 'rgba(255,255,255,0.12)';
-            zoomCtx.lineWidth = 0.5;
-            zoomCtx.strokeRect(x, y, CELL, CELL);
-          }
-        }
-      }
-
-      srcCanvas.addEventListener('click', e => {
-        const rect = srcCanvas.getBoundingClientRect();
-        clickX = Math.round((e.clientX - rect.left) * (S.w / rect.width));
-        clickY = Math.round((e.clientY - rect.top) * (S.h / rect.height));
-        drawSrc();
-        drawZoom();
-      });
-
-      zoomCanvas.addEventListener('mousemove', e => {
-        const rect = zoomCanvas.getBoundingClientRect();
-        const col = Math.floor((e.clientX - rect.left) * (zoomCanvas.width / rect.width) / CELL);
-        const row = Math.floor((e.clientY - rect.top) * (zoomCanvas.height / rect.height) / CELL);
-        const half = Math.floor(ZOOM / 2);
-        const startX = Math.max(0, Math.min(clickX - half, S.w - ZOOM));
-        const startY = Math.max(0, Math.min(clickY - half, S.h - ZOOM));
-        if (col >= 0 && col < ZOOM && row >= 0 && row < ZOOM) {
-          hoveredCell = { row, col };
-          const px = getPixelAt(startX + col, startY + row);
-          document.getElementById('rawRGBTooltip').textContent =
-            `R: ${px.r}  G: ${px.g}  B: ${px.b}`;
-        } else {
-          hoveredCell = null;
-          document.getElementById('rawRGBTooltip').textContent = '';
-        }
-        drawZoom();
-      });
-
-      zoomCanvas.addEventListener('mouseleave', () => {
-        hoveredCell = null;
-        document.getElementById('rawRGBTooltip').textContent = '';
-        drawZoom();
-      });
-
-      drawSrc();
-      drawZoom();
     }
 
-    document.addEventListener('imageReady', initSection03);
+    document.addEventListener('imageReady', initSensorEye);
   }());
+
 
   // ─── Carousel dot helper ─────────────────────────────────────────────────────
   function setupCarouselDots(gridId, dotsId, count) {
@@ -6829,7 +6647,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
   // ─── Summary Section ──────────────────────────────────────────────────────────
   (function () {
     const CARDS = [
-      { num: '01', id: 's-raw',     icon: '📷', title: 'RGB Pixels',    type: '',         desc: 'Your photo starts as raw color data',      size: '~36 MB'  },
+      { num: '01', id: 's-rgb',     icon: '📷', title: 'RGB Pixels',    type: '',         desc: 'Your photo starts as raw color data',      size: '~36 MB'  },
       { num: '02', id: 's-ycbcr',   icon: '🎨', title: 'YCbCr',         type: 'lossless', desc: 'Separate brightness from color',            size: '~36 MB'  },
       { num: '03', id: 's-chroma',  icon: '📉', title: 'Chroma Sub.',    type: 'lossy',    desc: 'Shrink color channels by 75%',              size: '~18 MB'  },
       { num: '04', id: 's-blocks',  icon: '⬛', title: '8×8 Blocks',    type: '',         desc: 'Divide into independent squares',           size: '~18 MB'  },
