@@ -1352,6 +1352,10 @@
       border-color: var(--accent-blue);
     }
 
+    .channel-tab--full {
+      margin-left: auto;
+    }
+
     .chroma-scheme-tabs {
       display: flex;
       gap: 6px;
@@ -2858,6 +2862,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           <button class="channel-tab active" data-ch="cb">Cb — Blue chroma</button>
           <button class="channel-tab" data-ch="cr">Cr — Red chroma</button>
           <button class="channel-tab" data-ch="y">Y — Luma</button>
+          <button class="channel-tab channel-tab--full" data-ch="full">Full image</button>
         </div>
         <div class="chroma-scheme-tabs" id="chromaSchemeTabs">
           <button class="scheme-tab active" data-scheme="420">4:2:0 — Quarter</button>
@@ -5954,6 +5959,11 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     const CH_MAP = { y: mapY, cb: mapCb, cr: mapCr };
 
     function dimBadgeText(ch, scheme, w, h) {
+      if (ch === 'full') {
+        if (scheme === '444') return `Full image — no chroma reduction`;
+        if (scheme === '422') return `Full image — Cb/Cr at 50%`;
+        return `Full image — Cb/Cr at 25%`;
+      }
       const lbl = ch.toUpperCase();
       if (ch === 'y' || scheme === '444') return `${lbl}: ${w}×${h} — 100% of pixels kept`;
       if (scheme === '422') return `${lbl}: ${Math.ceil(w/2)}×${h} — 50% fewer samples`;
@@ -5999,6 +6009,101 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       oc.width = S.w; oc.height = S.h;
       oc.getContext('2d').putImageData(new ImageData(data, S.w, S.h), 0, 0);
       return oc;
+    }
+
+    // Build a full-color RGB canvas with Cb/Cr subsampled at the given scheme
+    function buildFullImageOverlay(scheme) {
+      const { sampledW, sampledH } = SCHEME_META[scheme];
+      const N = S.w * S.h;
+      const data = new Uint8ClampedArray(N * 4);
+      for (let py = 0; py < S.h; py++) {
+        for (let x = 0; x < S.w; x++) {
+          const idx = py * S.w + x;
+          const yVal = S.yChannel[idx];
+          // Sample Cb/Cr from block's representative pixel (top-left of block)
+          const bx = Math.floor(x  / sampledW) * sampledW;
+          const by = Math.floor(py / sampledH) * sampledH;
+          const bi = by * S.w + bx;
+          const cb = S.cbChannel[bi] - 128;
+          const cr = S.crChannel[bi] - 128;
+          const di = idx * 4;
+          data[di]   = Math.max(0, Math.min(255, Math.round(yVal + 1.402   * cr)));
+          data[di+1] = Math.max(0, Math.min(255, Math.round(yVal - 0.344136 * cb - 0.714136 * cr)));
+          data[di+2] = Math.max(0, Math.min(255, Math.round(yVal + 1.772   * cb)));
+          data[di+3] = 255;
+        }
+      }
+      const oc = document.createElement('canvas');
+      oc.width = S.w; oc.height = S.h;
+      oc.getContext('2d').putImageData(new ImageData(data, S.w, S.h), 0, 0);
+      return oc;
+    }
+
+    // Build an 8×8 pixel zoom grid showing full RGB at (bx, by), with optional subsampling
+    function buildFullImageZoomGrid(containerEl, bx, by, isSub, scheme, cropSize) {
+      containerEl.innerHTML = '';
+      const { sampledW, sampledH } = SCHEME_META[scheme];
+      for (let row = 0; row < cropSize; row++) {
+        for (let col = 0; col < cropSize; col++) {
+          const px = bx + col, py = by + row;
+          let r, g, b;
+          if (isSub && scheme !== '444') {
+            const blockPx = bx + Math.floor(col / sampledW) * sampledW;
+            const blockPy = by + Math.floor(row / sampledH) * sampledH;
+            const bi  = blockPy * S.w + blockPx;
+            const yV  = S.yChannel[py * S.w + px];
+            const cb  = S.cbChannel[bi] - 128;
+            const cr  = S.crChannel[bi] - 128;
+            r = Math.max(0, Math.min(255, Math.round(yV + 1.402   * cr)));
+            g = Math.max(0, Math.min(255, Math.round(yV - 0.344136 * cb - 0.714136 * cr)));
+            b = Math.max(0, Math.min(255, Math.round(yV + 1.772   * cb)));
+          } else {
+            const i4 = (py * S.w + px) * 4;
+            r = S.img.data[i4]; g = S.img.data[i4 + 1]; b = S.img.data[i4 + 2];
+          }
+          const cell = document.createElement('div');
+          cell.className = 'chroma-pixel-cell';
+          cell.style.backgroundColor = `rgb(${r},${g},${b})`;
+          cell.dataset.origBg = `rgb(${r},${g},${b})`;
+          cell.dataset.row = row;
+          cell.dataset.col = col;
+          if (isSub && scheme !== '444') {
+            cell.classList.add((col % sampledW === 0 && row % sampledH === 0) ? 'sampled' : 'ignored');
+          }
+          containerEl.appendChild(cell);
+        }
+      }
+    }
+
+    function updateFullImageZoomGrid(subGrid, bx, by, scheme, cropSize) {
+      const { sampledW, sampledH } = SCHEME_META[scheme];
+      Array.from(subGrid.querySelectorAll('.chroma-pixel-cell')).forEach((cell, idx) => {
+        const row = Math.floor(idx / cropSize), col = idx % cropSize;
+        const px = bx + col, py = by + row;
+        let r, g, b;
+        if (scheme !== '444') {
+          const blockPx = bx + Math.floor(col / sampledW) * sampledW;
+          const blockPy = by + Math.floor(row / sampledH) * sampledH;
+          const bi  = blockPy * S.w + blockPx;
+          const yV  = S.yChannel[py * S.w + px];
+          const cb  = S.cbChannel[bi] - 128;
+          const cr  = S.crChannel[bi] - 128;
+          r = Math.max(0, Math.min(255, Math.round(yV + 1.402   * cr)));
+          g = Math.max(0, Math.min(255, Math.round(yV - 0.344136 * cb - 0.714136 * cr)));
+          b = Math.max(0, Math.min(255, Math.round(yV + 1.772   * cb)));
+        } else {
+          const i4 = (py * S.w + px) * 4;
+          r = S.img.data[i4]; g = S.img.data[i4 + 1]; b = S.img.data[i4 + 2];
+        }
+        const bg = `rgb(${r},${g},${b})`;
+        cell.style.backgroundColor = bg;
+        cell.dataset.origBg = bg;
+        cell.textContent = '';
+        cell.classList.remove('sampled', 'ignored');
+        if (scheme !== '444') {
+          cell.classList.add((col % sampledW === 0 && row % sampledH === 0) ? 'sampled' : 'ignored');
+        }
+      });
     }
 
     function findMaxVarianceCrop(channel, w, h, cropW, cropH) {
@@ -6101,6 +6206,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     let currentChannel = 'cb';
     let currentZoomScheme = '420';
     let selectedBlock = null; // { x, y } top-left corner of selected 8×8 block
+    let cropX = 0, cropY = 0; // current zoom crop origin (for full image mode)
     let userInteracted = false;
     let rafId = null;
 
@@ -6116,11 +6222,15 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           offscreens[`${ch}-${s}`] = buildSchemeOverlay(ch, s);
         });
       });
+      ['444', '422', '420'].forEach(s => {
+        offscreens[`full-${s}`] = buildFullImageOverlay(s);
+      });
 
       // ── Extract max-variance crop for each channel ──
       const chData = { y: S.yChannel, cb: S.cbChannel, cr: S.crChannel };
       ['y', 'cb', 'cr'].forEach(ch => {
         const crop = findMaxVarianceCrop(chData[ch], S.w, S.h, CROP, CROP);
+        if (ch === 'cb') { cropX = crop.x; cropY = crop.y; } // default origin for full image mode
         cropPixels[ch] = new Uint8Array(CROP * CROP);
         for (let dy = 0; dy < CROP; dy++)
           for (let dx = 0; dx < CROP; dx++)
@@ -6147,20 +6257,49 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       const subLabels = { '444': 'No subsampling (4:4:4)', '422': 'After 4:2:2 subsampling', '420': 'After 4:2:0 subsampling' };
       let lastScrollScheme = null;
 
+      const CHROMA_BAR = {
+        '444': { stageLabel: 'After 4:4:4 (no subsampling)', rawMB: 36, pct: 100 },
+        '422': { stageLabel: 'After 4:2:2 subsampling',      rawMB: 24, pct: 67  },
+        '420': { stageLabel: 'After 4:2:0 subsampling',      rawMB: 18, pct: 50  },
+      };
+
+      function syncDataBar(chromaScheme) {
+        const d = CHROMA_BAR[chromaScheme];
+        ['s-chroma', 's-blocks', 's-dct'].forEach(id => {
+          const stage = SECTION_DATA.find(s => s.id === id);
+          if (!stage) return;
+          stage.rawMB = d.rawMB;
+          stage.pct   = d.pct;
+          if (id === 's-chroma') stage.stageLabel = d.stageLabel;
+        });
+        if (['s-chroma', 's-blocks', 's-dct'].includes(_activeSection)) {
+          updateDataBar(_activeSection);
+        }
+        if (_tooltipOpen) renderTooltip();
+      }
+
       function applyScheme(scheme) {
-        const mapFn = CH_MAP[currentChannel];
-        const key = currentChannel === 'y' ? 'y-444' : `${currentChannel}-${scheme}`;
+        const isFull = currentChannel === 'full';
+        const isY    = currentChannel === 'y';
+        const key = isY ? 'y-444' : `${currentChannel}-${scheme}`;
         schemeCanvas.getContext('2d').drawImage(offscreens[key], 0, 0);
         schemeCanvas.style.opacity = '1';
         document.getElementById('chromaSchemeInfo').innerHTML =
-          currentChannel === 'y'
-            ? '<strong>Y — Luma</strong> is always kept at full resolution. No subsampling is applied.'
-            : SCHEME_META[scheme].label;
+          isY ? '<strong>Y — Luma</strong> is always kept at full resolution. No subsampling is applied.'
+              : SCHEME_META[scheme].label;
         badge.textContent = dimBadgeText(currentChannel, scheme, S.w, S.h);
         badge.style.opacity = '1';
-        updateZoomGridScheme(subGrid, cropPixels[currentChannel], currentChannel === 'y' ? '444' : scheme, CROP, mapFn);
-        document.getElementById('chromaZoomSubLabel').textContent =
-          currentChannel === 'y' ? 'Y is always full resolution' : subLabels[scheme];
+        if (isFull) {
+          const bx = selectedBlock ? selectedBlock.x : cropX;
+          const by = selectedBlock ? selectedBlock.y : cropY;
+          updateFullImageZoomGrid(subGrid, bx, by, scheme, CROP);
+          document.getElementById('chromaZoomSubLabel').textContent = subLabels[scheme];
+        } else {
+          updateZoomGridScheme(subGrid, cropPixels[isY ? 'y' : currentChannel], isY ? '444' : scheme, CROP, CH_MAP[isY ? 'y' : currentChannel]);
+          document.getElementById('chromaZoomSubLabel').textContent =
+            isY ? 'Y is always full resolution' : subLabels[scheme];
+        }
+        syncDataBar(currentZoomScheme);
       }
 
       // Channel tab handlers
@@ -6170,16 +6309,36 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           btn.classList.add('active');
           currentChannel = btn.dataset.ch;
           userInteracted = true;
-          const isY = currentChannel === 'y';
-          // Disable scheme tabs for Y (always 444)
-          document.querySelectorAll('#chromaSchemeTabs .scheme-tab').forEach(b => {
-            b.setAttribute('aria-disabled', isY ? 'true' : 'false');
-          });
-          // Rebuild full grid for new channel
-          const mapFn = CH_MAP[currentChannel];
-          buildPixelZoomGrid(fullGrid, cropPixels[currentChannel], '444', false, CROP, mapFn);
-          document.getElementById('chromaZoomFullLabel').textContent =
-            `${chLabels[currentChannel]} channel — original values`;
+          const isY    = currentChannel === 'y';
+          const isFull = currentChannel === 'full';
+
+          if (isY) {
+            // Auto-switch to 4:4:4 and disable scheme tabs
+            currentZoomScheme = '444';
+            document.querySelectorAll('#chromaSchemeTabs .scheme-tab').forEach(b => {
+              b.classList.toggle('active', b.dataset.scheme === '444');
+              b.setAttribute('aria-disabled', 'true');
+            });
+          } else {
+            document.querySelectorAll('#chromaSchemeTabs .scheme-tab').forEach(b => {
+              b.setAttribute('aria-disabled', 'false');
+            });
+          }
+
+          if (isFull) {
+            const bx = selectedBlock ? selectedBlock.x : cropX;
+            const by = selectedBlock ? selectedBlock.y : cropY;
+            buildFullImageZoomGrid(fullGrid, bx, by, false, '444', CROP);
+            buildFullImageZoomGrid(subGrid,  bx, by, true,  currentZoomScheme, CROP);
+            document.getElementById('chromaZoomFullLabel').textContent = 'Original pixels';
+            document.getElementById('chromaZoomSubLabel').textContent  = subLabels[currentZoomScheme];
+          } else {
+            const mapFn = CH_MAP[isY ? 'y' : currentChannel];
+            buildPixelZoomGrid(fullGrid, cropPixels[isY ? 'y' : currentChannel], '444', false, CROP, mapFn);
+            document.getElementById('chromaZoomFullLabel').textContent =
+              `${chLabels[currentChannel]} channel — original values`;
+          }
+
           applyScheme(isY ? '444' : currentZoomScheme);
         });
       });
@@ -6209,22 +6368,26 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         const bx = Math.min(Math.floor(cx / CROP) * CROP, S.w - CROP);
         const by = Math.min(Math.floor(cy / CROP) * CROP, S.h - CROP);
         selectedBlock = { x: bx, y: by };
+        cropX = bx; cropY = by;
 
-        // Extract this block for every channel
-        const chDataAll = { y: S.yChannel, cb: S.cbChannel, cr: S.crChannel };
-        ['y', 'cb', 'cr'].forEach(ch => {
-          for (let dy = 0; dy < CROP; dy++)
-            for (let dx = 0; dx < CROP; dx++)
-              cropPixels[ch][dy * CROP + dx] = chDataAll[ch][(by + dy) * S.w + (bx + dx)];
-        });
+        if (currentChannel === 'full') {
+          buildFullImageZoomGrid(fullGrid, bx, by, false, '444', CROP);
+          buildFullImageZoomGrid(subGrid,  bx, by, true,  currentZoomScheme, CROP);
+        } else {
+          // Extract this block for every single-channel
+          const chDataAll = { y: S.yChannel, cb: S.cbChannel, cr: S.crChannel };
+          ['y', 'cb', 'cr'].forEach(ch => {
+            for (let dy = 0; dy < CROP; dy++)
+              for (let dx = 0; dx < CROP; dx++)
+                cropPixels[ch][dy * CROP + dx] = chDataAll[ch][(by + dy) * S.w + (bx + dx)];
+          });
+          const mapFn = CH_MAP[currentChannel];
+          buildPixelZoomGrid(fullGrid, cropPixels[currentChannel], '444', false, CROP, mapFn);
+          const scheme = currentChannel === 'y' ? '444' : currentZoomScheme;
+          updateZoomGridScheme(subGrid, cropPixels[currentChannel], scheme, CROP, mapFn);
+        }
 
-        // Rebuild both zoom grids for current channel
-        const mapFn = CH_MAP[currentChannel];
-        buildPixelZoomGrid(fullGrid, cropPixels[currentChannel], '444', false, CROP, mapFn);
-        const scheme = currentChannel === 'y' ? '444' : currentZoomScheme;
-        updateZoomGridScheme(subGrid, cropPixels[currentChannel], scheme, CROP, mapFn);
-
-        // Position selection indicator (percentage-based so it scales with CSS)
+        // Position selection indicator
         selRect.style.display = 'block';
         selRect.style.left   = (bx / S.w * 100) + '%';
         selRect.style.top    = (by / S.h * 100) + '%';
@@ -6244,11 +6407,18 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         const { sampledW, sampledH } = SCHEME_META[currentZoomScheme];
         const blockRow = Math.floor(row / sampledH) * sampledH;
         const blockCol = Math.floor(col / sampledW) * sampledW;
+
+        // Get the sampled pixel's color (top-left of block)
+        const sampledColor = currentChannel === 'full'
+          ? subGrid.querySelector(`.chroma-pixel-cell[data-row="${blockRow}"][data-col="${blockCol}"]`)?.dataset.origBg
+          : null;
+
         subGrid.querySelectorAll('.chroma-pixel-cell').forEach(c => {
           const cr = +c.dataset.row, cc = +c.dataset.col;
           const inBlock = cr >= blockRow && cr < blockRow + sampledH
                        && cc >= blockCol && cc < blockCol + sampledW;
           c.classList.toggle('block-hover', inBlock);
+          if (inBlock && sampledColor) c.style.backgroundColor = sampledColor;
         });
         tooltip.textContent = `This ${sampledW}×${sampledH} area shares 1 Cb value`;
         tooltip.style.display = 'block';
@@ -6262,7 +6432,10 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         }
       });
       subGrid.addEventListener('mouseleave', () => {
-        subGrid.querySelectorAll('.block-hover').forEach(c => c.classList.remove('block-hover'));
+        subGrid.querySelectorAll('.chroma-pixel-cell').forEach(c => {
+          c.classList.remove('block-hover');
+          if (c.dataset.origBg) c.style.backgroundColor = c.dataset.origBg;
+        });
         tooltip.style.display = 'none';
       });
 
@@ -6295,6 +6468,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
               currentZoomScheme = activeScheme;
               updateZoomGridScheme(subGrid, cropPixels[ch], activeScheme, CROP, CH_MAP[ch]);
               document.getElementById('chromaZoomSubLabel').textContent = subLabels[activeScheme];
+              syncDataBar(activeScheme);
             }
           }
         }
