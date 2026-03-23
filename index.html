@@ -1321,6 +1321,37 @@
     }
 
     /* ── S06: Chroma Subsampling ─────────────────────────────────────────── */
+    .chroma-channel-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .channel-tab {
+      font-size: 0.78rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      padding: 5px 16px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .channel-tab:hover {
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+
+    .channel-tab.active {
+      background: var(--accent-blue);
+      color: #fff;
+      border-color: var(--accent-blue);
+    }
+
     .chroma-scheme-tabs {
       display: flex;
       gap: 6px;
@@ -1352,6 +1383,11 @@
       border-color: var(--accent-blue);
     }
 
+    .scheme-tab[aria-disabled="true"] {
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
     .chroma-scheme-info {
       font-size: 0.82rem;
       font-family: 'JetBrains Mono', monospace;
@@ -1375,6 +1411,17 @@
       display: block;
       width: 100%;
       height: auto;
+      cursor: crosshair;
+    }
+
+    .chroma-selection-rect {
+      position: absolute;
+      display: none;
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 1.5px rgba(0,0,0,0.6), inset 0 0 0 1.5px rgba(0,0,0,0.3);
+      border-radius: 2px;
+      pointer-events: none;
+      transition: left 0.1s, top 0.1s;
     }
 
     .chroma-dim-badge {
@@ -1416,7 +1463,7 @@
       color: var(--text-secondary);
       text-transform: uppercase;
       letter-spacing: 0.06em;
-      margin: 0;
+      margin: 20px 0 8px;
     }
 
     .chroma-pixel-grid {
@@ -2805,30 +2852,27 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         The number scheme (4:4:4, 4:2:2, 4:2:0) describes how many Cb/Cr samples are kept per row of 4 luma pixels. 4:2:0 — the most common — cuts color data by 75%.
       </p>
 
-      <!-- Card A: Cb channel with sampling map overlay -->
+      <!-- Merged card: sampling map + pixel zoom -->
       <div class="demo-card reveal" id="chromaSchemeCard">
+        <div class="chroma-channel-tabs" id="chromaChannelTabs">
+          <button class="channel-tab active" data-ch="cb">Cb — Blue chroma</button>
+          <button class="channel-tab" data-ch="cr">Cr — Red chroma</button>
+          <button class="channel-tab" data-ch="y">Y — Luma</button>
+        </div>
         <div class="chroma-scheme-tabs" id="chromaSchemeTabs">
-          <button class="scheme-tab active" data-scheme="444">4:4:4 — Full</button>
+          <button class="scheme-tab active" data-scheme="420">4:2:0 — Quarter</button>
           <button class="scheme-tab" data-scheme="422">4:2:2 — Half horizontal</button>
-          <button class="scheme-tab" data-scheme="420">4:2:0 — Quarter</button>
+          <button class="scheme-tab" data-scheme="444">4:4:4 — Full</button>
         </div>
         <div class="chroma-scheme-info" id="chromaSchemeInfo" aria-live="polite"></div>
         <div class="chroma-scheme-canvas-wrap">
           <canvas id="chromaSchemeCanvas"></canvas>
+          <div class="chroma-selection-rect" id="chromaSelectionRect"></div>
           <div class="chroma-dim-badge" id="chromaDimBadge"></div>
-        </div>
-      </div>
-
-      <!-- Card B: 8×8 pixel-level zoom -->
-      <div class="demo-card reveal" id="chromaZoomCard">
-        <div class="chroma-scheme-tabs" id="chromaZoomTabs">
-          <button class="scheme-tab active" data-scheme="444">4:4:4</button>
-          <button class="scheme-tab" data-scheme="422">4:2:2</button>
-          <button class="scheme-tab" data-scheme="420">4:2:0</button>
         </div>
         <div class="chroma-zoom-layout">
           <div class="chroma-zoom-panel">
-            <p class="panel-label">Cb channel — original values</p>
+            <p class="panel-label" id="chromaZoomFullLabel">Cb channel — original values</p>
             <div id="chromaZoomGridFull" class="chroma-pixel-grid"></div>
           </div>
           <div class="chroma-zoom-panel">
@@ -5893,9 +5937,27 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       ];
     }
 
+    function mapY(v) {
+      return [v, v, v];
+    }
+
     function mapCb(v) {
       if (v <= 128) return lerp3([255,255,0], [128,128,128], v / 128);
       return lerp3([128,128,128], [0,0,255], (v - 128) / 127);
+    }
+
+    function mapCr(v) {
+      if (v <= 128) return lerp3([0,200,80], [128,128,128], v / 128);
+      return lerp3([128,128,128], [220,30,30], (v - 128) / 127);
+    }
+
+    const CH_MAP = { y: mapY, cb: mapCb, cr: mapCr };
+
+    function dimBadgeText(ch, scheme, w, h) {
+      const lbl = ch.toUpperCase();
+      if (ch === 'y' || scheme === '444') return `${lbl}: ${w}×${h} — 100% of pixels kept`;
+      if (scheme === '422') return `${lbl}: ${Math.ceil(w/2)}×${h} — 50% fewer samples`;
+      return `${lbl}: ${Math.ceil(w/2)}×${Math.ceil(h/2)} — 75% fewer samples`;
     }
 
     function ensureYCbCr() {
@@ -5915,16 +5977,18 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     }
 
     // Build an offscreen canvas with sampled pixels at full brightness, others dimmed
-    function buildSchemeOverlay(scheme) {
+    function buildSchemeOverlay(ch, scheme) {
       const { sampledW, sampledH } = SCHEME_META[scheme];
+      const chData = { y: S.yChannel, cb: S.cbChannel, cr: S.crChannel }[ch];
+      const mapFn  = CH_MAP[ch];
       const N    = S.w * S.h;
       const data = new Uint8ClampedArray(N * 4);
-      for (let y = 0; y < S.h; y++) {
+      for (let py = 0; py < S.h; py++) {
         for (let x = 0; x < S.w; x++) {
-          const idx = y * S.w + x;
+          const idx = py * S.w + x;
           const di  = idx * 4;
-          const [r, g, b] = mapCb(S.cbChannel[idx]);
-          const dim = (x % sampledW === 0 && y % sampledH === 0) ? 1.0 : 0.32;
+          const [r, g, b] = mapFn(chData[idx]);
+          const dim = (x % sampledW === 0 && py % sampledH === 0) ? 1.0 : 0.32;
           data[di]   = Math.round(r * dim);
           data[di+1] = Math.round(g * dim);
           data[di+2] = Math.round(b * dim);
@@ -5985,14 +6049,14 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       return result;
     }
 
-    function buildPixelZoomGrid(containerEl, pixels, scheme, isSub, cropSize) {
+    function buildPixelZoomGrid(containerEl, pixels, scheme, isSub, cropSize, mapFn) {
       containerEl.innerHTML = '';
       const { sampledW, sampledH } = SCHEME_META[scheme];
       for (let row = 0; row < cropSize; row++) {
         for (let col = 0; col < cropSize; col++) {
           const idx = row * cropSize + col;
           const v   = pixels[idx];
-          const [r, g, b] = mapCb(v);
+          const [r, g, b] = mapFn(v);
           const cell = document.createElement('div');
           cell.className = 'chroma-pixel-cell';
           cell.style.backgroundColor = `rgb(${r},${g},${b})`;
@@ -6010,15 +6074,15 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       }
     }
 
-    function updateZoomGridScheme(subGrid, cropPixels, scheme, cropSize) {
-      const subPixels = computeSubPixels(cropPixels, scheme, cropSize);
+    function updateZoomGridScheme(subGrid, cropPx, scheme, cropSize, mapFn) {
+      const subPixels = computeSubPixels(cropPx, scheme, cropSize);
       const { sampledW, sampledH } = SCHEME_META[scheme];
       const cells = Array.from(subGrid.querySelectorAll('.chroma-pixel-cell'));
       cells.forEach((cell, idx) => {
         const row = Math.floor(idx / cropSize);
         const col = idx % cropSize;
         const v   = subPixels[idx];
-        const [r, g, b] = mapCb(v);
+        const [r, g, b] = mapFn(v);
         cell.style.backgroundColor = `rgb(${r},${g},${b})`;
         const lum = (0.299*r + 0.587*g + 0.114*b) / 255;
         cell.style.color = lum > 0.5 ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.85)';
@@ -6031,10 +6095,12 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       });
     }
 
-    let schemeOffscreens = {};
-    let cropPixels = null;
+    let offscreens = {};      // keyed 'ch-scheme', e.g. 'cb-420'
+    let cropPixels = {};      // keyed by channel: { y, cb, cr }
     const CROP = 8;
-    let currentZoomScheme = '444';
+    let currentChannel = 'cb';
+    let currentZoomScheme = '420';
+    let selectedBlock = null; // { x, y } top-left corner of selected 8×8 block
     let userInteracted = false;
     let rafId = null;
 
@@ -6042,61 +6108,128 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       if (!S.img) return;
       ensureYCbCr();
 
-      // ── Card A: build offscreen canvases ──
-      schemeOffscreens['444'] = buildSchemeOverlay('444');
-      schemeOffscreens['422'] = buildSchemeOverlay('422');
-      schemeOffscreens['420'] = buildSchemeOverlay('420');
+      // ── Build all offscreen canvases ──
+      ['y', 'cb', 'cr'].forEach(ch => {
+        ['444', '422', '420'].forEach(s => {
+          // Y is never subsampled — only build 444 for it
+          if (ch === 'y' && s !== '444') return;
+          offscreens[`${ch}-${s}`] = buildSchemeOverlay(ch, s);
+        });
+      });
+
+      // ── Extract max-variance crop for each channel ──
+      const chData = { y: S.yChannel, cb: S.cbChannel, cr: S.crChannel };
+      ['y', 'cb', 'cr'].forEach(ch => {
+        const crop = findMaxVarianceCrop(chData[ch], S.w, S.h, CROP, CROP);
+        cropPixels[ch] = new Uint8Array(CROP * CROP);
+        for (let dy = 0; dy < CROP; dy++)
+          for (let dx = 0; dx < CROP; dx++)
+            cropPixels[ch][dy * CROP + dx] = chData[ch][(crop.y + dy) * S.w + (crop.x + dx)];
+      });
 
       const schemeCanvas = document.getElementById('chromaSchemeCanvas');
       schemeCanvas.width  = S.w;
       schemeCanvas.height = S.h;
-      schemeCanvas.style.opacity = '0';
-      schemeCanvas.getContext('2d').drawImage(schemeOffscreens['444'], 0, 0);
+      schemeCanvas.style.opacity = '1';
+      schemeCanvas.getContext('2d').drawImage(offscreens['cb-420'], 0, 0);
 
-      document.getElementById('chromaSchemeInfo').innerHTML = SCHEME_META['444'].label;
+      document.getElementById('chromaSchemeInfo').innerHTML = SCHEME_META['420'].label;
       const badge = document.getElementById('chromaDimBadge');
-      badge.textContent = SCHEME_META['444'].dimText(S.w, S.h);
+      badge.textContent = dimBadgeText('cb', '420', S.w, S.h);
 
-      // Card A tab handlers
+      // ── Card B: pixel zoom — initial render (cb / 420) ──
+      const fullGrid = document.getElementById('chromaZoomGridFull');
+      const subGrid  = document.getElementById('chromaZoomGridSub');
+      buildPixelZoomGrid(fullGrid, cropPixels['cb'], '444', false, CROP, CH_MAP['cb']);
+      buildPixelZoomGrid(subGrid,  cropPixels['cb'], '420', true,  CROP, CH_MAP['cb']);
+
+      const chLabels  = { y: 'Y', cb: 'Cb', cr: 'Cr' };
+      const subLabels = { '444': 'No subsampling (4:4:4)', '422': 'After 4:2:2 subsampling', '420': 'After 4:2:0 subsampling' };
+      let lastScrollScheme = null;
+
+      function applyScheme(scheme) {
+        const mapFn = CH_MAP[currentChannel];
+        const key = currentChannel === 'y' ? 'y-444' : `${currentChannel}-${scheme}`;
+        schemeCanvas.getContext('2d').drawImage(offscreens[key], 0, 0);
+        schemeCanvas.style.opacity = '1';
+        document.getElementById('chromaSchemeInfo').innerHTML =
+          currentChannel === 'y'
+            ? '<strong>Y — Luma</strong> is always kept at full resolution. No subsampling is applied.'
+            : SCHEME_META[scheme].label;
+        badge.textContent = dimBadgeText(currentChannel, scheme, S.w, S.h);
+        badge.style.opacity = '1';
+        updateZoomGridScheme(subGrid, cropPixels[currentChannel], currentChannel === 'y' ? '444' : scheme, CROP, mapFn);
+        document.getElementById('chromaZoomSubLabel').textContent =
+          currentChannel === 'y' ? 'Y is always full resolution' : subLabels[scheme];
+      }
+
+      // Channel tab handlers
+      document.querySelectorAll('#chromaChannelTabs .channel-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#chromaChannelTabs .channel-tab').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentChannel = btn.dataset.ch;
+          userInteracted = true;
+          const isY = currentChannel === 'y';
+          // Disable scheme tabs for Y (always 444)
+          document.querySelectorAll('#chromaSchemeTabs .scheme-tab').forEach(b => {
+            b.setAttribute('aria-disabled', isY ? 'true' : 'false');
+          });
+          // Rebuild full grid for new channel
+          const mapFn = CH_MAP[currentChannel];
+          buildPixelZoomGrid(fullGrid, cropPixels[currentChannel], '444', false, CROP, mapFn);
+          document.getElementById('chromaZoomFullLabel').textContent =
+            `${chLabels[currentChannel]} channel — original values`;
+          applyScheme(isY ? '444' : currentZoomScheme);
+        });
+      });
+
+      // Scheme tab handlers
       document.querySelectorAll('#chromaSchemeTabs .scheme-tab').forEach(btn => {
         btn.addEventListener('click', () => {
           document.querySelectorAll('#chromaSchemeTabs .scheme-tab').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           userInteracted = true;
-          const scheme = btn.dataset.scheme;
-          const ctx = schemeCanvas.getContext('2d');
-          ctx.drawImage(schemeOffscreens[scheme], 0, 0);
-          schemeCanvas.style.opacity = '1';
-          document.getElementById('chromaSchemeInfo').innerHTML = SCHEME_META[scheme].label;
-          badge.textContent = SCHEME_META[scheme].dimText(S.w, S.h);
-          badge.style.opacity = '1';
+          currentZoomScheme = btn.dataset.scheme;
+          applyScheme(currentZoomScheme);
         });
       });
 
-      // ── Card B: pixel zoom ──
-      const crop = findMaxVarianceCrop(S.cbChannel, S.w, S.h, CROP, CROP);
-      cropPixels = new Uint8Array(CROP * CROP);
-      for (let dy = 0; dy < CROP; dy++) {
-        for (let dx = 0; dx < CROP; dx++) {
-          cropPixels[dy * CROP + dx] = S.cbChannel[(crop.y + dy) * S.w + (crop.x + dx)];
-        }
-      }
+      // ── Canvas block selection ──
+      const selRect = document.getElementById('chromaSelectionRect');
+      selRect.style.display = 'none';
+      selectedBlock = null;
 
-      const fullGrid = document.getElementById('chromaZoomGridFull');
-      const subGrid  = document.getElementById('chromaZoomGridSub');
-      buildPixelZoomGrid(fullGrid, cropPixels, '444', false, CROP);
-      buildPixelZoomGrid(subGrid,  cropPixels, '444', true,  CROP);
+      schemeCanvas.addEventListener('click', e => {
+        userInteracted = true;
+        const r = schemeCanvas.getBoundingClientRect();
+        const cx = Math.floor((e.clientX - r.left)  / r.width  * S.w);
+        const cy = Math.floor((e.clientY - r.top)   / r.height * S.h);
+        // Snap to 8×8 block grid, clamp to image bounds
+        const bx = Math.min(Math.floor(cx / CROP) * CROP, S.w - CROP);
+        const by = Math.min(Math.floor(cy / CROP) * CROP, S.h - CROP);
+        selectedBlock = { x: bx, y: by };
 
-      // Card B tab handlers
-      document.querySelectorAll('#chromaZoomTabs .scheme-tab').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('#chromaZoomTabs .scheme-tab').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          currentZoomScheme = btn.dataset.scheme;
-          updateZoomGridScheme(subGrid, cropPixels, currentZoomScheme, CROP);
-          const subLabels = { '444': 'No subsampling (4:4:4)', '422': 'After 4:2:2 subsampling', '420': 'After 4:2:0 subsampling' };
-          document.getElementById('chromaZoomSubLabel').textContent = subLabels[currentZoomScheme];
+        // Extract this block for every channel
+        const chDataAll = { y: S.yChannel, cb: S.cbChannel, cr: S.crChannel };
+        ['y', 'cb', 'cr'].forEach(ch => {
+          for (let dy = 0; dy < CROP; dy++)
+            for (let dx = 0; dx < CROP; dx++)
+              cropPixels[ch][dy * CROP + dx] = chDataAll[ch][(by + dy) * S.w + (bx + dx)];
         });
+
+        // Rebuild both zoom grids for current channel
+        const mapFn = CH_MAP[currentChannel];
+        buildPixelZoomGrid(fullGrid, cropPixels[currentChannel], '444', false, CROP, mapFn);
+        const scheme = currentChannel === 'y' ? '444' : currentZoomScheme;
+        updateZoomGridScheme(subGrid, cropPixels[currentChannel], scheme, CROP, mapFn);
+
+        // Position selection indicator (percentage-based so it scales with CSS)
+        selRect.style.display = 'block';
+        selRect.style.left   = (bx / S.w * 100) + '%';
+        selRect.style.top    = (by / S.h * 100) + '%';
+        selRect.style.width  = (CROP / S.w * 100) + '%';
+        selRect.style.height = (CROP / S.h * 100) + '%';
       });
 
       // Hover tooltip on sub grid
@@ -6105,7 +6238,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
       subGrid.addEventListener('mouseover', e => {
         const cell = e.target.closest('.chroma-pixel-cell');
-        if (!cell || currentZoomScheme === '444') return;
+        if (!cell || currentZoomScheme === '444' || currentChannel === 'y') return;
         const row = +cell.dataset.row;
         const col = +cell.dataset.col;
         const { sampledW, sampledH } = SCHEME_META[currentZoomScheme];
@@ -6143,27 +6276,25 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         const p    = Math.max(0, Math.min(1, (vh * 0.5 - rect.top) / (vh * 0.35)));
 
         if (!userInteracted) {
-          const fadeT = Math.max(0, Math.min(1, p / 0.25));
-          canvas.style.opacity = fadeT;
-
-          if (p > 0.25) {
-            const crossT = Math.max(0, Math.min(1, (p - 0.25) / 0.30));
+          if (p > 0) {
+            const crossT = Math.max(0, Math.min(1, p / 0.40));
+            const ch = currentChannel === 'y' ? 'cb' : currentChannel; // scroll always animates cb/cr
             const ctx = canvas.getContext('2d');
-            ctx.drawImage(schemeOffscreens['444'], 0, 0);
+            ctx.drawImage(offscreens[`${ch}-444`], 0, 0);
             ctx.globalAlpha = crossT;
-            ctx.drawImage(schemeOffscreens['420'], 0, 0);
+            ctx.drawImage(offscreens[`${ch}-420`], 0, 0);
             ctx.globalAlpha = 1;
-            // Sync active tab to 420 when scroll reaches it
-            if (crossT >= 1) {
-              document.querySelectorAll('#chromaSchemeTabs .scheme-tab').forEach(b => {
-                b.classList.toggle('active', b.dataset.scheme === '420');
-              });
-              document.getElementById('chromaSchemeInfo').innerHTML = SCHEME_META['420'].label;
-            } else {
-              document.querySelectorAll('#chromaSchemeTabs .scheme-tab').forEach(b => {
-                b.classList.toggle('active', b.dataset.scheme === '444');
-              });
-              document.getElementById('chromaSchemeInfo').innerHTML = SCHEME_META['444'].label;
+            // Sync active tab and zoom grid to scroll position
+            const activeScheme = crossT >= 1 ? '420' : '444';
+            document.querySelectorAll('#chromaSchemeTabs .scheme-tab').forEach(b => {
+              b.classList.toggle('active', b.dataset.scheme === activeScheme);
+            });
+            document.getElementById('chromaSchemeInfo').innerHTML = SCHEME_META[activeScheme].label;
+            if (activeScheme !== lastScrollScheme) {
+              lastScrollScheme = activeScheme;
+              currentZoomScheme = activeScheme;
+              updateZoomGridScheme(subGrid, cropPixels[ch], activeScheme, CROP, CH_MAP[ch]);
+              document.getElementById('chromaZoomSubLabel').textContent = subLabels[activeScheme];
             }
           }
         }
@@ -6172,7 +6303,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         const badgeT  = Math.max(0, Math.min(1, (p - 0.8) / 0.2));
         badgeEl.style.opacity = badgeT;
         if (badgeT > 0 && !userInteracted) {
-          badgeEl.textContent = SCHEME_META['420'].dimText(S.w, S.h);
+          badgeEl.textContent = dimBadgeText(ch, '420', S.w, S.h);
         }
 
         rafId = requestAnimationFrame(tick);
