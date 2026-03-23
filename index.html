@@ -1258,6 +1258,28 @@
       text-align: center;
     }
 
+    .ycbcr-histogram-wrap {
+      width: 100%;
+      align-self: stretch;
+      margin-top: auto;
+    }
+    .ycbcr-histogram {
+      width: 100%;
+      height: 48px;
+      display: block;
+      border-radius: 4px;
+      background: var(--bg-secondary);
+    }
+    .histogram-axis {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.58rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-secondary);
+      opacity: 0.6;
+      margin-top: 1px;
+    }
+
     .channel-color-legend {
       height: 6px;
       width: 100%;
@@ -1278,6 +1300,12 @@
       font-family: 'JetBrains Mono', monospace;
       color: var(--text-secondary);
       margin-top: 2px;
+      align-self: stretch;
+    }
+    /* Spacer for Y column to match the legend + labels height in Cb/Cr */
+    .channel-legend-spacer {
+      /* legend 6px + margin-top 4px + labels ~0.62rem line + margin-top 2px */
+      height: calc(6px + 4px + 0.62rem + 2px);
       align-self: stretch;
     }
 
@@ -2607,6 +2635,12 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
             </div>
             <canvas id="ycbcrY"></canvas>
             <p class="ycbcr-sublabel">Notice the sharp edges and fine detail — your eyes need this</p>
+            <div class="ycbcr-histogram-wrap">
+              <canvas id="histY" class="ycbcr-histogram"></canvas>
+              <div class="histogram-axis">
+                <span>0</span><span>128</span><span>255</span>
+              </div>
+            </div>
           </div>
           <div class="ycbcr-channel-col channel-panel">
             <div class="ycbcr-channel-header">
@@ -2618,6 +2652,12 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
             <div class="channel-legend-labels">
               <span>Less blue</span><span>More blue</span>
             </div>
+            <div class="ycbcr-histogram-wrap">
+              <canvas id="histCb" class="ycbcr-histogram"></canvas>
+              <div class="histogram-axis">
+                <span>0</span><span>128</span><span>255</span>
+              </div>
+            </div>
           </div>
           <div class="ycbcr-channel-col channel-panel">
             <div class="ycbcr-channel-header">
@@ -2628,6 +2668,12 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
             <div class="channel-color-legend channel-color-legend--cr"></div>
             <div class="channel-legend-labels">
               <span>Less red</span><span>More red</span>
+            </div>
+            <div class="ycbcr-histogram-wrap">
+              <canvas id="histCr" class="ycbcr-histogram"></canvas>
+              <div class="histogram-axis">
+                <span>0</span><span>128</span><span>255</span>
+              </div>
             </div>
           </div>
         </div>
@@ -5456,6 +5502,41 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       ];
     }
 
+    function renderHistogram(canvasId, data, color) {
+      const canvas = document.getElementById(canvasId);
+      const dpr    = window.devicePixelRatio || 1;
+      const w      = canvas.clientWidth  || 256;
+      const h      = canvas.clientHeight || 48;
+      canvas.width  = w * dpr;
+      canvas.height = h * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+
+      // Bucket into 64 bins (each covers 4 values)
+      const bins = new Uint32Array(64);
+      for (let i = 0; i < data.length; i++) {
+        bins[Math.min(63, data[i] >> 2)]++;
+      }
+      let maxBin = 0;
+      for (let i = 0; i < 64; i++) if (bins[i] > maxBin) maxBin = bins[i];
+      if (maxBin === 0) return;
+
+      const barW = w / 64;
+      ctx.fillStyle = color;
+      for (let i = 0; i < 64; i++) {
+        const barH = (bins[i] / maxBin) * (h - 2);
+        ctx.fillRect(i * barW, h - barH, barW - 0.5, barH);
+      }
+
+      // Mark the 128 center line
+      ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+      ctx.setLineDash([2, 2]);
+      ctx.beginPath();
+      ctx.moveTo(w / 2, 0);
+      ctx.lineTo(w / 2, h);
+      ctx.stroke();
+    }
+
     function renderYCbCrCombined() {
       const canvas  = document.getElementById('ycbcrCombined');
       canvas.width  = S.w;
@@ -5473,6 +5554,60 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         dst[di+3] = 255;
       }
       ctx.putImageData(imgData, 0, 0);
+    }
+
+    // Prepare histogram bin data (called once at init)
+    function prepareHistogram(canvasId, channel, color) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return null;
+      const bins = 64;
+      const counts = new Uint32Array(bins);
+      for (let i = 0; i < channel.length; i++) {
+        counts[Math.min(bins - 1, channel[i] >> 2)]++;
+      }
+      const maxCount = Math.max(1, ...counts);
+      return { canvas, bins, counts, maxCount, color };
+    }
+
+    // Draw histogram at a given progress (0→1), bars grow up from bottom
+    function drawHistogram(hist, progress) {
+      if (!hist) return;
+      const { canvas, bins, counts, maxCount, color } = hist;
+      const dpr = window.devicePixelRatio || 1;
+      const cssW = canvas.clientWidth || 200;
+      const cssH = canvas.clientHeight || 48;
+      canvas.width  = cssW * dpr;
+      canvas.height = cssH * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+
+      const barW = cssW / bins;
+      ctx.fillStyle = color;
+      ctx.globalAlpha = 0.7;
+
+      for (let b = 0; b < bins; b++) {
+        // Stagger each bar: bars near center (128) grow first
+        const distFrom128 = Math.abs(b - 32) / 32; // 0 at center, 1 at edges
+        const barDelay = distFrom128 * 0.4;
+        const barP = Math.max(0, Math.min(1, (progress - barDelay) / (1 - barDelay)));
+        // Ease out
+        const eased = 1 - (1 - barP) * (1 - barP);
+        const fullH = (counts[b] / maxCount) * cssH;
+        const h = fullH * eased;
+        ctx.fillRect(b * barW, cssH - h, barW - 0.5, h);
+      }
+
+      // 128 marker line (bin 32) — fade in at end
+      const lineAlpha = Math.max(0, Math.min(0.4, (progress - 0.5) * 0.8));
+      ctx.globalAlpha = lineAlpha;
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([2, 2]);
+      const x128 = 32 * barW;
+      ctx.beginPath();
+      ctx.moveTo(x128, 0);
+      ctx.lineTo(x128, cssH);
+      ctx.stroke();
     }
 
     function initSection05() {
@@ -5495,6 +5630,9 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       renderGray('ycbcrY', S.yChannel);
       renderFalseColor('ycbcrCb', S.cbChannel, mapCb);
       renderFalseColor('ycbcrCr', S.crChannel, mapCr);
+      S.histY  = prepareHistogram('histY',  S.yChannel,  '#6b7280');
+      S.histCb = prepareHistogram('histCb', S.cbChannel, '#2563eb');
+      S.histCr = prepareHistogram('histCr', S.crChannel, '#dc2626');
       setupCarouselDots('ycbcrSplitRow', 'ycbcrDots', 3);
 
       // ── Scroll-driven split animation ──
@@ -5510,6 +5648,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       const headers   = document.querySelectorAll('.ycbcr-channel-header');
       const legends   = document.querySelectorAll('.channel-color-legend');
       const legendLabels = document.querySelectorAll('.channel-legend-labels');
+      const histWraps = document.querySelectorAll('.ycbcr-histogram-wrap');
+      const sublabels = document.querySelectorAll('.ycbcr-sublabel');
       const insight   = document.querySelector('.ycbcr-insight');
       const stagger   = [0, 0.10, 0.20];
 
@@ -5563,6 +5703,20 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           headers.forEach(l => { l.style.opacity = uiT; });
           legends.forEach(l => { l.style.opacity = uiT; });
           legendLabels.forEach(l => { l.style.opacity = uiT; });
+          histWraps.forEach(l => { l.style.opacity = uiT; });
+          sublabels.forEach(l => { l.style.opacity = uiT; });
+          // Animate histogram bars — tied to when histograms enter viewport
+          const histEl = histWraps[0];
+          if (histEl) {
+            const hRect = histEl.getBoundingClientRect();
+            // starts when histogram top enters bottom 80% of viewport, completes at 40%
+            const histP = Math.max(0, Math.min(1,
+              (vh * 0.8 - hRect.top) / (vh * 0.4)
+            ));
+            drawHistogram(S.histY,  histP);
+            drawHistogram(S.histCb, histP);
+            drawHistogram(S.histCr, histP);
+          }
           if (insight) insight.style.opacity = uiT;
 
           requestAnimationFrame(tickYCbCrSplit);
