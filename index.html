@@ -1544,16 +1544,9 @@
 
     /* ── S07: 8×8 Block Division ─────────────────────────────────────────── */
     .blocks-demo {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      display: flex;
+      flex-direction: column;
       gap: 20px;
-      align-items: start;
-    }
-
-    @media (max-width: 680px) {
-      .blocks-demo {
-        grid-template-columns: 1fr;
-      }
     }
 
     .blocks-canvas-wrap {
@@ -1562,6 +1555,7 @@
       overflow: hidden;
       background: var(--bg-secondary);
       line-height: 0;
+      width: 100%;
     }
 
     .blocks-canvas-wrap canvas {
@@ -1597,29 +1591,25 @@
 
     .block-detail-body {
       display: grid;
-      grid-template-columns: auto 1fr;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto 1fr;
       gap: 12px;
       align-items: start;
+    }
+
+    .block-ch-tabs {
+      display: flex;
+      gap: 4px;
+      grid-column: 1 / -1;
     }
 
     #blockZoom {
       display: block;
       border-radius: 4px;
       image-rendering: pixelated;
-      width: 96px;
-      height: 96px;
-    }
-
-    .block-channels {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .block-ch-tabs {
-      display: flex;
-      gap: 4px;
-      margin-bottom: 6px;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1;
     }
 
     .block-ch-tab {
@@ -1664,6 +1654,115 @@
       height: 160px;
       color: var(--text-muted);
       font-size: 0.88rem;
+    }
+
+    .blocks-back-btn {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      z-index: 2;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.3);
+      background: rgba(15,23,42,0.75);
+      color: #e2e8f0;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      transition: background 0.15s;
+    }
+
+    .blocks-back-btn:hover {
+      background: rgba(15,23,42,0.92);
+    }
+
+    .block-complexity-row {
+      margin: 6px 0 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .complexity-header {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .complexity-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    .complexity-bar-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .complexity-bar-track {
+      height: 5px;
+      border-radius: 3px;
+      background: var(--border);
+      overflow: hidden;
+    }
+
+    .complexity-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.4s ease, background 0.4s ease;
+    }
+
+    .complexity-insight {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      margin: 0;
+      line-height: 1.45;
+    }
+
+    .block-pipeline-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .pipeline-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .pipeline-pill {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 20px;
+      border: 1.5px solid var(--accent-blue-tint);
+      color: var(--accent-blue);
+      background: var(--accent-blue-tint);
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    .pipeline-pill:hover {
+      background: var(--accent-blue);
+      color: #fff;
+      border-color: var(--accent-blue);
+    }
+
+    .pipeline-arrow {
+      font-size: 0.7rem;
+      color: var(--text-muted);
     }
 
     /* ── Matrix Grid (shared S07, S08, S09) ──────────────────────────────── */
@@ -2908,24 +3007,42 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       <div class="demo-card reveal">
         <div id="blocksDemo" class="blocks-demo">
           <div class="blocks-canvas-wrap">
+            <button id="blocksBackBtn" class="blocks-back-btn" style="display:none">← All blocks</button>
             <canvas id="blocksCanvas"></canvas>
             <div class="blocks-placeholder" id="blocksPlaceholder">Upload a photo to begin</div>
           </div>
           <div class="block-detail">
             <p class="block-detail-title" id="blockDetailTitle">Click a block to inspect</p>
             <p class="block-detail-coords" id="blockDetailCoords" style="display:none"></p>
-            <div class="block-detail-body" id="blockDetailBody" style="display:none">
-              <canvas id="blockZoom" width="96" height="96"></canvas>
-              <div class="block-channels">
-                <div class="block-ch-tabs">
-                  <button class="block-ch-tab active" data-ch="y">Y</button>
-                  <button class="block-ch-tab" data-ch="cb">Cb</button>
-                  <button class="block-ch-tab" data-ch="cr">Cr</button>
-                </div>
-                <div class="matrix-grid" id="blockMatrix"></div>
+            <div class="block-complexity-row" id="blockComplexityRow" style="display:none">
+              <div class="complexity-header">
+                <span class="complexity-badge" id="complexityBadge">FLAT</span>
+                <span class="complexity-bar-label">Compression friendliness</span>
               </div>
+              <div class="complexity-bar-track">
+                <div class="complexity-bar-fill" id="complexityBarFill" style="width:0%"></div>
+              </div>
+              <p class="complexity-insight" id="complexityInsight"></p>
+            </div>
+            <div class="block-detail-body" id="blockDetailBody" style="display:none">
+              <div class="block-ch-tabs">
+                <button class="block-ch-tab active" data-ch="color">Color</button>
+                <button class="block-ch-tab" data-ch="y">Y</button>
+                <button class="block-ch-tab" data-ch="cb">Cb</button>
+                <button class="block-ch-tab" data-ch="cr">Cr</button>
+              </div>
+              <canvas id="blockZoom" width="96" height="96"></canvas>
+              <div class="matrix-grid" id="blockMatrix"></div>
             </div>
             <p class="block-hint">Press <kbd>Space</kbd> for a random block</p>
+            <div class="block-pipeline-row" id="blockPipelineRow" style="display:none">
+              <span class="pipeline-label">Follow this block:</span>
+              <a class="pipeline-pill" href="#s-dct">DCT</a>
+              <span class="pipeline-arrow">→</span>
+              <a class="pipeline-pill" href="#s-quant">Quantize</a>
+              <span class="pipeline-arrow">→</span>
+              <a class="pipeline-pill" href="#s-zigzag">Zigzag</a>
+            </div>
           </div>
         </div>
       </div>
@@ -6556,9 +6673,14 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
   // ─── Section 07: 8×8 Block Division ────────────────────────────────────────
   (function () {
-    let blocksCtx = null;
-    let hoverBx = -1, hoverBy = -1;
-    let activeChannel = 'y';
+    let blocksCtx  = null;
+    let hoverBx    = -1, hoverBy = -1;
+    let activeChannel = 'color';
+    let animState  = 'idle'; // 'idle' | 'animating' | 'grid'
+    let varMaps = { y: null, cb: null, cr: null };
+    let varMaxes = { y: 0, cb: 0, cr: 0 };
+    let canvasObserver = null;
+    let listenersAttached = false;
 
     function ensureChannels() {
       if (S.yChannel) return;
@@ -6574,11 +6696,95 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       }
     }
 
+    function computeVarianceMap() {
+      const cols = Math.floor(S.w / 8);
+      const rows = Math.floor(S.h / 8);
+      const channels = { y: S.yChannel, cb: S.cbChannel, cr: S.crChannel };
+      for (const key of ['y', 'cb', 'cr']) {
+        const map = new Float32Array(cols * rows);
+        let max = 0;
+        for (let row = 0; row < rows; row++) {
+          for (let col = 0; col < cols; col++) {
+            const blk = extractBlock(channels[key], col * 8, row * 8, S.w);
+            let sum = 0;
+            for (let i = 0; i < 64; i++) sum += blk[i];
+            const mean = sum / 64;
+            let v = 0;
+            for (let i = 0; i < 64; i++) { const d = blk[i] - mean; v += d * d; }
+            v /= 64;
+            map[row * cols + col] = v;
+            if (v > max) max = v;
+          }
+        }
+        varMaps[key] = map;
+        varMaxes[key] = max;
+      }
+    }
+
+    function getVarianceLabel(norm) {
+      if (norm < 0.15) return 'FLAT';
+      if (norm < 0.40) return 'SMOOTH';
+      if (norm < 0.70) return 'TEXTURED';
+      return 'COMPLEX';
+    }
+
+    // Draws the zoom-out dividing frame at animation progress t (0=zoomed in, 1=full grid)
+    function drawDividingFrame(t) {
+      const ease  = easeOutCubic(t);
+      const zoom  = 4 - 3 * ease;           // 4× → 1×
+      const imgCx = S.w / 2, imgCy = S.h / 2;
+      const srcW  = S.w / zoom;
+      const srcH  = S.h / zoom;
+      const srcX  = imgCx - srcW / 2;
+      const srcY  = imgCy - srcH / 2;
+
+      blocksCtx.drawImage(S.origCanvas, srcX, srcY, srcW, srcH, 0, 0, S.w, S.h);
+
+      // Grid lines aligned to real 8-px block boundaries, shrinking with zoom
+      const scale      = S.w / srcW;           // canvas px per image px = zoom
+      const gridAlpha  = 0.08 + ease * 0.22;   // 0.08 → 0.30
+      blocksCtx.strokeStyle = `rgba(37,99,235,${gridAlpha})`;
+      blocksCtx.lineWidth   = 0.5;
+
+      const firstBx = Math.ceil(srcX / 8) * 8;
+      const stepC   = 8 * scale;
+      for (let cx = (firstBx - srcX) * scale; cx <= S.w + 1; cx += stepC) {
+        blocksCtx.beginPath(); blocksCtx.moveTo(cx, 0); blocksCtx.lineTo(cx, S.h); blocksCtx.stroke();
+      }
+      const firstBy = Math.ceil(srcY / 8) * 8;
+      for (let cy = (firstBy - srcY) * scale; cy <= S.h + 1; cy += stepC) {
+        blocksCtx.beginPath(); blocksCtx.moveTo(0, cy); blocksCtx.lineTo(S.w, cy); blocksCtx.stroke();
+      }
+    }
+
+    function animateDivide() {
+      animState = 'animating';
+      document.getElementById('blocksCanvas').style.cursor = 'default';
+      const startTime = performance.now();
+      function frame(now) {
+        if (animState !== 'animating') return;
+        const t = Math.min(1, (now - startTime) / 2000);
+        drawDividingFrame(t);
+        if (t < 1) {
+          requestAnimationFrame(frame);
+        } else {
+          animState = 'grid';
+          document.getElementById('blocksCanvas').style.cursor = 'crosshair';
+          drawGrid();
+        }
+      }
+      requestAnimationFrame(frame);
+    }
+
+
     function drawGrid() {
       if (!blocksCtx) return;
+      if (animState === 'idle')      { drawDividingFrame(0); return; }
+      if (animState === 'animating') { return; }      // animation owns its frames
+      // ── 'grid' state ──
       blocksCtx.drawImage(S.origCanvas, 0, 0);
       blocksCtx.strokeStyle = 'rgba(37,99,235,0.3)';
-      blocksCtx.lineWidth = 0.5;
+      blocksCtx.lineWidth   = 0.5;
       for (let x = 0; x <= S.w; x += 8) {
         blocksCtx.beginPath(); blocksCtx.moveTo(x, 0); blocksCtx.lineTo(x, S.h); blocksCtx.stroke();
       }
@@ -6589,28 +6795,115 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         blocksCtx.fillStyle = 'rgba(37,99,235,0.15)';
         blocksCtx.fillRect(hoverBx, hoverBy, 8, 8);
       }
-      blocksCtx.save();
-      blocksCtx.strokeStyle = '#2563eb';
-      blocksCtx.lineWidth = 2;
-      blocksCtx.shadowColor = 'rgba(37,99,235,0.7)';
-      blocksCtx.shadowBlur = 6;
-      blocksCtx.strokeRect(S.selBx + 1, S.selBy + 1, 6, 6);
-      blocksCtx.restore();
+      if (S.block) {
+        blocksCtx.save();
+        blocksCtx.strokeStyle = '#2563eb';
+        blocksCtx.lineWidth   = 2;
+        blocksCtx.shadowColor = 'rgba(37,99,235,0.7)';
+        blocksCtx.shadowBlur  = 6;
+        blocksCtx.strokeRect(S.selBx + 1, S.selBy + 1, 6, 6);
+        blocksCtx.restore();
+      }
+    }
+
+    function renderComplexityScore() {
+      const chKey = (activeChannel === 'color') ? 'y' : activeChannel;
+      if (!S.block || !varMaps[chKey]) return;
+      const cols     = Math.floor(S.w / 8);
+      const idx      = (S.selBy / 8) * cols + (S.selBx / 8);
+      const variance = varMaps[chKey][idx] || 0;
+      const norm     = varMaxes[chKey] > 0 ? variance / varMaxes[chKey] : 0;
+      const label    = getVarianceLabel(norm);
+
+      const COLORS = {
+        FLAT:     { bar: '#22c55e', bg: '#dcfce7', text: '#16a34a' },
+        SMOOTH:   { bar: '#84cc16', bg: '#f0fdf4', text: '#4d7c0f' },
+        TEXTURED: { bar: '#f59e0b', bg: '#fef3c7', text: '#b45309' },
+        COMPLEX:  { bar: '#ef4444', bg: '#fee2e2', text: '#dc2626' },
+      };
+      const isChroma = (activeChannel === 'cb' || activeChannel === 'cr');
+      const chName   = isChroma ? activeChannel.toUpperCase() : 'Y';
+      const INSIGHTS = isChroma ? {
+        FLAT:     `${chName} is nearly uniform — chroma subsampling will lose almost nothing here.`,
+        SMOOTH:   `${chName} has gentle variation — typical for chroma. Subsampling handles this well.`,
+        TEXTURED: `${chName} has moderate color detail — some loss from subsampling may be visible.`,
+        COMPLEX:  `${chName} has sharp color edges — subsampling could cause noticeable color fringing.`,
+      } : {
+        FLAT:     'Nearly uniform — DCT concentrates almost all energy into the DC coefficient.',
+        SMOOTH:   'Gentle gradients — DCT pushes most energy into a few low-frequency terms.',
+        TEXTURED: 'Moderate detail — energy spreads across several DCT coefficients.',
+        COMPLEX:  'High contrast or fine edges — energy scatters widely, making this block hard to compress.',
+      };
+
+      const c = COLORS[label];
+      const badge = document.getElementById('complexityBadge');
+      badge.textContent       = label;
+      badge.style.background  = c.bg;
+      badge.style.color       = c.text;
+      document.getElementById('complexityBarFill').style.width      = ((1 - norm) * 100) + '%';
+      document.getElementById('complexityBarFill').style.background = c.bar;
+      document.getElementById('complexityInsight').textContent      = INSIGHTS[label];
+      document.getElementById('blockComplexityRow').style.display   = '';
     }
 
     function renderBlockMatrix() {
       const el = document.getElementById('blockMatrix');
       if (!S.block || !el) return;
-      const ch = activeChannel === 'y' ? S.block.y : activeChannel === 'cb' ? S.block.cb : S.block.cr;
       el.innerHTML = '';
-      for (let i = 0; i < 64; i++) {
-        const v = Math.round(ch[i]);
-        const cell = document.createElement('div');
-        cell.className = 'matrix-cell';
-        cell.style.background = `rgb(${v},${v},${v})`;
-        cell.style.color = v > 128 ? 'rgba(0,0,0,0.75)' : 'rgba(255,255,255,0.9)';
-        cell.textContent = v;
-        el.appendChild(cell);
+      if (activeChannel === 'color') {
+        // Show RGB pixel colors from the original image
+        const tmp = document.createElement('canvas');
+        tmp.width = 8; tmp.height = 8;
+        tmp.getContext('2d').drawImage(S.origCanvas, S.selBx, S.selBy, 8, 8, 0, 0, 8, 8);
+        const px = tmp.getContext('2d').getImageData(0, 0, 8, 8).data;
+        for (let i = 0; i < 64; i++) {
+          const r = px[i * 4], g = px[i * 4 + 1], b = px[i * 4 + 2];
+          const cell = document.createElement('div');
+          cell.className = 'matrix-cell';
+          cell.style.background = `rgb(${r},${g},${b})`;
+          cell.textContent = '';
+          el.appendChild(cell);
+        }
+      } else {
+        const ch = activeChannel === 'y' ? S.block.y : activeChannel === 'cb' ? S.block.cb : S.block.cr;
+        for (let i = 0; i < 64; i++) {
+          const v    = Math.round(ch[i]);
+          const cell = document.createElement('div');
+          cell.className        = 'matrix-cell';
+          cell.style.background = `rgb(${v},${v},${v})`;
+          cell.style.color      = v > 128 ? 'rgba(0,0,0,0.75)' : 'rgba(255,255,255,0.9)';
+          cell.textContent      = v;
+          el.appendChild(cell);
+        }
+      }
+    }
+
+    function renderBlockZoom() {
+      if (!S.block) return;
+      const zoomCanvas = document.getElementById('blockZoom');
+      const zctx = zoomCanvas.getContext('2d');
+      zctx.imageSmoothingEnabled = false;
+      zctx.clearRect(0, 0, 96, 96);
+
+      if (activeChannel === 'color') {
+        const tmp = document.createElement('canvas');
+        tmp.width = 8; tmp.height = 8;
+        tmp.getContext('2d').drawImage(S.origCanvas, S.selBx, S.selBy, 8, 8, 0, 0, 8, 8);
+        zctx.drawImage(tmp, 0, 0, 96, 96);
+      } else {
+        const ch = activeChannel === 'y' ? S.block.y : activeChannel === 'cb' ? S.block.cb : S.block.cr;
+        const imgData = zctx.createImageData(8, 8);
+        for (let i = 0; i < 64; i++) {
+          const v = Math.round(ch[i]);
+          imgData.data[i * 4]     = v;
+          imgData.data[i * 4 + 1] = v;
+          imgData.data[i * 4 + 2] = v;
+          imgData.data[i * 4 + 3] = 255;
+        }
+        const tmp = document.createElement('canvas');
+        tmp.width = 8; tmp.height = 8;
+        tmp.getContext('2d').putImageData(imgData, 0, 0);
+        zctx.drawImage(tmp, 0, 0, 96, 96);
       }
     }
 
@@ -6618,80 +6911,135 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       if (!S.block) return;
       document.getElementById('blockDetailTitle').textContent = 'Selected Block';
       const coords = document.getElementById('blockDetailCoords');
-      coords.textContent = `Block (${S.selBx / 8}, ${S.selBy / 8}) — pixel origin (${S.selBx}, ${S.selBy})`;
+      coords.textContent  = `Block (${S.selBx / 8}, ${S.selBy / 8}) — pixel origin (${S.selBx}, ${S.selBy})`;
       coords.style.display = '';
-      document.getElementById('blockDetailBody').style.display = '';
+      document.getElementById('blockDetailBody').style.display  = '';
+      document.getElementById('blockPipelineRow').style.display = '';
 
-      const zoomCanvas = document.getElementById('blockZoom');
-      const zctx = zoomCanvas.getContext('2d');
-      zctx.imageSmoothingEnabled = false;
-      const tmp = document.createElement('canvas');
-      tmp.width = 8; tmp.height = 8;
-      tmp.getContext('2d').drawImage(S.origCanvas, S.selBx, S.selBy, 8, 8, 0, 0, 8, 8);
-      zctx.clearRect(0, 0, 96, 96);
-      zctx.drawImage(tmp, 0, 0, 96, 96);
-
+      renderBlockZoom();
       renderBlockMatrix();
+      renderComplexityScore();
     }
 
     function getBlockCoords(e) {
       const canvas = document.getElementById('blocksCanvas');
-      const rect = canvas.getBoundingClientRect();
+      const rect   = canvas.getBoundingClientRect();
       const px = Math.floor((e.clientX - rect.left) * (S.w / rect.width));
-      const py = Math.floor((e.clientY - rect.top) * (S.h / rect.height));
+      const py = Math.floor((e.clientY - rect.top)  * (S.h / rect.height));
       return {
         bx: Math.max(0, Math.min(Math.floor(px / 8) * 8, S.w - 8)),
         by: Math.max(0, Math.min(Math.floor(py / 8) * 8, S.h - 8)),
       };
     }
 
+    function selectBlock(bx, by) {
+      updateBlock(bx, by); // dispatches blockChanged → drawGrid + renderBlockDetail
+    }
+
     function initSection07() {
       if (!S.img) return;
       ensureChannels();
+      computeVarianceMap();
+
+      // Reset for new image
+      animState = 'idle';
+      hoverBx   = -1; hoverBy = -1;
+      activeChannel = 'color';
+      document.querySelectorAll('.block-ch-tab').forEach(b => {
+        b.classList.toggle('active', b.dataset.ch === 'color');
+      });
 
       const canvas = document.getElementById('blocksCanvas');
       canvas.width  = S.w;
       canvas.height = S.h;
       blocksCtx = canvas.getContext('2d');
-      document.getElementById('blocksPlaceholder').style.display = 'none';
+      canvas.style.cursor = 'crosshair';
+      document.getElementById('blocksPlaceholder').style.display  = 'none';
+      document.getElementById('blockComplexityRow').style.display  = 'none';
+      document.getElementById('blockDetailCoords').style.display   = 'none';
+      document.getElementById('blockDetailBody').style.display     = 'none';
+      document.getElementById('blockPipelineRow').style.display    = 'none';
+      document.getElementById('blockDetailTitle').textContent      = 'Click a block to inspect';
 
-      canvas.addEventListener('mousemove', e => {
-        const { bx, by } = getBlockCoords(e);
-        hoverBx = bx; hoverBy = by;
-        drawGrid();
-      });
-      canvas.addEventListener('mouseleave', () => { hoverBx = -1; hoverBy = -1; drawGrid(); });
-      canvas.addEventListener('click', e => {
-        const { bx, by } = getBlockCoords(e);
-        updateBlock(bx, by);
-        drawGrid();
-      });
+      // Initial zoomed-in view
+      drawDividingFrame(0);
 
-      document.querySelectorAll('.block-ch-tab').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('.block-ch-tab').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          activeChannel = btn.dataset.ch;
-          renderBlockMatrix();
+      // Scroll-triggered dividing animation (fires once)
+      if (canvasObserver) canvasObserver.disconnect();
+      canvasObserver = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && animState === 'idle') {
+          animateDivide();
+          canvasObserver.unobserve(canvas);
+        }
+      }, { threshold: 0.5 });
+      canvasObserver.observe(canvas);
+
+      if (!listenersAttached) {
+        listenersAttached = true;
+
+        canvas.addEventListener('mousemove', e => {
+          if (animState !== 'grid') return;
+          const { bx, by } = getBlockCoords(e);
+          hoverBx = bx; hoverBy = by;
+          drawGrid();
         });
-      });
 
-      document.addEventListener('keydown', e => {
-        if (e.code !== 'Space') return;
-        const tag = document.activeElement?.tagName;
-        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON') return;
-        e.preventDefault();
-        updateBlock(
-          Math.floor(Math.random() * Math.floor(S.w / 8)) * 8,
-          Math.floor(Math.random() * Math.floor(S.h / 8)) * 8
-        );
-        drawGrid();
-      });
+        canvas.addEventListener('mouseleave', () => {
+          if (animState !== 'grid') return;
+          hoverBx = -1; hoverBy = -1;
+          drawGrid();
+        });
 
-      document.addEventListener('blockChanged', () => { drawGrid(); renderBlockDetail(); });
+        canvas.addEventListener('click', e => {
+          if (animState === 'animating') {
+            animState = 'grid';
+            canvas.style.cursor = 'crosshair';
+            drawGrid();
+            return;
+          }
+          if (animState === 'idle') {
+            animateDivide();
+            return;
+          }
+          // grid state — select block
+          const { bx, by } = getBlockCoords(e);
+          selectBlock(bx, by);
+        });
 
-      updateBlock(S.selBx, S.selBy);
-      drawGrid();
+        document.querySelectorAll('.block-ch-tab').forEach(btn => {
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('.block-ch-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activeChannel = btn.dataset.ch;
+            renderBlockZoom();
+            renderBlockMatrix();
+            renderComplexityScore();
+          });
+        });
+
+        document.addEventListener('keydown', e => {
+          if (e.code === 'Escape' && animState === 'zoomed') {
+            returnToGrid();
+            return;
+          }
+          if (e.code !== 'Space') return;
+          const tag = document.activeElement?.tagName;
+          if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON') return;
+          e.preventDefault();
+          if (animState === 'idle' || animState === 'animating') animState = 'grid';
+          selectBlock(
+            Math.floor(Math.random() * Math.floor(S.w / 8)) * 8,
+            Math.floor(Math.random() * Math.floor(S.h / 8)) * 8
+          );
+        });
+
+        document.addEventListener('blockChanged', () => {
+          if (animState === 'grid' || animState === 'zoomed') {
+            drawGrid();
+            renderBlockDetail();
+          }
+        });
+      }
     }
 
     document.addEventListener('imageReady', initSection07);
