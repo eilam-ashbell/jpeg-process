@@ -2094,7 +2094,7 @@
     /* ── S10: Zigzag Scanning ───────────────────────────────────────────────── */
     .zz-layout {
       display: grid;
-      grid-template-columns: auto 1fr;
+      grid-template-columns: 1fr 2fr;
       gap: 24px;
       align-items: start;
     }
@@ -2104,23 +2104,34 @@
     }
 
     .zz-layout .matrix-panel {
-      max-width: 200px;
+      width: 100%;
     }
 
     .zz-right {
       display: flex;
       flex-direction: column;
       gap: 16px;
+      min-width: 0;
     }
 
     .seq-row {
       display: flex;
       gap: 3px;
-      overflow-x: auto;
       padding-bottom: 4px;
       margin-top: 6px;
       min-height: 36px;
-      -webkit-overflow-scrolling: touch;
+      overflow: hidden;
+      flex-wrap: nowrap;
+    }
+
+    .seq-row.wrapped {
+      flex-wrap: wrap;
+      overflow: visible;
+      row-gap: 10px;
+    }
+
+    .seq-cell.flip {
+      transition: transform 1.1s cubic-bezier(0.25, 0.1, 0.25, 1);
     }
 
     .seq-cell {
@@ -2146,6 +2157,12 @@
     .seq-cell.zero {
       background: #f8f9fb;
       color: #cbd5e1;
+    }
+
+    .seq-cell.trailing {
+      background: #f0fdf4;
+      color: #a7d8b8;
+      border-color: #d4f0e4;
     }
 
     .seq-cell.new {
@@ -2178,6 +2195,11 @@
 
     .matrix-cell.zz-unvisited {
       opacity: 0.35;
+    }
+
+    .matrix-cell.zz-trailing {
+      background: #f0fdf4 !important;
+      color: #a7d8b8 !important;
     }
 
     /* ── S11: Run-Length Encoding ───────────────────────────────────────────── */
@@ -3229,16 +3251,13 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       <p class="section-body-text reveal">
         Why zigzag? After quantization, the non-zero values cluster in the top-left (low frequencies) and zeros fill the bottom-right (high frequencies). The zigzag path puts all those zeros at the end of the sequence, making them easy to compress in the next step.
       </p>
-      <div class="demo-card reveal">
+      <div class="demo-card reveal" style="position: relative;">
         <div class="zz-layout">
           <div class="matrix-panel">
             <p class="matrix-panel-label">Quantized matrix</p>
             <div class="matrix-grid" id="zzMatrix"></div>
           </div>
           <div class="zz-right">
-            <div class="dct-controls" style="justify-content:flex-start">
-              <button class="btn-animate" id="zzPlayBtn" disabled>▶ Play Scan</button>
-            </div>
             <div>
               <p class="matrix-panel-label">1D sequence</p>
               <div class="seq-row" id="zzSeqRow"></div>
@@ -3250,6 +3269,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           <span>Trailing zeros: <strong id="zzTrailing">—</strong></span>
         </div>
         <p class="section-placeholder" id="zzPlaceholder">Select a block above to see zigzag scan</p>
+        <button class="btn-animate" id="zzPlayBtn" disabled style="position: absolute; bottom: 16px; right: 16px;">▶ Play Scan</button>
       </div>
     </section>
   </div>
@@ -7782,21 +7802,36 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       const row = document.getElementById('zzSeqRow');
       if (!row) return;
       row.innerHTML = '';
-      seq.forEach(v => {
+      row.classList.add('wrapped');
+
+      // find last non-zero index
+      let lastNz = -1;
+      seq.forEach((v, i) => { if (v !== 0) lastNz = i; });
+
+      seq.forEach((v, i) => {
         const c = document.createElement('div');
-        c.className = 'seq-cell ' + (v === 0 ? 'zero' : 'nonzero');
+        const isTrailing = v === 0 && i > lastNz;
+        c.className = 'seq-cell ' + (isTrailing ? 'trailing' : (v === 0 ? 'zero' : 'nonzero'));
         c.textContent = v;
         row.appendChild(c);
       });
     }
 
-    function appendSeqCell(v) {
+    function appendSeqCell(v, index) {
       const row = document.getElementById('zzSeqRow');
       if (!row) return;
+
+      // find last non-zero index (for determining if this is trailing)
+      let lastNz = -1;
+      S.zzSeq.forEach((val, i) => { if (val !== 0) lastNz = i; });
+
+      const isTrailing = v === 0 && index > lastNz;
       const c = document.createElement('div');
-      c.className = 'seq-cell new ' + (v === 0 ? 'zero' : 'nonzero');
+      c.className = 'seq-cell new ' + (isTrailing ? 'trailing' : (v === 0 ? 'zero' : 'nonzero'));
       c.textContent = v;
       row.appendChild(c);
+      // slide: keep latest cell visible
+      row.scrollLeft = row.scrollWidth;
       setTimeout(() => c.classList.remove('new'), 200);
     }
 
@@ -7809,7 +7844,22 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       const nzEl = document.getElementById('zzNonZero');
       const tzEl = document.getElementById('zzTrailing');
       if (nzEl) nzEl.textContent = nonZero;
-      if (tzEl) tzEl.textContent = trailing;
+      if (tzEl) {
+        tzEl.textContent = trailing;
+        tzEl.style.color = '#a7d8b8';
+      }
+
+      // mark trailing zero cells in matrix
+      const matrixEl = document.getElementById('zzMatrix');
+      if (matrixEl) {
+        const cells = matrixEl.querySelectorAll('.matrix-cell');
+        cells.forEach((c, i) => {
+          c.classList.remove('zz-trailing');
+          const pos = zzPos[i];
+          if (pos > lastNz) c.classList.add('zz-trailing');
+        });
+      }
+
       const statsEl = document.getElementById('zzStats');
       const phEl    = document.getElementById('zzPlaceholder');
       if (statsEl) statsEl.style.display = '';
@@ -7820,20 +7870,80 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       if (zzTimer) { clearInterval(zzTimer); zzTimer = null; }
     }
 
+    function flipToWrapped(row) {
+      const cells = row.querySelectorAll('.seq-cell');
+
+      // FIRST — record current positions (single-line, scrolled)
+      const first = [];
+      const rowRect = row.getBoundingClientRect();
+      cells.forEach(c => {
+        const r = c.getBoundingClientRect();
+        first.push({ x: r.left - rowRect.left + row.scrollLeft, y: r.top - rowRect.top });
+      });
+
+      // lock container height so page doesn't jump
+      const startH = row.offsetHeight;
+      row.style.height = startH + 'px';
+      row.style.transition = 'height 1.1s cubic-bezier(0.25,0.1,0.25,1)';
+
+      // switch to wrapped layout
+      row.classList.add('wrapped');
+      row.scrollLeft = 0;
+
+      // LAST — record new positions
+      const last = [];
+      cells.forEach(c => {
+        const r = c.getBoundingClientRect();
+        const rr = row.getBoundingClientRect();
+        last.push({ x: r.left - rr.left, y: r.top - rr.top });
+      });
+
+      const targetH = row.scrollHeight;
+
+      // INVERT — offset each cell from new position back to old position
+      cells.forEach((c, i) => {
+        const dx = first[i].x - last[i].x;
+        const dy = first[i].y - last[i].y;
+        c.style.transform = `translate(${dx}px, ${dy}px)`;
+      });
+
+      // PLAY — animate to final positions
+      requestAnimationFrame(() => {
+        row.style.height = targetH + 'px';
+        cells.forEach(c => {
+          c.classList.add('flip');
+          c.style.transform = '';
+        });
+
+        // cleanup after transition
+        const onEnd = () => {
+          row.style.height = '';
+          row.style.transition = '';
+          cells.forEach(c => c.classList.remove('flip'));
+          row.removeEventListener('transitionend', onEnd);
+        };
+        row.addEventListener('transitionend', onEnd);
+      });
+    }
+
     function playScan() {
       if (!S.quantC) return;
       stopZZ();
       const btn = document.getElementById('zzPlayBtn');
       const row = document.getElementById('zzSeqRow');
       if (btn) btn.disabled = true;
-      if (row) row.innerHTML = '';
+      if (row) {
+        row.innerHTML = '';
+        row.style.height = '';
+        row.classList.remove('wrapped');
+      }
 
       let step = 0;
       updateZZMatrix(S.quantC, step);
 
       zzTimer = setInterval(() => {
         if (!pageVisible) return;
-        appendSeqCell(S.zzSeq[step]);
+        appendSeqCell(S.zzSeq[step], step);
         step++;
         if (step < 64) {
           updateZZMatrix(S.quantC, step);
@@ -7842,6 +7952,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           updateZZMatrix(S.quantC, -1);
           if (btn) { btn.textContent = '↺ Replay Scan'; btn.disabled = false; }
           updateZZStats();
+          // FLIP animate each cell to its wrapped position
+          if (row) setTimeout(() => flipToWrapped(row), 300);
         }
       }, 80);
     }
