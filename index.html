@@ -1946,47 +1946,31 @@
       transform: translateX(-50%) translateY(0);
     }
 
-    /* ── S09: Quantization Section ───────────────────────────────────────── */
+    /* ── S08: Quantization Section ───────────────────────────────────────── */
     .quant-demo {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      align-items: center;
-    }
-
-    .quant-row {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      gap: 12px;
-      align-items: center;
       width: 100%;
     }
 
-    @media (max-width: 680px) {
-      .quant-row {
+    .quant-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: auto auto auto;
+      column-gap: 24px;
+      row-gap: 10px;
+      align-items: start;
+    }
+
+    .quant-op-label {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-right: 2px;
+    }
+
+    @media (max-width: 700px) {
+      .quant-grid {
         grid-template-columns: 1fr;
       }
-      .quant-op {
-        text-align: center;
-      }
-    }
-
-    .quant-op {
-      font-size: 1.8rem;
-      color: var(--text-muted);
-      padding: 0 4px;
-      text-align: center;
-    }
-
-    .quant-eq {
-      font-size: 1.8rem;
-      color: var(--text-muted);
-      text-align: center;
-      line-height: 1;
-    }
-
-    .quant-result-panel {
-      align-self: center;
     }
 
     .quant-zeros-badge {
@@ -2023,12 +2007,47 @@
       color: var(--text-primary);
     }
 
+    .quant-quality-ctrl {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .quant-quality-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .quant-quality-name {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+    }
+
+    .quant-quality-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--accent-blue);
+    }
+
+    .quant-quality-range {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+    }
+
     .quality-slider {
-      flex: 1;
+      width: 100%;
       -webkit-appearance: none;
       appearance: none;
-      height: 6px;
-      border-radius: 3px;
+      height: 5px;
+      border-radius: 99px;
       background: var(--border);
       outline: none;
       cursor: pointer;
@@ -2042,7 +2061,13 @@
       border-radius: 50%;
       background: var(--accent-blue);
       cursor: pointer;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+      box-shadow: 0 0 0 3px var(--accent-blue-tint);
+      transition: box-shadow 0.15s;
+    }
+
+    .quality-slider:hover::-webkit-slider-thumb,
+    .quality-slider:focus::-webkit-slider-thumb {
+      box-shadow: 0 0 0 5px var(--accent-blue-tint);
     }
 
     .quality-slider::-moz-range-thumb {
@@ -2051,16 +2076,14 @@
       border-radius: 50%;
       background: var(--accent-blue);
       cursor: pointer;
-      border: none;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+      border: 3px solid var(--accent-blue-tint);
     }
 
     .quant-stats {
       display: flex;
-      gap: 20px;
+      flex-direction: row;
+      gap: 16px;
       flex-wrap: wrap;
-      justify-content: center;
-      margin-top: 10px;
       font-size: 0.82rem;
       color: var(--text-secondary);
     }
@@ -3170,30 +3193,32 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       </p>
       <div class="demo-card reveal">
         <div class="quant-demo" id="quantDemo">
-          <div class="quant-row">
-            <div class="matrix-panel">
-              <p class="matrix-panel-label">DCT coefficients</p>
-              <div class="matrix-grid" id="quantDctMatrix"></div>
-            </div>
-            <div class="quant-op">÷</div>
-            <div class="matrix-panel">
-              <p class="matrix-panel-label">Quantization table</p>
-              <div class="matrix-grid" id="quantTableMatrix"></div>
-            </div>
-          </div>
-          <div class="quant-eq">=</div>
-          <div class="matrix-panel quant-result-panel">
-            <p class="matrix-panel-label">Result <span class="quant-zeros-badge" id="quantZerosBadge"></span></p>
+          <div class="quant-grid">
+            <p class="matrix-panel-label">DCT coefficients</p>
+            <p class="matrix-panel-label"><span class="quant-op-label">÷</span> Quantization table</p>
+            <p class="matrix-panel-label"><span class="quant-op-label">=</span> Result <span class="quant-zeros-badge" id="quantZerosBadge"></span></p>
+
+            <div class="matrix-grid" id="quantDctMatrix"></div>
+            <div class="matrix-grid" id="quantTableMatrix"></div>
             <div class="matrix-grid" id="quantResultMatrix"></div>
+
+            <div></div>
+            <div class="quant-quality-ctrl">
+              <div class="quant-quality-header">
+                <span class="quant-quality-name">Quality</span>
+                <strong id="qualityVal" class="quant-quality-val">75</strong>
+              </div>
+              <input type="range" id="qualitySlider" min="1" max="100" value="75" class="quality-slider">
+              <div class="quant-quality-range">
+                <span>1</span>
+                <span>100</span>
+              </div>
+            </div>
+            <div class="quant-stats">
+              <span>Zeros: <strong id="quantZeros">—</strong>/64</span>
+              <span>Compression: ~<strong id="quantRatio">—</strong>:1</span>
+            </div>
           </div>
-        </div>
-        <div class="quant-slider-row">
-          <label class="quant-slider-label" for="qualitySlider">Quality: <strong id="qualityVal">75</strong></label>
-          <input type="range" id="qualitySlider" min="1" max="100" value="75" class="quality-slider">
-        </div>
-        <div class="quant-stats">
-          <span>Zeros: <strong id="quantZeros">—</strong>/64</span>
-          <span>Effective compression: ~<strong id="quantRatio">—</strong>:1</span>
         </div>
         <p class="section-placeholder" id="quantPlaceholder">Select a block above to see quantization</p>
       </div>
