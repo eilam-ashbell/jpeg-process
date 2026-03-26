@@ -1799,22 +1799,6 @@
     }
 
     /* ── S08: DCT Section ────────────────────────────────────────────────── */
-    .dct-demo {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      gap: 12px;
-      align-items: center;
-    }
-
-    @media (max-width: 680px) {
-      .dct-demo {
-        grid-template-columns: 1fr;
-      }
-      .dct-arrow {
-        text-align: center;
-      }
-    }
-
     .matrix-panel {
       display: flex;
       flex-direction: column;
@@ -1828,19 +1812,6 @@
       text-transform: uppercase;
       letter-spacing: 0.06em;
       margin: 0;
-    }
-
-    .dct-arrow {
-      font-size: 1.4rem;
-      color: var(--text-muted);
-      padding: 0 4px;
-      white-space: nowrap;
-    }
-
-    .dct-controls {
-      display: flex;
-      justify-content: center;
-      margin-top: 16px;
     }
 
     .btn-animate {
@@ -1864,12 +1835,74 @@
       transform: scale(0.97);
     }
 
+    .section-placeholder {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      text-align: center;
+      padding: 20px 0 0;
+    }
+
+    .dct-image-wrap {
+      margin-bottom: 16px;
+      border-radius: 4px;
+      overflow: hidden;
+      cursor: crosshair;
+    }
+
+    #dctImageCanvas {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .dct-trio {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    @media (max-width: 780px) {
+      .dct-trio { grid-template-columns: 1fr; }
+    }
+
+    .dct-col {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+    }
+
+    #dctPixelCanvas, #basisCoeffCanvas, #basisResultCanvas {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    #dctPixelCanvas, #basisResultCanvas {
+      image-rendering: pixelated;
+    }
+
+    #basisCoeffCanvas {
+      cursor: ns-resize;
+      touch-action: none;
+      user-select: none;
+    }
+
+    .dct-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
     .dct-stats {
       display: flex;
       gap: 20px;
       flex-wrap: wrap;
-      justify-content: center;
-      margin-top: 14px;
       font-size: 0.82rem;
       color: var(--text-secondary);
     }
@@ -1879,11 +1912,9 @@
       font-family: 'JetBrains Mono', monospace;
     }
 
-    .section-placeholder {
-      color: var(--text-muted);
-      font-size: 0.88rem;
-      text-align: center;
-      padding: 20px 0 0;
+    .dct-controls {
+      display: flex;
+      gap: 8px;
     }
 
     /* ── S09: Quantization Section ───────────────────────────────────────── */
@@ -3061,26 +3092,35 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         The brilliant insight: most of the visual energy in a typical photo block concentrates in just a few low-frequency values. The high-frequency coefficients are often tiny or zero. This is why JPEG can throw away data without you noticing — it's discarding frequencies your eyes barely register.
       </p>
       <div class="demo-card reveal">
-        <div class="dct-demo">
-          <div class="matrix-panel">
-            <p class="matrix-panel-label">Pixel values (Y channel)</p>
-            <div class="matrix-grid" id="dctPixelMatrix"></div>
+        <div class="dct-image-wrap">
+          <canvas id="dctImageCanvas"></canvas>
+        </div>
+        <div class="dct-trio" id="dctTrio" style="display:none">
+          <div class="dct-col">
+            <p class="matrix-panel-label">Original block</p>
+            <canvas id="dctPixelCanvas"></canvas>
           </div>
-          <div class="dct-arrow">DCT&nbsp;→</div>
-          <div class="matrix-panel">
-            <p class="matrix-panel-label">Frequency coefficients</p>
-            <div class="matrix-grid" id="dctCoeffMatrix"></div>
+          <div class="dct-col">
+            <p class="matrix-panel-label">DCT basis frequencies</p>
+            <canvas id="basisCoeffCanvas"></canvas>
+          </div>
+          <div class="dct-col">
+            <p class="matrix-panel-label">Result</p>
+            <canvas id="basisResultCanvas"></canvas>
           </div>
         </div>
-        <div class="dct-controls">
-          <button class="btn-animate" id="dctAnimateBtn">▶ Animate Transform</button>
+        <div class="dct-footer" id="dctFooter" style="display:none">
+          <div class="dct-stats" id="dctStats">
+            <span>DC: <strong id="dctDC">—</strong></span>
+            <span>Non-zero AC: <strong id="dctNonZero">—</strong>/63</span>
+            <span>Energy in top-left: <strong id="dctEnergy">—</strong></span>
+          </div>
+          <div class="dct-controls">
+            <button class="btn-animate" id="dctAnimateBtn">▶ Animate Transform</button>
+            <button class="btn-animate" id="basisResetBtn">Reset</button>
+          </div>
         </div>
-        <div class="dct-stats" id="dctStats">
-          <span>DC: <strong id="dctDC">—</strong></span>
-          <span>Non-zero AC: <strong id="dctNonZero">—</strong>/63</span>
-          <span>Energy in top-left: <strong id="dctEnergy">—</strong></span>
-        </div>
-        <p class="section-placeholder" id="dctPlaceholder">Select a block above to see its DCT transform</p>
+        <p class="section-placeholder" id="dctPlaceholder">Click any block in the image to explore its frequencies</p>
       </div>
     </section>
   </div>
@@ -7045,49 +7085,257 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     document.addEventListener('imageReady', initSection07);
   }());
 
-  // ─── Section 08: Discrete Cosine Transform ─────────────────────────────────
+  // ─── Section 08: Discrete Cosine Transform (Unified) ────────────────────────
   (function () {
-    let dctAnimating = false;
+    const coeffs = new Float32Array(64);
+    let dragIdx = -1, dragStartY = 0, dragStartVal = 0;
+    let loaded = false, dctAnimating = false;
+    let imgHoverBx = -1, imgHoverBy = -1;
+    let dctImgCtx = null;
 
-    function heatCell(v, maxVal, isFirst) {
-      const mag = maxVal > 0 ? Math.abs(v) / maxVal : 0;
-      const intensity = Math.round(mag * 255);
-      const cell = document.createElement('div');
-      cell.className = 'matrix-cell' + (isFirst ? ' dc-cell' : '');
-      cell.style.background = v >= 0
-        ? `rgb(${Math.round(intensity * 0.1)},${Math.round(intensity * 0.4)},${intensity})`
-        : `rgb(${intensity},${Math.round(intensity * 0.1)},${Math.round(intensity * 0.1)})`;
-      cell.style.color = mag > 0.35 ? '#fff' : '#64748b';
-      cell.textContent = Math.round(v);
-      return cell;
-    }
-
-    function renderPixelMatrix() {
-      const el = document.getElementById('dctPixelMatrix');
-      if (!el || !S.block) return;
-      el.innerHTML = '';
-      for (let i = 0; i < 64; i++) {
-        const v = Math.round(S.block.y[i]);
-        const cell = document.createElement('div');
-        cell.className = 'matrix-cell';
-        cell.style.background = `rgb(${v},${v},${v})`;
-        cell.style.color = v > 128 ? 'rgba(0,0,0,0.75)' : 'rgba(255,255,255,0.9)';
-        cell.textContent = v;
-        el.appendChild(cell);
+    /* Pre-compute 64 basis patterns (each 8×8, values in [-1, 1]) */
+    const basisPatterns = [];
+    for (let u = 0; u < 8; u++) {
+      for (let v = 0; v < 8; v++) {
+        const p = new Float32Array(64);
+        for (let x = 0; x < 8; x++)
+          for (let y = 0; y < 8; y++)
+            p[x * 8 + y] = Math.cos((2 * x + 1) * u * Math.PI / 16) *
+              Math.cos((2 * y + 1) * v * Math.PI / 16);
+        basisPatterns.push(p);
       }
     }
 
-    function renderCoeffMatrix(coeffs) {
-      const el = document.getElementById('dctCoeffMatrix');
-      if (!el || !coeffs) return;
-      el.innerHTML = '';
-      const maxVal = Math.max(1, ...Array.from(coeffs).map(v => Math.abs(v)));
-      for (let i = 0; i < 64; i++) el.appendChild(heatCell(coeffs[i], maxVal, i === 0));
+    /* Inverse DCT from user coefficients */
+    function idct2dUser(c) {
+      const N = 8, out = new Float32Array(64);
+      for (let x = 0; x < N; x++) {
+        for (let y = 0; y < N; y++) {
+          let sum = 0;
+          for (let u = 0; u < N; u++) {
+            const cu = u === 0 ? 1 / Math.sqrt(2) : 1;
+            for (let v = 0; v < N; v++) {
+              const cv = v === 0 ? 1 / Math.sqrt(2) : 1;
+              sum += cu * cv * c[u * N + v] *
+                Math.cos((2 * x + 1) * u * Math.PI / 16) *
+                Math.cos((2 * y + 1) * v * Math.PI / 16);
+            }
+          }
+          out[x * N + y] = sum * 0.25 + 128;
+        }
+      }
+      return out;
     }
 
-    function renderDCTStats(coeffs) {
-      if (!coeffs) return;
-      document.getElementById('dctPlaceholder').style.display = 'none';
+    /* ══════════════════════════════════════════════════════════════════════════
+       Image canvas — full-width with 8×8 grid overlay (synced with section 6)
+       ══════════════════════════════════════════════════════════════════════════ */
+    function renderDctImage() {
+      if (!dctImgCtx || !S.origCanvas) return;
+      dctImgCtx.drawImage(S.origCanvas, 0, 0);
+      // Grid lines
+      dctImgCtx.strokeStyle = 'rgba(37,99,235,0.3)';
+      dctImgCtx.lineWidth = 0.5;
+      for (let x = 0; x <= S.w; x += 8) {
+        dctImgCtx.beginPath(); dctImgCtx.moveTo(x, 0); dctImgCtx.lineTo(x, S.h); dctImgCtx.stroke();
+      }
+      for (let y = 0; y <= S.h; y += 8) {
+        dctImgCtx.beginPath(); dctImgCtx.moveTo(0, y); dctImgCtx.lineTo(S.w, y); dctImgCtx.stroke();
+      }
+      // Hover highlight
+      if (imgHoverBx >= 0) {
+        dctImgCtx.fillStyle = 'rgba(37,99,235,0.15)';
+        dctImgCtx.fillRect(imgHoverBx, imgHoverBy, 8, 8);
+      }
+      // Selected block glow
+      if (S.block) {
+        dctImgCtx.save();
+        dctImgCtx.strokeStyle = '#2563eb';
+        dctImgCtx.lineWidth = 2;
+        dctImgCtx.shadowColor = 'rgba(37,99,235,0.7)';
+        dctImgCtx.shadowBlur = 6;
+        dctImgCtx.strokeRect(S.selBx + 1, S.selBy + 1, 6, 6);
+        dctImgCtx.restore();
+      }
+    }
+
+    function getDctImageBlockCoords(e) {
+      const canvas = document.getElementById('dctImageCanvas');
+      const rect = canvas.getBoundingClientRect();
+      const px = Math.floor((e.clientX - rect.left) * (S.w / rect.width));
+      const py = Math.floor((e.clientY - rect.top) * (S.h / rect.height));
+      return {
+        bx: Math.max(0, Math.min(Math.floor(px / 8) * 8, S.w - 8)),
+        by: Math.max(0, Math.min(Math.floor(py / 8) * 8, S.h - 8)),
+      };
+    }
+
+    function initDctImageCanvas() {
+      const canvas = document.getElementById('dctImageCanvas');
+      if (!canvas || !S.origCanvas) return;
+      canvas.width = S.w;
+      canvas.height = S.h;
+      dctImgCtx = canvas.getContext('2d');
+      renderDctImage();
+
+      canvas.addEventListener('mousemove', (e) => {
+        const { bx, by } = getDctImageBlockCoords(e);
+        if (bx !== imgHoverBx || by !== imgHoverBy) {
+          imgHoverBx = bx; imgHoverBy = by;
+          renderDctImage();
+        }
+      });
+      canvas.addEventListener('mouseleave', () => {
+        imgHoverBx = -1; imgHoverBy = -1;
+        renderDctImage();
+      });
+      canvas.addEventListener('click', (e) => {
+        const { bx, by } = getDctImageBlockCoords(e);
+        updateBlock(bx, by); // global — dispatches blockChanged
+      });
+    }
+
+    /* ══════════════════════════════════════════════════════════════════════════
+       Original block canvas — zoomed 8×8 Y-channel pixels with values overlaid
+       ══════════════════════════════════════════════════════════════════════════ */
+    function renderPixelCanvas() {
+      const canvas = document.getElementById('dctPixelCanvas');
+      if (!canvas || !S.block) return;
+      const dpr = window.devicePixelRatio || 1;
+      const size = canvas.clientWidth || 200;
+      if (size === 0) return;
+      canvas.width = size * dpr;
+      canvas.height = size * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      const ps = size / 8;
+
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const v = Math.round(S.block.y[r * 8 + c]);
+          ctx.fillStyle = `rgb(${v},${v},${v})`;
+          ctx.fillRect(c * ps, r * ps, Math.ceil(ps), Math.ceil(ps));
+          // Value overlay
+          ctx.fillStyle = v > 128 ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.85)';
+          ctx.font = `bold ${Math.max(9, ps * 0.3)}px 'JetBrains Mono', monospace`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(v, c * ps + ps / 2, r * ps + ps / 2);
+        }
+      }
+    }
+
+    /* ══════════════════════════════════════════════════════════════════════════
+       Basis function grid — cosine patterns with coefficient overlays
+       ══════════════════════════════════════════════════════════════════════════ */
+    function basisHitTest(cx, cy, canvasEl) {
+      const totalSize = canvasEl.clientWidth;
+      if (totalSize === 0) return -1;
+      const gap = 2;
+      const tileSize = (totalSize - gap * 7) / 8;
+      const col = Math.floor(cx / (tileSize + gap));
+      const row = Math.floor(cy / (tileSize + gap));
+      if (col >= 0 && col < 8 && row >= 0 && row < 8) return row * 8 + col;
+      return -1;
+    }
+
+    function renderCoeffCanvas() {
+      const canvas = document.getElementById('basisCoeffCanvas');
+      if (!canvas) return;
+      const dpr = window.devicePixelRatio || 1;
+      const totalSize = canvas.clientWidth || 280;
+      if (totalSize === 0) return;
+      const gap = 2;
+      const tileSize = (totalSize - gap * 7) / 8;
+
+      canvas.width = totalSize * dpr;
+      canvas.height = totalSize * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillRect(0, 0, totalSize, totalSize);
+
+      for (let u = 0; u < 8; u++) {
+        for (let v = 0; v < 8; v++) {
+          const idx = u * 8 + v;
+          const pattern = basisPatterns[idx];
+          const x0 = v * (tileSize + gap);
+          const y0 = u * (tileSize + gap);
+          const pixSize = tileSize / 8;
+
+          // Basis pattern background
+          for (let px = 0; px < 8; px++) {
+            for (let py = 0; py < 8; py++) {
+              const val = pattern[px * 8 + py];
+              const gray = Math.round((val + 1) * 0.5 * 255);
+              ctx.fillStyle = `rgb(${gray},${gray},${gray})`;
+              ctx.fillRect(x0 + py * pixSize, y0 + px * pixSize,
+                Math.ceil(pixSize), Math.ceil(pixSize));
+            }
+          }
+
+          // Coefficient overlay
+          if (loaded) {
+            const c = Math.round(coeffs[idx]);
+            const badgeH = Math.max(13, tileSize * 0.32);
+            ctx.fillStyle = c === 0 ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.6)';
+            ctx.fillRect(x0, y0 + tileSize - badgeH, tileSize, badgeH);
+            ctx.fillStyle = c === 0 ? 'rgba(255,255,255,0.5)' : '#fff';
+            ctx.font = `bold ${Math.max(8, tileSize * 0.24)}px 'JetBrains Mono', monospace`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(c, x0 + tileSize / 2, y0 + tileSize - badgeH / 2);
+          }
+
+          // Highlight dragged cell
+          if (idx === dragIdx) {
+            ctx.strokeStyle = '#2563eb';
+            ctx.lineWidth = 2.5;
+            ctx.strokeRect(x0 + 1.25, y0 + 1.25, tileSize - 2.5, tileSize - 2.5);
+          }
+        }
+      }
+    }
+
+    /* ══════════════════════════════════════════════════════════════════════════
+       Result block canvas — inverse DCT output with pixel values overlaid
+       ══════════════════════════════════════════════════════════════════════════ */
+    function renderResultBlock() {
+      const canvas = document.getElementById('basisResultCanvas');
+      if (!canvas) return;
+      const dpr = window.devicePixelRatio || 1;
+      const size = canvas.clientWidth || 280;
+      if (size === 0) return;
+      canvas.width = size * dpr;
+      canvas.height = size * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+
+      const pixels = idct2dUser(coeffs);
+      const ps = size / 8;
+
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const v = Math.max(0, Math.min(255, Math.round(pixels[r * 8 + c])));
+          ctx.fillStyle = `rgb(${v},${v},${v})`;
+          ctx.fillRect(c * ps, r * ps, Math.ceil(ps), Math.ceil(ps));
+          // Value overlay
+          if (loaded) {
+            ctx.fillStyle = v > 128 ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.85)';
+            ctx.font = `bold ${Math.max(9, ps * 0.3)}px 'JetBrains Mono', monospace`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(v, c * ps + ps / 2, r * ps + ps / 2);
+          }
+        }
+      }
+    }
+
+    /* ══════════════════════════════════════════════════════════════════════════
+       Stats
+       ══════════════════════════════════════════════════════════════════════════ */
+    function renderStats() {
       document.getElementById('dctDC').textContent = Math.round(coeffs[0]);
       let nonZeroAC = 0, totalE = 0, tlE = 0;
       for (let i = 0; i < 64; i++) {
@@ -7102,26 +7350,94 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         totalE > 0 ? Math.round(tlE / totalE * 100) + '%' : '—';
     }
 
-    document.addEventListener('blockChanged', () => {
-      if (!S.block) return;
-      dctAnimating = false;
-      document.getElementById('dctAnimateBtn').textContent = '▶ Animate Transform';
-      renderPixelMatrix();
-      renderCoeffMatrix(S.dctC);
-      renderDCTStats(S.dctC);
+    /* Render all three blocks + stats */
+    function renderAll() {
+      renderPixelCanvas();
+      renderCoeffCanvas();
+      renderResultBlock();
+      renderStats();
+    }
+
+    /* Load block's DCT coefficients */
+    function loadFromBlock() {
+      if (!S.dctC) return;
+      for (let i = 0; i < 64; i++) coeffs[i] = S.dctC[i];
+      loaded = true;
+      document.getElementById('dctPlaceholder').style.display = 'none';
+      document.getElementById('dctTrio').style.display = '';
+      document.getElementById('dctFooter').style.display = '';
+      renderAll();
+    }
+
+    /* ══════════════════════════════════════════════════════════════════════════
+       Basis canvas drag interaction
+       ══════════════════════════════════════════════════════════════════════════ */
+    const coeffCanvas = document.getElementById('basisCoeffCanvas');
+
+    coeffCanvas.addEventListener('mousedown', (e) => {
+      if (!loaded) return;
+      const rect = coeffCanvas.getBoundingClientRect();
+      const idx = basisHitTest(e.clientX - rect.left, e.clientY - rect.top, coeffCanvas);
+      if (idx < 0) return;
+      dragIdx = idx;
+      dragStartY = e.clientY;
+      dragStartVal = coeffs[idx];
+      renderCoeffCanvas();
+      e.preventDefault();
     });
 
+    window.addEventListener('mousemove', (e) => {
+      if (dragIdx < 0) return;
+      const dy = dragStartY - e.clientY;
+      coeffs[dragIdx] = dragStartVal + dy * 2;
+      renderCoeffCanvas();
+      renderResultBlock();
+      renderStats();
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (dragIdx < 0) return;
+      dragIdx = -1;
+      renderCoeffCanvas();
+    });
+
+    coeffCanvas.addEventListener('touchstart', (e) => {
+      if (!loaded) return;
+      const touch = e.touches[0];
+      const rect = coeffCanvas.getBoundingClientRect();
+      const idx = basisHitTest(touch.clientX - rect.left, touch.clientY - rect.top, coeffCanvas);
+      if (idx < 0) return;
+      dragIdx = idx;
+      dragStartY = touch.clientY;
+      dragStartVal = coeffs[idx];
+      renderCoeffCanvas();
+    }, { passive: true });
+
+    coeffCanvas.addEventListener('touchmove', (e) => {
+      if (dragIdx < 0) return;
+      e.preventDefault();
+      const dy = dragStartY - e.touches[0].clientY;
+      coeffs[dragIdx] = dragStartVal + dy * 2;
+      renderCoeffCanvas();
+      renderResultBlock();
+      renderStats();
+    }, { passive: false });
+
+    window.addEventListener('touchend', () => {
+      if (dragIdx < 0) return;
+      dragIdx = -1;
+      renderCoeffCanvas();
+    });
+
+    /* ══════════════════════════════════════════════════════════════════════════
+       Animate button — morph coefficients from 0 → S.dctC
+       ══════════════════════════════════════════════════════════════════════════ */
     document.getElementById('dctAnimateBtn').addEventListener('click', () => {
       if (!S.block || dctAnimating) return;
       const btn = document.getElementById('dctAnimateBtn');
       dctAnimating = true;
       btn.textContent = '…';
-
-      // Reset coeff matrix cells to 0 before animating
-      const coeffEl = document.getElementById('dctCoeffMatrix');
-      const cells = Array.from(coeffEl.querySelectorAll('.matrix-cell'));
       const targets = Array.from(S.dctC);
-      const maxVal = Math.max(1, ...targets.map(v => Math.abs(v)));
       const duration = 1500;
       const start = performance.now();
 
@@ -7129,32 +7445,59 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         if (!dctAnimating) return;
         const t = Math.min(1, (now - start) / duration);
         const ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-        for (let i = 0; i < 64; i++) {
-          const cur = targets[i] * ease;
-          const mag = Math.abs(cur) / maxVal;
-          const intensity = Math.round(mag * 255);
-          const cell = cells[i];
-          if (!cell) continue;
-          cell.textContent = Math.round(cur);
-          cell.style.background = cur >= 0
-            ? `rgb(${Math.round(intensity * 0.1)},${Math.round(intensity * 0.4)},${intensity})`
-            : `rgb(${intensity},${Math.round(intensity * 0.1)},${Math.round(intensity * 0.1)})`;
-          cell.style.color = mag > 0.35 ? '#fff' : '#64748b';
-        }
+        for (let i = 0; i < 64; i++) coeffs[i] = targets[i] * ease;
+        renderCoeffCanvas();
+        renderResultBlock();
+        renderStats();
         if (t < 1) {
           requestAnimationFrame(animate);
         } else {
           dctAnimating = false;
           btn.textContent = '↺ Replay';
-          renderCoeffMatrix(S.dctC);
+          for (let i = 0; i < 64; i++) coeffs[i] = S.dctC[i];
+          renderAll();
         }
       }
       requestAnimationFrame(animate);
     });
 
-    document.addEventListener('imageReady', () => {
-      if (S.block) { renderPixelMatrix(); renderCoeffMatrix(S.dctC); renderDCTStats(S.dctC); }
+    /* Reset button */
+    document.getElementById('basisResetBtn').addEventListener('click', () => {
+      if (!loaded) return;
+      dctAnimating = false;
+      document.getElementById('dctAnimateBtn').textContent = '▶ Animate Transform';
+      for (let i = 0; i < 64; i++) coeffs[i] = S.dctC ? S.dctC[i] : 0;
+      renderAll();
     });
+
+    /* ══════════════════════════════════════════════════════════════════════════
+       Events
+       ══════════════════════════════════════════════════════════════════════════ */
+    document.addEventListener('blockChanged', () => {
+      if (!S.block) return;
+      dctAnimating = false;
+      document.getElementById('dctAnimateBtn').textContent = '▶ Animate Transform';
+      renderDctImage();
+      loadFromBlock();
+    });
+
+    document.addEventListener('imageReady', () => {
+      initDctImageCanvas();
+      if (S.block) loadFromBlock();
+    });
+
+    /* Resize */
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        renderCoeffCanvas();
+        if (loaded) { renderPixelCanvas(); renderResultBlock(); }
+      }, 150);
+    });
+
+    /* Init — render basis patterns immediately */
+    renderCoeffCanvas();
   }());
 
   // ─── Section 09: Quantization ───────────────────────────────────────────────
