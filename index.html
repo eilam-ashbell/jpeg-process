@@ -2009,14 +2009,9 @@
 
     .quant-quality-ctrl {
       display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .quant-quality-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
+      flex-direction: row;
+      align-items: center;
+      gap: 10px;
     }
 
     .quant-quality-name {
@@ -2025,6 +2020,7 @@
       text-transform: uppercase;
       letter-spacing: 0.07em;
       color: var(--text-muted);
+      white-space: nowrap;
     }
 
     .quant-quality-val {
@@ -2032,18 +2028,12 @@
       font-size: 1.05rem;
       font-weight: 700;
       color: var(--accent-blue);
-    }
-
-    .quant-quality-range {
-      display: flex;
-      justify-content: space-between;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.65rem;
-      color: var(--text-muted);
+      white-space: nowrap;
     }
 
     .quality-slider {
-      width: 100%;
+      flex: 1;
+      min-width: 0;
       -webkit-appearance: none;
       appearance: none;
       height: 5px;
@@ -2091,6 +2081,14 @@
     .quant-stats strong {
       color: var(--text-primary);
       font-family: 'JetBrains Mono', monospace;
+    }
+
+    .quant-preview-canvas {
+      display: none;
+      width: 100%;
+      height: auto;
+      border-radius: 6px;
+      margin-top: 8px;
     }
 
     /* ── S10: Zigzag Scanning ───────────────────────────────────────────────── */
@@ -3204,21 +3202,16 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
             <div></div>
             <div class="quant-quality-ctrl">
-              <div class="quant-quality-header">
-                <span class="quant-quality-name">Quality</span>
-                <strong id="qualityVal" class="quant-quality-val">75</strong>
-              </div>
+              <span class="quant-quality-name">Quality</span>
               <input type="range" id="qualitySlider" min="1" max="100" value="75" class="quality-slider">
-              <div class="quant-quality-range">
-                <span>1</span>
-                <span>100</span>
-              </div>
+              <strong id="qualityVal" class="quant-quality-val">75</strong>
             </div>
             <div class="quant-stats">
               <span>Zeros: <strong id="quantZeros">—</strong>/64</span>
               <span>Compression: ~<strong id="quantRatio">—</strong>:1</span>
             </div>
           </div>
+          <canvas id="quantPreviewCanvas" class="quant-preview-canvas"></canvas>
         </div>
         <p class="section-placeholder" id="quantPlaceholder">Select a block above to see quantization</p>
       </div>
@@ -7686,6 +7679,41 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     document.addEventListener('blockChanged', refreshQuant);
 
     document.addEventListener('imageReady', () => { if (S.block) refreshQuant(); });
+
+    function renderQuantPreview() {
+      const canvas = document.getElementById('quantPreviewCanvas');
+      if (!canvas || !S.origCanvas) return;
+      const dataURL = S.origCanvas.toDataURL('image/jpeg', S.quality / 100);
+      const img = new Image();
+      img.onload = () => {
+        canvas.width  = img.width;
+        canvas.height = img.height;
+        canvas.getContext('2d').drawImage(img, 0, 0);
+        canvas.style.display = 'block';
+      };
+      img.src = dataURL;
+    }
+
+    document.addEventListener('qualityChanged', renderQuantPreview);
+    document.addEventListener('imageReady',     renderQuantPreview);
+
+    function syncQuantDataBar() {
+      if (!S.origCanvas) return;
+      const dataURL    = S.origCanvas.toDataURL('image/jpeg', S.quality / 100);
+      const compBytes  = Math.round(dataURL.length * 3 / 4);
+      const actualMB   = compBytes / (1024 * 1024);
+      const normMB     = (S.origW && S.origH)
+        ? actualMB * 12_000_000 / (S.origW * S.origH)
+        : actualMB;
+      const pct        = Math.max(0.1, Math.min(100, (normMB / 36) * 100));
+      const stage      = SECTION_DATA.find(s => s.id === 's-quant');
+      if (stage) { stage.rawMB = normMB; stage.pct = pct; }
+      if (_activeSection === 's-quant') updateDataBar('s-quant');
+      if (_tooltipOpen) renderTooltip();
+    }
+
+    document.addEventListener('qualityChanged', syncQuantDataBar);
+    document.addEventListener('imageReady',     syncQuantDataBar);
   }());
 
   // ─── Section 10: Zigzag Scanning ─────────────────────────────────────────
