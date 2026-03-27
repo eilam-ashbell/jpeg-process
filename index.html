@@ -2553,6 +2553,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 6px;
       padding: 4px 8px;
       border-radius: 6px;
       font-size: 0.75rem;
@@ -2578,6 +2579,30 @@
       background: #eff6ff;
       border-color: var(--accent-blue);
     }
+    .sos-panel-sub {
+      font-weight: 400;
+      font-size: 0.68rem;
+      color: var(--text-muted, #94a3b8);
+      font-family: inherit;
+    }
+    .sos-codelist-hint {
+      font-size: 0.65rem;
+      color: var(--text-muted, #94a3b8);
+      padding: 2px 8px 6px;
+      font-style: italic;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2px;
+    }
+    .code-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-muted, #94a3b8);
+      flex-shrink: 0;
+    }
+    /* Code-length color tiers */
+    .code-bits.codelen-short { color: #16a34a; }   /* ≤4 bits — green */
+    .code-bits.codelen-mid   { color: #d97706; }   /* 5–8 bits — amber */
+    .code-bits.codelen-long  { color: #dc2626; }   /* 9+ bits — red */
 
     /* Bit buffer */
     .sos-bit-buffer {
@@ -3727,9 +3752,9 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       <div class="demo-card reveal">
         <div class="sos-packer-layout">
 
-          <!-- Left: Huffman codes list -->
+          <!-- Left: Huffman codebook (sorted by code length) -->
           <div class="sos-panel">
-            <p class="matrix-panel-label">Huffman codes</p>
+            <p class="matrix-panel-label">Codebook <span class="sos-panel-sub">(sorted by length)</span></p>
             <div class="sos-code-list" id="sosCodeList"></div>
             <p class="section-placeholder" id="sosPlaceholder" style="margin:0">Select a block above</p>
           </div>
@@ -8913,21 +8938,45 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
     // ── DOM helpers ────────────────────────────────────────────────────────────
 
+    function codelenClass(len) {
+      if (len <= 4) return 'codelen-short';
+      if (len <= 8) return 'codelen-mid';
+      return 'codelen-long';
+    }
+
     function renderCodeList(tokens, codes) {
       const el = document.getElementById('sosCodeList');
       const ph = document.getElementById('sosPlaceholder');
       if (!el) return;
       if (ph) ph.style.display = 'none';
       el.innerHTML = '';
-      tokens.forEach((t, i) => {
-        const key  = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
-        const code = codes[key] || '?';
-        const row  = document.createElement('div');
+
+      // Count how many times each symbol appears in the scan
+      const freq = {};
+      tokens.forEach(t => {
+        const k = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
+        freq[k] = (freq[k] || 0) + 1;
+      });
+
+      // Build unique entries, sorted by code length (shortest first)
+      const entries = Object.entries(codes)
+        .sort((a, b) => a[1].length - b[1].length || a[0].localeCompare(b[0]));
+
+      // Header hint
+      const hint = document.createElement('div');
+      hint.className = 'sos-codelist-hint';
+      hint.textContent = 'shorter code = more frequent';
+      el.appendChild(hint);
+
+      entries.forEach(([key, code]) => {
+        const count = freq[key] || 0;
+        const row   = document.createElement('div');
         row.className = 'sos-code-row';
-        row.dataset.idx = i;
+        row.dataset.key = key;
         row.innerHTML =
           `<span class="code-sym">${key}</span>` +
-          `<span class="code-bits">${code}</span>`;
+          `<span class="code-bits ${codelenClass(code.length)}" title="${code.length} bits">${code}</span>` +
+          `<span class="code-count" title="appears ${count}× in scan">×${count}</span>`;
         el.appendChild(row);
       });
     }
@@ -8985,10 +9034,11 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         const tStart = msOffset;
         msOffset += TOKEN_GAP;
 
-        // Highlight this token row
+        // Highlight this symbol's row in the codebook
+        const key_ = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
         setTimeout(() => {
           document.querySelectorAll('.sos-code-row').forEach(r => r.classList.remove('sos-row-active'));
-          const row = document.querySelector(`.sos-code-row[data-idx="${tIdx}"]`);
+          const row = document.querySelector(`.sos-code-row[data-key="${CSS.escape(key_)}"]`);
           if (row) { row.classList.add('sos-row-active'); row.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
         }, tStart);
 
