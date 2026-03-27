@@ -3793,7 +3793,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
   <div class="section-wrapper">
     <section id="s-quality" class="section">
       <div class="section-header reveal">
-        <span class="section-number">12</span>
+        <span class="section-number">13</span>
         <h2 class="section-title">Live JPEG Compression</h2>
       </div>
       <p class="section-body-text reveal">
@@ -3828,7 +3828,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
   <div class="section-wrapper section-wrapper--alt">
     <section id="s-compare" class="section">
       <div class="section-header reveal">
-        <span class="section-number">13</span>
+        <span class="section-number">14</span>
         <h2 class="section-title">Original vs Compressed</h2>
       </div>
       <p class="section-body-text reveal">
@@ -3870,7 +3870,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
   <div class="section-wrapper">
     <section id="s-undo" class="section">
       <div class="section-header reveal">
-        <span class="section-number">14</span>
+        <span class="section-number">15</span>
         <h2 class="section-title">Undo JPEG: Decode Pipeline</h2>
       </div>
       <p class="section-body-text reveal">
@@ -9664,7 +9664,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       { num: '07', id: 's-zigzag',  icon: '↗️', title: 'Zigzag Scan',    type: '',         desc: 'Read coefficients in diagonal order',       size: '~3 MB'   },
       { num: '08', id: 's-rle',     icon: '🗜️', title: 'RLE',            type: 'lossless', desc: 'Compress runs of zeros',                    size: '~800 KB' },
       { num: '09', id: 's-huffman', icon: '🌳', title: 'Huffman',        type: 'lossless', desc: 'Shortest codes for common values',          size: '~300 KB' },
-      { num: '10', id: 's-quality', icon: '📁', title: 'JPEG File',      type: '',         desc: 'Final compressed result on disk',           size: '~300 KB' },
+      { num: '10', id: 's-sos',     icon: '📦', title: 'SOS Stream',     type: 'lossless', desc: 'Pack bits into bytes, byte-stuff 0xFF',     size: '~300 KB' },
+      { num: '11', id: 's-quality', icon: '📁', title: 'JPEG File',      type: '',         desc: 'Final compressed result on disk',           size: '~300 KB' },
     ];
 
     function fmtBytes(b) {
