@@ -2553,7 +2553,6 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 6px;
       padding: 4px 8px;
       border-radius: 6px;
       font-size: 0.75rem;
@@ -2579,30 +2578,6 @@
       background: #eff6ff;
       border-color: var(--accent-blue);
     }
-    .sos-panel-sub {
-      font-weight: 400;
-      font-size: 0.68rem;
-      color: var(--text-muted, #94a3b8);
-      font-family: inherit;
-    }
-    .sos-codelist-hint {
-      font-size: 0.65rem;
-      color: var(--text-muted, #94a3b8);
-      padding: 2px 8px 6px;
-      font-style: italic;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 2px;
-    }
-    .code-count {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.65rem;
-      color: var(--text-muted, #94a3b8);
-      flex-shrink: 0;
-    }
-    /* Code-length color tiers */
-    .code-bits.codelen-short { color: #16a34a; }   /* ≤4 bits — green */
-    .code-bits.codelen-mid   { color: #d97706; }   /* 5–8 bits — amber */
-    .code-bits.codelen-long  { color: #dc2626; }   /* 9+ bits — red */
 
     /* Bit buffer */
     .sos-bit-buffer {
@@ -2715,6 +2690,81 @@
       0%   { transform: scale(0.5) translateY(-4px); opacity: 0; }
       65%  { transform: scale(1.08) translateY(0);   opacity: 1; }
       100% { transform: scale(1);                    opacity: 1; }
+    }
+
+    /* ── SOS Structure Tree ──────────────────────────────────────────────────── */
+    .sos-tree-wrap { font-size: 0.82rem; }
+    .sos-tnode { display: flex; flex-direction: column; margin-bottom: 3px; }
+    .sos-tnode-card {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 12px; border-radius: 8px;
+      border: 1.5px solid var(--border); background: var(--bg-secondary);
+      cursor: pointer; user-select: none;
+      transition: filter 0.12s;
+    }
+    .sos-tnode-card:hover { filter: brightness(0.96); }
+    .sos-tnode--leaf > .sos-tnode-card { cursor: default; }
+    .sos-tnode--leaf > .sos-tnode-card:hover { filter: none; }
+    /* type colours */
+    .sos-tnode--sos  > .sos-tnode-card { background: #eff6ff; border-color: #93c5fd; }
+    .sos-tnode--mcu  > .sos-tnode-card { background: var(--bg-secondary); }
+    .sos-tnode--mcu.tnode-sel > .sos-tnode-card { background: #fefce8; border-color: #fde047; }
+    .sos-tnode--y    > .sos-tnode-card { background: #fefce8; border-color: #fde047; }
+    .sos-tnode--cb   > .sos-tnode-card { background: #eff6ff; border-color: #93c5fd; }
+    .sos-tnode--cr   > .sos-tnode-card { background: #fdf2f8; border-color: #f0abfc; }
+    .sos-tnode--dc   > .sos-tnode-card { background: #ede9fe; border-color: #c4b5fd; cursor: default; }
+    .sos-tnode--ac   > .sos-tnode-card { background: #ecfdf5; border-color: #6ee7b7; }
+    /* arrow */
+    .sos-tnode-arrow {
+      font-size: 0.58rem; color: var(--text-muted, #94a3b8);
+      width: 10px; flex-shrink: 0; transition: transform 0.18s;
+    }
+    .sos-tnode.tnode-open > .sos-tnode-card .sos-tnode-arrow { transform: rotate(90deg); }
+    /* colour dot */
+    .sos-tnode-dot {
+      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    }
+    .sos-tnode--y  .sos-tnode-dot { background: #fbbf24; }
+    .sos-tnode--cb .sos-tnode-dot { background: #60a5fa; }
+    .sos-tnode--cr .sos-tnode-dot { background: #e879f9; }
+    .sos-tnode--dc .sos-tnode-dot { background: #a78bfa; }
+    .sos-tnode--ac .sos-tnode-dot { background: #34d399; }
+    .sos-tnode-label  { font-weight: 700; color: var(--text-primary); }
+    .sos-tnode-hex {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.62rem;
+      color: var(--text-muted, #94a3b8); background: rgba(0,0,0,0.05);
+      padding: 1px 5px; border-radius: 3px;
+    }
+    .sos-tnode-badge {
+      margin-left: auto; font-size: 0.68rem; color: var(--text-secondary);
+      background: rgba(0,0,0,0.06); padding: 2px 8px; border-radius: 10px;
+      white-space: nowrap;
+    }
+    .tnode-sel .sos-tnode-badge { background: #fde047; color: #713f12; font-weight: 600; }
+    /* children indented with left border */
+    .sos-tnode-children {
+      margin-left: 16px; padding-left: 14px;
+      border-left: 2px solid var(--border); margin-top: 2px;
+      overflow: hidden; max-height: 0; opacity: 0;
+      transition: max-height 0.28s ease, opacity 0.2s ease;
+    }
+    .sos-tnode.tnode-open > .sos-tnode-children { max-height: 2400px; opacity: 1; }
+    .sos-tnode-more {
+      font-size: 0.7rem; color: var(--text-muted, #94a3b8);
+      padding: 4px 4px; font-style: italic;
+    }
+    .sos-tnode-tokens {
+      display: flex; flex-wrap: wrap; gap: 4px; padding: 6px 4px 4px;
+    }
+    .sos-tnode-tok {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.67rem;
+      background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 4px;
+      padding: 2px 6px; color: #065f46;
+      animation: sosBitPop 0.18s ease forwards;
+    }
+    .sos-tnode-tok.tok-eob {
+      background: #fef3c7; border-color: #fde68a;
+      color: #92400e; font-weight: 700;
     }
 
     /* ── S13: Live JPEG Compression ─────────────────────────────────────────── */
@@ -3670,10 +3720,13 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         <h2 class="section-title">Building the Bitstream</h2>
       </div>
       <p class="section-body-text reveal">
-        The Huffman codes are just strings of 0s and 1s — but a JPEG file is a sequence of bytes. This step shows exactly how those bit strings get packed into bytes and assembled into the SOS (Start of Scan) segment that forms the heart of the final file.
+        The Huffman codes are just strings of 0s and 1s — but a JPEG file is a sequence of bytes. The scan data lives in the SOS (Start of Scan) segment, which has a fixed 12-byte header followed by the raw packed bitstream. A JPEG file is structured as a series of marker segments, each beginning with 0xFF — and SOS is where all the compressed image data lives.
       </p>
       <p class="section-body-text reveal">
-        A JPEG file is a series of marker segments, each beginning with 0xFF followed by a type byte. The scan data lives in the SOS segment — a fixed 12-byte header describing which Huffman tables to use per channel, followed by the raw packed bitstream.
+        The scan data is not a flat, unstructured stream. Each 8×8 block is encoded with a strict two-part layout: the <strong>DC coefficient</strong> comes first — that's the top-left value from the quantized DCT block, representing the block's average brightness. Then the <strong>AC coefficients</strong> follow in zigzag frequency order, using run-length (skip, value) pairs ending in EOB. DC and AC use entirely separate Huffman tables, which is why the SOS header explicitly lists both a DC table ID and an AC table ID for each channel.
+      </p>
+      <p class="section-body-text reveal">
+        There's one more trick: the DC value is not encoded raw. JPEG encodes the <strong>difference</strong> from the previous block's DC — this is called DPCM (Differential Pulse Code Modulation). Adjacent blocks tend to have similar average brightness, so the differences are usually small, and small values get shorter Huffman codes. The very first block's DC is encoded as-is (no previous block to subtract from).
       </p>
 
       <!-- Component 1: JPEG File Anatomy Bar -->
@@ -3745,16 +3798,52 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
             <div class="sos-label">Ss / Se / Ah,Al</div>
           </div>
         </div>
-        <p class="sos-header-note">These 12 bytes are identical in every baseline 3-channel JPEG — they tell the decoder which Huffman table to use for each color channel.</p>
+        <p class="sos-header-note">These 12 bytes are identical in every baseline 3-channel JPEG. The component bytes (e.g. <code>01 00</code> for Y) pack two nibbles: the high nibble selects the DC Huffman table, the low nibble selects the AC Huffman table. DC and AC use separate tables because their symbol distributions are completely different.</p>
       </div>
 
-      <!-- Component 3: Bit Packing Visualizer -->
+      <!-- Component 3: Scan Structure Anatomy -->
+      <div class="demo-card reveal">
+        <p class="matrix-panel-label">Scan data structure — one 8×8 block</p>
+        <div class="sos-scan-anatomy">
+          <div class="scan-part scan-part--dc">
+            <div class="scan-part-label">DC</div>
+            <div class="scan-part-title">1 token</div>
+            <div class="scan-part-desc">Average brightness of the block. Encoded as the <em>difference</em> from the previous block's DC (DPCM). Uses the <strong>DC Huffman table</strong>.</div>
+          </div>
+          <div class="scan-part scan-part--ac">
+            <div class="scan-part-label">AC ×63</div>
+            <div class="scan-part-title">up to 63 tokens + EOB</div>
+            <div class="scan-part-desc">The remaining frequency coefficients in zigzag order, encoded as (skip, value) run-length pairs. Uses the <strong>AC Huffman table</strong>. Ends with EOB when remaining coefficients are all zero.</div>
+          </div>
+        </div>
+        <div class="sos-mcu-row">
+          <span class="mcu-label">One MCU (3 channels interleaved):</span>
+          <div class="mcu-blocks">
+            <span class="mcu-block mcu-y"><span class="mcu-ch">Y</span> DC · AC…EOB</span>
+            <span class="mcu-arrow">→</span>
+            <span class="mcu-block mcu-cb"><span class="mcu-ch">Cb</span> DC · AC…EOB</span>
+            <span class="mcu-arrow">→</span>
+            <span class="mcu-block mcu-cr"><span class="mcu-ch">Cr</span> DC · AC…EOB</span>
+            <span class="mcu-arrow">→ next block…</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Component 4: SOS Structure Tree Explorer -->
+      <div class="demo-card reveal">
+        <p class="matrix-panel-label">SOS structure explorer <span class="sos-panel-sub">— click any node to expand</span></p>
+        <div id="sosTreeWrap" class="sos-tree-wrap">
+          <p class="section-placeholder" id="sosTreePh" style="margin:0">Select a block above</p>
+        </div>
+      </div>
+
+      <!-- Component 5: Bit Packing Visualizer -->
       <div class="demo-card reveal">
         <div class="sos-packer-layout">
 
-          <!-- Left: Huffman codebook (sorted by code length) -->
+          <!-- Left: Huffman codebook (DC first, then AC by length) -->
           <div class="sos-panel">
-            <p class="matrix-panel-label">Codebook <span class="sos-panel-sub">(sorted by length)</span></p>
+            <p class="matrix-panel-label">Codebook <span class="sos-panel-sub">(DC first, AC by length)</span></p>
             <div class="sos-code-list" id="sosCodeList"></div>
             <p class="section-placeholder" id="sosPlaceholder" style="margin:0">Select a block above</p>
           </div>
@@ -3793,7 +3882,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
   <div class="section-wrapper">
     <section id="s-quality" class="section">
       <div class="section-header reveal">
-        <span class="section-number">13</span>
+        <span class="section-number">12</span>
         <h2 class="section-title">Live JPEG Compression</h2>
       </div>
       <p class="section-body-text reveal">
@@ -3828,7 +3917,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
   <div class="section-wrapper section-wrapper--alt">
     <section id="s-compare" class="section">
       <div class="section-header reveal">
-        <span class="section-number">14</span>
+        <span class="section-number">13</span>
         <h2 class="section-title">Original vs Compressed</h2>
       </div>
       <p class="section-body-text reveal">
@@ -3870,7 +3959,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
   <div class="section-wrapper">
     <section id="s-undo" class="section">
       <div class="section-header reveal">
-        <span class="section-number">15</span>
+        <span class="section-number">14</span>
         <h2 class="section-title">Undo JPEG: Decode Pipeline</h2>
       </div>
       <p class="section-body-text reveal">
@@ -8902,6 +8991,199 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     document.addEventListener('rleChanged', refreshHuffman);
   }());
 
+  // ─── Section 12b: SOS Structure Tree Explorer ────────────────────────────────
+  (function () {
+    let _tokens = [];
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    function totalMcus() {
+      if (!S.w || !S.h) return 0;
+      return Math.ceil(S.w / 8) * Math.ceil(S.h / 8);
+    }
+    function selectedMcuIdx() {
+      if (!S.w) return 0;
+      const cols = Math.ceil(S.w / 8);
+      return ((S.selBy || 0) / 8) * cols + ((S.selBx || 0) / 8);
+    }
+
+    // ── Node factory ─────────────────────────────────────────────────────────
+
+    /**
+     * Create a tree node element and append it to `parent`.
+     * opts: { type, label, hex, badge, dot, expandable, selected }
+     * Returns the outer .sos-tnode div.
+     */
+    function makeNode(parent, opts) {
+      const node = document.createElement('div');
+      node.className = `sos-tnode sos-tnode--${opts.type}` +
+                       (opts.selected ? ' tnode-sel' : '') +
+                       (opts.expandable ? '' : ' sos-tnode--leaf');
+      node.dataset.ntype = opts.type;
+
+      // Card row
+      const card = document.createElement('div');
+      card.className = 'sos-tnode-card';
+      card.innerHTML =
+        (opts.expandable ? `<span class="sos-tnode-arrow">▶</span>` : `<span style="width:10px;flex-shrink:0"></span>`) +
+        (opts.dot        ? `<span class="sos-tnode-dot"></span>` : '') +
+        `<span class="sos-tnode-label">${opts.label}</span>` +
+        (opts.hex        ? `<span class="sos-tnode-hex">${opts.hex}</span>` : '') +
+        (opts.badge      ? `<span class="sos-tnode-badge">${opts.badge}</span>` : '');
+      node.appendChild(card);
+
+      if (opts.expandable) {
+        const children = document.createElement('div');
+        children.className = 'sos-tnode-children';
+        node.appendChild(children);
+        card.addEventListener('click', () => toggleNode(node));
+      }
+
+      parent.appendChild(node);
+      return node;
+    }
+
+    // ── Expand / collapse ────────────────────────────────────────────────────
+
+    function toggleNode(node) {
+      const isOpen = node.classList.contains('tnode-open');
+      if (isOpen) {
+        node.classList.remove('tnode-open');
+      } else {
+        node.classList.add('tnode-open');
+        const children = node.querySelector('.sos-tnode-children');
+        if (children && children.children.length === 0) {
+          buildChildren(node, children);
+        }
+      }
+    }
+
+    function buildChildren(node, container) {
+      const type = node.dataset.ntype;
+      if      (type === 'sos')     fillSos(container);
+      else if (type === 'mcu')     fillMcu(container, node);
+      else if (type === 'y' || type === 'cb' || type === 'cr') fillChannel(container, type);
+      else if (type === 'ac')      fillAc(container);
+    }
+
+    // ── Level builders ───────────────────────────────────────────────────────
+
+    function fillSos(container) {
+      const total  = totalMcus();
+      const selIdx = Math.round(selectedMcuIdx());
+      const cols   = S.w ? Math.ceil(S.w / 8) : 1;
+
+      // Always show MCU 0,1,2 plus selected if not already included
+      const show = new Set([0, 1, 2]);
+      if (selIdx >= 0) show.add(selIdx);
+      const indices = [...show].sort((a, b) => a - b).filter(i => i < total);
+
+      let prevIdx = -1;
+      indices.forEach(i => {
+        if (prevIdx >= 0 && i > prevIdx + 1) {
+          const gap = document.createElement('div');
+          gap.className = 'sos-tnode-more';
+          gap.textContent = `… ${i - prevIdx - 1} MCUs …`;
+          container.appendChild(gap);
+        }
+        prevIdx = i;
+        const bx   = (i % cols) * 8;
+        const by   = Math.floor(i / cols) * 8;
+        const isSel = i === selIdx;
+        const n = makeNode(container, {
+          type: 'mcu', expandable: true, selected: isSel,
+          label: `MCU ${i}`,
+          badge: isSel ? 'selected ★' : `block (${bx},${by})`,
+        });
+        n.dataset.mcuIdx = i;
+        // Auto-expand the selected MCU
+        if (isSel) { n.classList.add('tnode-open'); buildChildren(n, n.querySelector('.sos-tnode-children')); }
+      });
+
+      if (total > (prevIdx + 1)) {
+        const more = document.createElement('div');
+        more.className = 'sos-tnode-more';
+        more.textContent = `… ${total - prevIdx - 1} more MCUs`;
+        container.appendChild(more);
+      }
+    }
+
+    function fillMcu(container, mcuNode) {
+      const selIdx = Math.round(selectedMcuIdx());
+      const isSel  = +mcuNode.dataset.mcuIdx === selIdx;
+      ['y', 'cb', 'cr'].forEach(ch => {
+        const labels = { y: 'Y', cb: 'Cb', cr: 'Cr' };
+        makeNode(container, {
+          type: ch, expandable: true, dot: true,
+          label: labels[ch],
+          badge: isSel ? 'real data' : 'structure',
+        });
+      });
+    }
+
+    function fillChannel(container, ch) {
+      const selIdx = Math.round(selectedMcuIdx());
+
+      // DC leaf — show actual value for Y of selected block
+      const dcVal = (ch === 'y' && _tokens.length > 0)
+        ? `Δ = ${_tokens[0].value}`
+        : 'Δ = —';
+      makeNode(container, {
+        type: 'dc', expandable: false, dot: true,
+        label: 'DC', badge: dcVal,
+      });
+
+      // AC node — expandable to show tokens
+      const acCount = (ch === 'y')
+        ? `${Math.max(0, _tokens.length - 1)} tokens`
+        : '— tokens';
+      const acNode = makeNode(container, {
+        type: 'ac', expandable: ch === 'y', dot: true,
+        label: 'AC', badge: acCount,
+      });
+    }
+
+    function fillAc(container) {
+      const acTokens = _tokens.slice(1); // skip DC
+      if (!acTokens.length) return;
+      const wrap = document.createElement('div');
+      wrap.className = 'sos-tnode-tokens';
+      acTokens.forEach((t, i) => {
+        const pill = document.createElement('span');
+        pill.className = 'sos-tnode-tok' + (t.value === 'EOB' ? ' tok-eob' : '');
+        pill.textContent = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
+        pill.style.animationDelay = `${i * 25}ms`;
+        pill.style.opacity = '0';
+        pill.style.animationFillMode = 'forwards';
+        wrap.appendChild(pill);
+      });
+      container.appendChild(wrap);
+    }
+
+    // ── Build / reset root ───────────────────────────────────────────────────
+
+    function buildRoot() {
+      const wrap = document.getElementById('sosTreeWrap');
+      const ph   = document.getElementById('sosTreePh');
+      if (!wrap) return;
+      if (ph) ph.style.display = 'none';
+      wrap.innerHTML = '';
+
+      const total = totalMcus();
+      const root  = makeNode(wrap, {
+        type: 'sos', expandable: true,
+        label: 'SOS', hex: 'FF DA',
+        badge: total ? `${total} MCUs` : '— MCUs',
+      });
+    }
+
+    document.addEventListener('huffmanChanged', e => {
+      _tokens = e.detail.tokens || [];
+      buildRoot();
+    });
+
+  }());
+
   // ─── Section 12b: Building the Bitstream (SOS) ───────────────────────────────
   (function () {
     let _tokens    = [];
@@ -8938,45 +9220,21 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
     // ── DOM helpers ────────────────────────────────────────────────────────────
 
-    function codelenClass(len) {
-      if (len <= 4) return 'codelen-short';
-      if (len <= 8) return 'codelen-mid';
-      return 'codelen-long';
-    }
-
     function renderCodeList(tokens, codes) {
       const el = document.getElementById('sosCodeList');
       const ph = document.getElementById('sosPlaceholder');
       if (!el) return;
       if (ph) ph.style.display = 'none';
       el.innerHTML = '';
-
-      // Count how many times each symbol appears in the scan
-      const freq = {};
-      tokens.forEach(t => {
-        const k = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
-        freq[k] = (freq[k] || 0) + 1;
-      });
-
-      // Build unique entries, sorted by code length (shortest first)
-      const entries = Object.entries(codes)
-        .sort((a, b) => a[1].length - b[1].length || a[0].localeCompare(b[0]));
-
-      // Header hint
-      const hint = document.createElement('div');
-      hint.className = 'sos-codelist-hint';
-      hint.textContent = 'shorter code = more frequent';
-      el.appendChild(hint);
-
-      entries.forEach(([key, code]) => {
-        const count = freq[key] || 0;
-        const row   = document.createElement('div');
+      tokens.forEach((t, i) => {
+        const key  = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
+        const code = codes[key] || '?';
+        const row  = document.createElement('div');
         row.className = 'sos-code-row';
-        row.dataset.key = key;
+        row.dataset.idx = i;
         row.innerHTML =
           `<span class="code-sym">${key}</span>` +
-          `<span class="code-bits ${codelenClass(code.length)}" title="${code.length} bits">${code}</span>` +
-          `<span class="code-count" title="appears ${count}× in scan">×${count}</span>`;
+          `<span class="code-bits">${code}</span>`;
         el.appendChild(row);
       });
     }
@@ -9034,11 +9292,10 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         const tStart = msOffset;
         msOffset += TOKEN_GAP;
 
-        // Highlight this symbol's row in the codebook
-        const key_ = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
+        // Highlight this token row
         setTimeout(() => {
           document.querySelectorAll('.sos-code-row').forEach(r => r.classList.remove('sos-row-active'));
-          const row = document.querySelector(`.sos-code-row[data-key="${CSS.escape(key_)}"]`);
+          const row = document.querySelector(`.sos-code-row[data-idx="${tIdx}"]`);
           if (row) { row.classList.add('sos-row-active'); row.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
         }, tStart);
 
@@ -9664,8 +9921,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       { num: '07', id: 's-zigzag',  icon: '↗️', title: 'Zigzag Scan',    type: '',         desc: 'Read coefficients in diagonal order',       size: '~3 MB'   },
       { num: '08', id: 's-rle',     icon: '🗜️', title: 'RLE',            type: 'lossless', desc: 'Compress runs of zeros',                    size: '~800 KB' },
       { num: '09', id: 's-huffman', icon: '🌳', title: 'Huffman',        type: 'lossless', desc: 'Shortest codes for common values',          size: '~300 KB' },
-      { num: '10', id: 's-sos',     icon: '📦', title: 'SOS Stream',     type: 'lossless', desc: 'Pack bits into bytes, byte-stuff 0xFF',     size: '~300 KB' },
-      { num: '11', id: 's-quality', icon: '📁', title: 'JPEG File',      type: '',         desc: 'Final compressed result on disk',           size: '~300 KB' },
+      { num: '10', id: 's-quality', icon: '📁', title: 'JPEG File',      type: '',         desc: 'Final compressed result on disk',           size: '~300 KB' },
     ];
 
     function fmtBytes(b) {
