@@ -6471,6 +6471,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     let cropX = 0, cropY = 0; // current zoom crop origin (for full image mode)
     let userInteracted = false;
     let rafId = null;
+    let blockChangedAttached = false;
 
     function initSection06() {
       if (!S.img) return;
@@ -6631,6 +6632,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         const by = Math.min(Math.floor(cy / CROP) * CROP, S.h - CROP);
         selectedBlock = { x: bx, y: by };
         cropX = bx; cropY = by;
+        updateBlock(bx, by);
 
         if (currentChannel === 'full') {
           buildFullImageZoomGrid(fullGrid, bx, by, false, '444', CROP);
@@ -6745,6 +6747,37 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         rafId = requestAnimationFrame(tick);
       }
       rafId = requestAnimationFrame(tick);
+
+      if (!blockChangedAttached) {
+        blockChangedAttached = true;
+        document.addEventListener('blockChanged', () => {
+          const bx = S.selBx, by = S.selBy;
+          selectedBlock = { x: bx, y: by };
+          cropX = bx; cropY = by;
+
+          if (currentChannel === 'full') {
+            buildFullImageZoomGrid(fullGrid, bx, by, false, '444', CROP);
+            buildFullImageZoomGrid(subGrid,  bx, by, true,  currentZoomScheme, CROP);
+          } else {
+            const chDataAll = { y: S.yChannel, cb: S.cbChannel, cr: S.crChannel };
+            ['y', 'cb', 'cr'].forEach(ch => {
+              for (let dy = 0; dy < CROP; dy++)
+                for (let dx = 0; dx < CROP; dx++)
+                  cropPixels[ch][dy * CROP + dx] = chDataAll[ch][(by + dy) * S.w + (bx + dx)];
+            });
+            const mapFn = CH_MAP[currentChannel];
+            buildPixelZoomGrid(fullGrid, cropPixels[currentChannel], '444', false, CROP, mapFn);
+            const scheme = currentChannel === 'y' ? '444' : currentZoomScheme;
+            updateZoomGridScheme(subGrid, cropPixels[currentChannel], scheme, CROP, mapFn);
+          }
+
+          selRect.style.display = 'block';
+          selRect.style.left   = (bx / S.w * 100) + '%';
+          selRect.style.top    = (by / S.h * 100) + '%';
+          selRect.style.width  = (CROP / S.w * 100) + '%';
+          selRect.style.height = (CROP / S.h * 100) + '%';
+        });
+      }
     }
 
     document.addEventListener('imageReady', initSection06);
@@ -7179,10 +7212,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         });
 
         document.addEventListener('blockChanged', () => {
-          if (animState === 'grid' || animState === 'zoomed') {
-            drawGrid();
-            renderBlockDetail();
-          }
+          if (animState === 'grid' || animState === 'zoomed') drawGrid();
+          renderBlockDetail();
         });
       }
     }
@@ -9081,6 +9112,16 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       window._processImageSilent(savedImage);
     }
   }());
+
+  // Auto-select a random block on image load so demo cards show data without user interaction
+  document.addEventListener('imageReady', () => {
+    if (!S.yChannel) return;
+    const cols = Math.floor(S.w / 8);
+    const rows = Math.floor(S.h / 8);
+    const bx = Math.floor(Math.random() * cols) * 8;
+    const by = Math.floor(Math.random() * rows) * 8;
+    updateBlock(bx, by);
+  });
 </script>
 </body>
 </html>
