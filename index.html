@@ -9066,25 +9066,43 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       if (el4) el4.style.display = '';
     }
 
+    // Returns a copy of rleSeq with the DC token replaced by the DPCM difference
+    // from the previous MCU (Y-channel). MCU 0 is unchanged (prevDC = 0).
+    function applyDcDpcm(rleSeq) {
+      if (!rleSeq || !rleSeq.length) return rleSeq;
+      const cols   = S.w ? Math.ceil(S.w / 8) : 1;
+      const mcuIdx = ((S.selBy || 0) / 8) * cols + ((S.selBx || 0) / 8);
+      if (mcuIdx === 0 || !S.yChannel || !S.w) return rleSeq; // MCU 0: diff = rawDC (prev = 0)
+      const prevBx = ((mcuIdx - 1) % cols) * 8;
+      const prevBy = Math.floor((mcuIdx - 1) / cols) * 8;
+      const prevDC = quantize(dct2d(extractBlock(S.yChannel, prevBx, prevBy, S.w)), scaleQT(S.quality))[0];
+      const diff   = rleSeq[0].value - prevDC;
+      if (diff === rleSeq[0].value) return rleSeq; // no change
+      return [{ skip: 0, value: diff }, ...rleSeq.slice(1)];
+    }
+
     function refreshHuffman() {
       if (!S.rleSeq) return;
       const phEl = document.getElementById('huffmanPlaceholder');
       if (phEl) phEl.style.display = 'none';
 
+      // Use DPCM-encoded DC (diff from previous block) — matches actual JPEG encoding
+      const tokens = applyDcDpcm(S.rleSeq);
+
       const freq = {};
-      S.rleSeq.forEach(t => {
+      tokens.forEach(t => {
         const k = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
         freq[k] = (freq[k] || 0) + 1;
       });
 
-      const { root, steps } = buildTree(S.rleSeq);
+      const { root, steps } = buildTree(tokens);
       _root  = root;
       _codes = _root ? genCodes(_root, '', {}) : {};
       renderTree(_root, steps);
       renderTable(_codes, freq);
-      updateHuffStats(S.rleSeq, _codes);
+      updateHuffStats(tokens, _codes);
       document.dispatchEvent(new CustomEvent('huffmanChanged', {
-        detail: { codes: _codes, tokens: S.rleSeq }
+        detail: { codes: _codes, tokens: tokens }
       }));
     }
 
@@ -9180,8 +9198,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       ['y', 'cb', 'cr'].forEach(ch => {
         const info = dcInfo(ch, mcuIdx);
         if (!info) return;
-        // DC: try raw dc value and dpcm diff to find matching code key
-        const dcCode = _codes[`(0,${info.dc})`] || _codes[`(0,${info.diff})`] || '';
+        // DC is DPCM-encoded: the code in _codes corresponds to the diff, not the raw value
+        const dcCode = _codes[`(0,${info.diff})`] || '';
         for (const b of dcCode) out.push({ bit: b, ch, type: 'dc', tokenIdx: 0 });
         // AC tokens — each gets its own tokenIdx for token-level highlighting
         info.acTokens.forEach((t, ti) => {
