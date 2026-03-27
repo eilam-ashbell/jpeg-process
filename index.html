@@ -2220,11 +2220,10 @@
 
     .rle-before-seq {
       display: flex;
+      flex-wrap: wrap;
       gap: 3px;
-      overflow-x: auto;
-      padding-bottom: 4px;
+      row-gap: 8px;
       min-height: 36px;
-      -webkit-overflow-scrolling: touch;
     }
 
     .rle-before-cell {
@@ -2309,6 +2308,12 @@
 
     @media (prefers-reduced-motion: reduce) {
       .rle-token.animated { animation: none !important; }
+    }
+
+    .rle-faded {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
     }
 
     .rle-stats {
@@ -3291,12 +3296,13 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
             <p class="rle-seq-label">Before RLE (zigzag sequence)</p>
             <div class="rle-before-seq" id="rleBeforeRow"></div>
           </div>
-          <div class="dct-controls" style="justify-content:flex-start">
-            <button class="btn-animate" id="rlePlayBtn" disabled>▶ Apply RLE</button>
-          </div>
           <div id="rleAfterWrap" style="display:none">
             <p class="rle-seq-label">After RLE</p>
             <div class="rle-tokens-row" id="rleTokensRow"></div>
+          </div>
+          <div class="dct-controls" style="justify-content:flex-start;gap:8px">
+            <button class="btn-animate" id="rlePlayBtn" disabled>▶ Apply RLE</button>
+            <button class="btn-animate" id="rleOrigBtn" style="display:none">↩ Original Sequence</button>
           </div>
         </div>
         <div class="rle-stats" id="rleStats" style="display:none">
@@ -8022,19 +8028,30 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       });
     }
 
-    function renderAfterTokens(tokens, staggered) {
+    function renderAfterTokens(tokens) {
       const el   = document.getElementById('rleTokensRow');
       const wrap = document.getElementById('rleAfterWrap');
       if (!el || !wrap) return;
       wrap.style.display = '';
       el.innerHTML = '';
-      tokens.forEach((t, i) => {
+      tokens.forEach(t => {
         const c = document.createElement('div');
         const isEOB = t.value === 'EOB';
-        c.className = 'rle-token' + (isEOB ? ' eob' : '') + (staggered ? ' animated' : '');
+        c.className = 'rle-token' + (isEOB ? ' eob' : '');
         c.textContent = isEOB ? 'EOB' : `(${t.skip},${t.value})`;
-        if (staggered) c.style.animationDelay = (i * 60) + 'ms';
+        c.style.opacity = '0';  // hidden until animation reveals one-by-one
         el.appendChild(c);
+      });
+    }
+
+    function revealTokensSequentially() {
+      const el = document.getElementById('rleTokensRow');
+      if (!el) return;
+      el.querySelectorAll('.rle-token').forEach((t, i) => {
+        setTimeout(() => {
+          t.style.opacity = '';
+          t.classList.add('animated');
+        }, i * 80);
       });
     }
 
@@ -8053,8 +8070,6 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       if (!S.zzSeq || !S.rleSeq) return;
       const beforeRow = document.getElementById('rleBeforeRow');
       if (!beforeRow) return;
-      const wrap = document.getElementById('rleAfterWrap');
-      if (wrap) wrap.style.display = 'none';
 
       const zeroCells = beforeRow.querySelectorAll('.rle-before-cell.z');
       zeroCells.forEach((c, i) => {
@@ -8063,10 +8078,13 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
       const delay = Math.min(zeroCells.length * 8 + 380, 1100);
       setTimeout(() => {
-        renderAfterTokens(S.rleSeq, true);
-        updateRLEStats(S.zzSeq.length, S.rleSeq.length);
+        revealTokensSequentially();
+        const statsEl = document.getElementById('rleStats');
+        if (statsEl) statsEl.classList.remove('rle-faded');
         const btn = document.getElementById('rlePlayBtn');
         if (btn) { btn.textContent = '↺ Replay RLE'; btn.disabled = false; }
+        const origBtn = document.getElementById('rleOrigBtn');
+        if (origBtn) origBtn.style.display = '';
       }, delay);
     }
 
@@ -8074,14 +8092,27 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       if (!S.zzSeq) return;
       S.rleSeq = rleEncode(S.zzSeq);
       renderBeforeSeq(S.zzSeq);
-      const wrap    = document.getElementById('rleAfterWrap');
-      const statsEl = document.getElementById('rleStats');
-      const phEl    = document.getElementById('rlePlaceholder');
-      const btn     = document.getElementById('rlePlayBtn');
-      if (wrap)    wrap.style.display    = 'none';
-      if (statsEl) statsEl.style.display = 'none';
-      if (phEl)    phEl.style.display    = 'none';
+
+      const beforeRow = document.getElementById('rleBeforeRow');
+      const wrap      = document.getElementById('rleAfterWrap');
+      const statsEl   = document.getElementById('rleStats');
+      const phEl      = document.getElementById('rlePlaceholder');
+      const btn       = document.getElementById('rlePlayBtn');
+      const origBtn   = document.getElementById('rleOrigBtn');
+
+      // Pre-render after tokens & stats so card height is fully established
+      renderAfterTokens(S.rleSeq);
+      updateRLEStats(S.zzSeq.length, S.rleSeq.length);
+
+      // Label stays visible; only stats faded until animation
+      if (statsEl) statsEl.classList.add('rle-faded');
+      if (phEl)    phEl.style.display = 'none';
       if (btn)     { btn.textContent = '▶ Apply RLE'; btn.disabled = false; }
+      if (origBtn) origBtn.style.display = 'none';
+
+      // Lock before-row height so collapsing zeros won't shrink it
+      if (beforeRow) beforeRow.style.minHeight = beforeRow.offsetHeight + 'px';
+
       document.dispatchEvent(new CustomEvent('rleChanged'));
     }
 
@@ -8092,8 +8123,30 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       rleBtn.addEventListener('click', () => {
         if (!S.zzSeq) return;
         rleBtn.disabled = true;
+        const origBtn = document.getElementById('rleOrigBtn');
+        if (origBtn) origBtn.style.display = 'none';
+        // Restore initial look, hold for 750ms so user can see it, then animate
         renderBeforeSeq(S.zzSeq);
-        setTimeout(applyRLEAnim, 50);
+        const beforeRow = document.getElementById('rleBeforeRow');
+        if (beforeRow) beforeRow.style.minHeight = beforeRow.offsetHeight + 'px';
+        // Reset tokens to hidden one-by-one; label stays visible
+        const tokensRow = document.getElementById('rleTokensRow');
+        if (tokensRow) tokensRow.querySelectorAll('.rle-token').forEach(t => {
+          t.classList.remove('animated');
+          t.style.opacity = '0';
+        });
+        const statsEl = document.getElementById('rleStats');
+        if (statsEl) statsEl.classList.add('rle-faded');
+        setTimeout(applyRLEAnim, 750);
+      });
+    }
+
+    const rleOrigBtn = document.getElementById('rleOrigBtn');
+    if (rleOrigBtn) {
+      rleOrigBtn.addEventListener('click', () => {
+        renderBeforeSeq(S.zzSeq);
+        const beforeRow = document.getElementById('rleBeforeRow');
+        if (beforeRow) beforeRow.style.minHeight = beforeRow.offsetHeight + 'px';
       });
     }
 
