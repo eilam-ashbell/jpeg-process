@@ -2441,6 +2441,257 @@
       opacity: 0;
     }
 
+    /* ── S12b: SOS Bitstream ─────────────────────────────────────────────────── */
+    .jpeg-anatomy-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: flex-end;
+      margin: 12px 0 8px;
+    }
+    .anatomy-seg {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      cursor: default;
+      transition: transform 0.15s;
+      min-width: 52px;
+      text-align: center;
+    }
+    .anatomy-seg:hover { transform: translateY(-2px); }
+    .anatomy-seg--active {
+      background: var(--accent-blue);
+      border-color: #1d4ed8;
+      color: #fff;
+      font-weight: 700;
+      padding: 12px 16px;
+      box-shadow: 0 4px 16px rgba(37,99,235,.35);
+    }
+    .anatomy-seg--active .seg-hex { color: rgba(255,255,255,.75); }
+    .seg-hex {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.63rem;
+      color: var(--text-muted, #94a3b8);
+      margin-bottom: 3px;
+      letter-spacing: 0.04em;
+    }
+    .seg-name { font-weight: 700; }
+    .sos-anatomy-note {
+      font-size: 0.78rem;
+      color: var(--text-muted, #94a3b8);
+      margin: 6px 0 0;
+    }
+
+    /* SOS header dissection */
+    .sos-header-dissect {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 12px 0 8px;
+    }
+    .sos-byte-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      min-width: 56px;
+    }
+    .sos-bytes {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 600;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 6px;
+      padding: 6px 8px;
+      color: var(--accent-blue);
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+    .sos-byte-group:nth-child(1) .sos-bytes { background: #fef3c7; border-color: #fde68a; color: #92400e; }
+    .sos-byte-group:nth-child(2) .sos-bytes { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+    .sos-label {
+      font-size: 0.65rem;
+      color: var(--text-muted, #94a3b8);
+      margin-top: 4px;
+      line-height: 1.3;
+    }
+    .sos-header-note {
+      font-size: 0.78rem;
+      color: var(--text-muted, #94a3b8);
+      margin: 8px 0 0;
+      border-left: 3px solid var(--border);
+      padding-left: 10px;
+    }
+
+    /* Three-panel bit packer */
+    .sos-packer-layout {
+      display: grid;
+      grid-template-columns: minmax(120px,1fr) 2fr minmax(120px,1fr);
+      gap: 16px;
+      align-items: start;
+    }
+    @media (max-width: 780px) {
+      .sos-packer-layout { grid-template-columns: 1fr; }
+    }
+    .sos-panel { display: flex; flex-direction: column; gap: 6px; }
+
+    .sos-code-list {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+    .sos-code-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      transition: background 0.12s;
+      border: 1px solid transparent;
+      gap: 8px;
+    }
+    .sos-code-row .code-sym {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-primary);
+      white-space: nowrap;
+    }
+    .sos-code-row .code-bits {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--accent-blue);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      word-break: break-all;
+      text-align: right;
+    }
+    .sos-code-row.sos-row-active {
+      background: #eff6ff;
+      border-color: var(--accent-blue);
+    }
+
+    /* Bit buffer */
+    .sos-bit-buffer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2px;
+      min-height: 40px;
+      padding: 8px;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      align-content: flex-start;
+    }
+    .sos-bit {
+      width: 16px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 3px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+    .sos-bit.bit-new {
+      background: #eff6ff;
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+      animation: sosBitPop 0.2s ease-out forwards;
+    }
+    .sos-byte-boundary {
+      width: 2px;
+      height: 22px;
+      background: var(--accent-blue);
+      opacity: 0.4;
+      border-radius: 1px;
+      margin: 0 2px;
+      flex-shrink: 0;
+    }
+
+    /* Byte stream */
+    .sos-byte-stream {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-height: 40px;
+      padding: 8px;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      align-content: flex-start;
+    }
+    .sos-hex-byte {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 4px 7px;
+      border-radius: 5px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      animation: sosByteAppear 0.22s cubic-bezier(.34,1.56,.64,1) forwards;
+    }
+    .sos-hex-byte.byte-ff {
+      background: #fef3c7;
+      border-color: #f59e0b;
+      color: #92400e;
+    }
+    .sos-hex-byte.byte-stuff {
+      background: #fee2e2;
+      border-color: #f87171;
+      color: #991b1b;
+      font-style: italic;
+    }
+    .sos-stuffing-note {
+      margin-top: 10px;
+      padding: 10px 14px;
+      background: #fef3c7;
+      border-left: 3px solid #f59e0b;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.8rem;
+      color: #78350f;
+    }
+
+    /* Stats footer */
+    .sos-stats-row {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .sos-stats-row strong {
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Keyframes */
+    @keyframes sosBitPop {
+      0%   { transform: scale(0.4); opacity: 0; }
+      70%  { transform: scale(1.1); opacity: 1; }
+      100% { transform: scale(1);   opacity: 1; }
+    }
+    @keyframes sosByteAppear {
+      0%   { transform: scale(0.5) translateY(-4px); opacity: 0; }
+      65%  { transform: scale(1.08) translateY(0);   opacity: 1; }
+      100% { transform: scale(1);                    opacity: 1; }
+    }
+
     /* ── S13: Live JPEG Compression ─────────────────────────────────────────── */
     .quality-preview-wrap {
       display: flex;
@@ -3386,6 +3637,134 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       </div>
     </section>
   </div>
+
+  <div class="section-wrapper">
+    <section id="s-sos" class="section">
+      <div class="section-header reveal">
+        <span class="section-number">12</span>
+        <h2 class="section-title">Building the Bitstream</h2>
+      </div>
+      <p class="section-body-text reveal">
+        The Huffman codes are just strings of 0s and 1s — but a JPEG file is a sequence of bytes. This step shows exactly how those bit strings get packed into bytes and assembled into the SOS (Start of Scan) segment that forms the heart of the final file.
+      </p>
+      <p class="section-body-text reveal">
+        A JPEG file is a series of marker segments, each beginning with 0xFF followed by a type byte. The scan data lives in the SOS segment — a fixed 12-byte header describing which Huffman tables to use per channel, followed by the raw packed bitstream.
+      </p>
+
+      <!-- Component 1: JPEG File Anatomy Bar -->
+      <div class="demo-card reveal">
+        <p class="matrix-panel-label">JPEG file structure</p>
+        <div class="jpeg-anatomy-bar">
+          <div class="anatomy-seg" title="Start of Image — marks the beginning of every JPEG file">
+            <span class="seg-hex">FF D8</span>
+            <span class="seg-name">SOI</span>
+          </div>
+          <div class="anatomy-seg" title="Application marker — JFIF or Exif metadata">
+            <span class="seg-hex">FF E0</span>
+            <span class="seg-name">APP0</span>
+          </div>
+          <div class="anatomy-seg" title="Define Quantization Table — the values used to quantize DCT coefficients">
+            <span class="seg-hex">FF DB</span>
+            <span class="seg-name">DQT</span>
+          </div>
+          <div class="anatomy-seg" title="Start of Frame — image dimensions and component info">
+            <span class="seg-hex">FF C0</span>
+            <span class="seg-name">SOF0</span>
+          </div>
+          <div class="anatomy-seg" title="Define Huffman Table — the code trees used to compress scan data">
+            <span class="seg-hex">FF C4</span>
+            <span class="seg-name">DHT</span>
+          </div>
+          <div class="anatomy-seg anatomy-seg--active" title="Start of Scan — the Huffman-encoded image bits live here">
+            <span class="seg-hex">FF DA</span>
+            <span class="seg-name">SOS ★</span>
+          </div>
+          <div class="anatomy-seg" title="End of Image — marks the end of the JPEG file">
+            <span class="seg-hex">FF D9</span>
+            <span class="seg-name">EOI</span>
+          </div>
+        </div>
+        <p class="sos-anatomy-note">The SOS segment contains a short fixed header then the packed Huffman bitstream — everything we've built so far flows into those bytes.</p>
+      </div>
+
+      <!-- Component 2: SOS Header Dissection -->
+      <div class="demo-card reveal">
+        <p class="matrix-panel-label">SOS segment header bytes</p>
+        <div class="sos-header-dissect">
+          <div class="sos-byte-group">
+            <div class="sos-bytes">FF DA</div>
+            <div class="sos-label">SOS marker</div>
+          </div>
+          <div class="sos-byte-group">
+            <div class="sos-bytes">00 0C</div>
+            <div class="sos-label">Length (12)</div>
+          </div>
+          <div class="sos-byte-group">
+            <div class="sos-bytes">03</div>
+            <div class="sos-label">3 components</div>
+          </div>
+          <div class="sos-byte-group">
+            <div class="sos-bytes">01 00</div>
+            <div class="sos-label">Y: DC₀ AC₀</div>
+          </div>
+          <div class="sos-byte-group">
+            <div class="sos-bytes">02 11</div>
+            <div class="sos-label">Cb: DC₁ AC₁</div>
+          </div>
+          <div class="sos-byte-group">
+            <div class="sos-bytes">03 11</div>
+            <div class="sos-label">Cr: DC₁ AC₁</div>
+          </div>
+          <div class="sos-byte-group">
+            <div class="sos-bytes">00 3F 00</div>
+            <div class="sos-label">Ss / Se / Ah,Al</div>
+          </div>
+        </div>
+        <p class="sos-header-note">These 12 bytes are identical in every baseline 3-channel JPEG — they tell the decoder which Huffman table to use for each color channel.</p>
+      </div>
+
+      <!-- Component 3: Bit Packing Visualizer -->
+      <div class="demo-card reveal">
+        <div class="sos-packer-layout">
+
+          <!-- Left: Huffman codes list -->
+          <div class="sos-panel">
+            <p class="matrix-panel-label">Huffman codes</p>
+            <div class="sos-code-list" id="sosCodeList"></div>
+            <p class="section-placeholder" id="sosPlaceholder" style="margin:0">Select a block above</p>
+          </div>
+
+          <!-- Center: Bit buffer -->
+          <div class="sos-panel">
+            <p class="matrix-panel-label">Bit buffer (groups of 8 → 1 byte)</p>
+            <div class="sos-bit-buffer" id="sosBitBuffer"></div>
+          </div>
+
+          <!-- Right: Byte stream -->
+          <div class="sos-panel">
+            <p class="matrix-panel-label">Byte stream (hex)</p>
+            <div class="sos-byte-stream" id="sosByteStream"></div>
+            <div class="sos-stuffing-note" id="sosStuffNote" style="display:none">
+              <strong>Byte stuffing:</strong> 0xFF in scan data must be followed by 0x00 to avoid confusion with JPEG markers.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="sos-stats-row" id="sosStats" style="display:none">
+          <span>Total bits: <strong id="sosTotalBits">—</strong></span>
+          <span>Packed bytes: <strong id="sosPackedBytes">—</strong></span>
+          <span>Stuffed 0x00s: <strong id="sosStuffCount">—</strong></span>
+        </div>
+
+        <div class="dct-controls" style="justify-content:flex-start;gap:8px;margin-top:16px">
+          <button class="btn-animate" id="sosReplayBtn" disabled>▶ Animate packing</button>
+        </div>
+      </div>
+
+    </section>
+  </div>
+
   <div class="section-wrapper">
     <section id="s-quality" class="section">
       <div class="section-header reveal">
@@ -4254,6 +4633,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     { id: 's-zigzag',  stageLabel: 'After zigzag scan',        shortLabel: 'Zigzag Scan',        icon: '↗️', mobileLabel: 'Zigzag',   rawMB: 3,    pct: 8   },
     { id: 's-rle',     stageLabel: 'After RLE',                shortLabel: 'Run-Length Enc.',    icon: '🗜️', mobileLabel: 'RLE',      rawMB: 0.8,  pct: 2.2 },
     { id: 's-huffman', stageLabel: 'After Huffman coding',     shortLabel: 'Huffman Coding',     icon: '🌳', mobileLabel: 'Huffman',  rawMB: 0.3,  pct: 0.8 },
+    { id: 's-sos',     stageLabel: 'Bit-packed SOS segment',  shortLabel: 'SOS Bitstream',      icon: '📦', mobileLabel: 'SOS',      rawMB: 0.3,  pct: 0.8 },
     { id: 's-quality', stageLabel: 'Live (quality-adjusted)',  shortLabel: 'Live Quality',       icon: '🎛️', mobileLabel: 'Quality',  rawMB: 0.3,  pct: 0.8 },
     { id: 's-compare', stageLabel: 'Compressed vs. original',  shortLabel: 'Comparison',         icon: '⟺',  mobileLabel: 'Compare',  rawMB: 0.3,  pct: 0.8 },
     { id: 's-undo',    stageLabel: 'Decoding (rebuilding)',    shortLabel: 'Undo JPEG',          icon: '🔄', mobileLabel: 'Undo',     rawMB: 36,   pct: 100 },
@@ -8489,9 +8869,239 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       renderTree(_root, steps);
       renderTable(_codes, freq);
       updateHuffStats(S.rleSeq, _codes);
+      document.dispatchEvent(new CustomEvent('huffmanChanged', {
+        detail: { codes: _codes, tokens: S.rleSeq }
+      }));
     }
 
     document.addEventListener('rleChanged', refreshHuffman);
+  }());
+
+  // ─── Section 12b: Building the Bitstream (SOS) ───────────────────────────────
+  (function () {
+    let _tokens    = [];
+    let _codes     = {};
+    let _autoPlayed = false;
+
+    // ── Bit-packing logic ──────────────────────────────────────────────────────
+
+    function packBits(tokens, codes) {
+      let bits = '';
+      tokens.forEach(t => {
+        const key  = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
+        const code = codes[key];
+        if (code) bits += code;
+      });
+      // Pad last incomplete byte with 1s (JPEG spec)
+      const padded = bits.length % 8 === 0 ? bits : bits + '1'.repeat(8 - bits.length % 8);
+      // Build raw byte array
+      const rawBytes = [];
+      for (let i = 0; i < padded.length; i += 8) {
+        rawBytes.push(parseInt(padded.slice(i, i + 8), 2));
+      }
+      // Byte-stuff: 0xFF → [0xFF, 0x00]
+      const stuffed = [];
+      let stuffCount = 0;
+      rawBytes.forEach(b => {
+        stuffed.push(b);
+        if (b === 0xFF) { stuffed.push(0x00); stuffCount++; }
+      });
+      return { bytes: stuffed, stuffCount, bitstring: bits, rawBytes };
+    }
+
+    function toHex(b) { return b.toString(16).toUpperCase().padStart(2, '0'); }
+
+    // ── DOM helpers ────────────────────────────────────────────────────────────
+
+    function renderCodeList(tokens, codes) {
+      const el = document.getElementById('sosCodeList');
+      const ph = document.getElementById('sosPlaceholder');
+      if (!el) return;
+      if (ph) ph.style.display = 'none';
+      el.innerHTML = '';
+      tokens.forEach((t, i) => {
+        const key  = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
+        const code = codes[key] || '?';
+        const row  = document.createElement('div');
+        row.className = 'sos-code-row';
+        row.dataset.idx = i;
+        row.innerHTML =
+          `<span class="code-sym">${key}</span>` +
+          `<span class="code-bits">${code}</span>`;
+        el.appendChild(row);
+      });
+    }
+
+    function clearPanels() {
+      const buf    = document.getElementById('sosBitBuffer');
+      const stream = document.getElementById('sosByteStream');
+      if (buf)    buf.innerHTML    = '';
+      if (stream) stream.innerHTML = '';
+    }
+
+    function setStats(visible, totalBits, totalBytes, stuffCount) {
+      const el = document.getElementById('sosStats');
+      const sn = document.getElementById('sosStuffNote');
+      if (!el) return;
+      if (!visible) { el.style.display = 'none'; if (sn) sn.style.display = 'none'; return; }
+      el.style.display = '';
+      const tb = document.getElementById('sosTotalBits');
+      const pb = document.getElementById('sosPackedBytes');
+      const sc = document.getElementById('sosStuffCount');
+      if (tb) tb.textContent = totalBits.toLocaleString();
+      if (pb) pb.textContent = totalBytes;
+      if (sc) sc.textContent = stuffCount;
+      if (sn) sn.style.display = stuffCount > 0 ? '' : 'none';
+    }
+
+    // ── Animation ──────────────────────────────────────────────────────────────
+
+    const BIT_DELAY   = 30;   // ms per bit cell
+    const TOKEN_GAP   = 100;  // extra gap between tokens
+    const BYTE_OFFSET = 55;   // ms after last bit of byte before hex box appears
+
+    function runAnimation(tokens, codes) {
+      const btn    = document.getElementById('sosReplayBtn');
+      const buf    = document.getElementById('sosBitBuffer');
+      const stream = document.getElementById('sosByteStream');
+      if (!buf || !stream) return;
+
+      if (btn) btn.disabled = true;
+      clearPanels();
+      setStats(false);
+      document.querySelectorAll('.sos-code-row').forEach(r => r.classList.remove('sos-row-active'));
+
+      const { bytes, stuffCount, bitstring, rawBytes } = packBits(tokens, codes);
+
+      let msOffset    = 0;   // accumulated setTimeout offset
+      let globalBitPos = 0;  // total bits emitted so far
+      let bytesDone   = 0;   // how many raw bytes have been emitted to the stream
+
+      tokens.forEach((t, tIdx) => {
+        const key  = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
+        const code = codes[key] || '';
+        if (!code) return;
+
+        const tStart = msOffset;
+        msOffset += TOKEN_GAP;
+
+        // Highlight this token row
+        setTimeout(() => {
+          document.querySelectorAll('.sos-code-row').forEach(r => r.classList.remove('sos-row-active'));
+          const row = document.querySelector(`.sos-code-row[data-idx="${tIdx}"]`);
+          if (row) { row.classList.add('sos-row-active'); row.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+        }, tStart);
+
+        // Stream each bit
+        code.split('').forEach((bit, bIdx) => {
+          const pos      = globalBitPos + bIdx;
+          const bitTime  = tStart + TOKEN_GAP + bIdx * BIT_DELAY;
+
+          setTimeout(() => {
+            // Insert byte-boundary divider before the first bit of each new byte (except the very first)
+            if (pos > 0 && pos % 8 === 0) {
+              const div = document.createElement('div');
+              div.className = 'sos-byte-boundary';
+              buf.appendChild(div);
+            }
+            // Bit cell
+            const cell = document.createElement('div');
+            cell.className = 'sos-bit bit-new';
+            cell.textContent = bit;
+            buf.appendChild(cell);
+            setTimeout(() => cell.classList.remove('bit-new'), 350);
+
+            // If this bit completes a byte, emit the hex box
+            if ((pos + 1) % 8 === 0) {
+              const rByteIdx = Math.floor(pos / 8);
+              if (rByteIdx === bytesDone && rByteIdx < rawBytes.length) {
+                const rawByte = rawBytes[bytesDone];
+                bytesDone++;
+                setTimeout(() => {
+                  const box = document.createElement('div');
+                  box.className = 'sos-hex-byte' + (rawByte === 0xFF ? ' byte-ff' : '');
+                  box.textContent = toHex(rawByte);
+                  stream.appendChild(box);
+                  if (rawByte === 0xFF) {
+                    setTimeout(() => {
+                      const stuffBox = document.createElement('div');
+                      stuffBox.className = 'sos-hex-byte byte-stuff';
+                      stuffBox.textContent = '00';
+                      stuffBox.title = 'Byte-stuffed 0x00 — prevents confusion with JPEG marker bytes';
+                      stream.appendChild(stuffBox);
+                    }, BYTE_OFFSET * 2);
+                  }
+                }, BYTE_OFFSET);
+              }
+            }
+          }, bitTime);
+        });
+
+        msOffset += TOKEN_GAP + code.length * BIT_DELAY;
+        globalBitPos += code.length;
+      });
+
+      // After all bits: emit any remaining padded partial byte, show stats
+      setTimeout(() => {
+        if (bytesDone < rawBytes.length) {
+          for (let i = bytesDone; i < rawBytes.length; i++) {
+            const box = document.createElement('div');
+            box.className = 'sos-hex-byte' + (rawBytes[i] === 0xFF ? ' byte-ff' : '');
+            box.textContent = toHex(rawBytes[i]);
+            stream.appendChild(box);
+          }
+        }
+        document.querySelectorAll('.sos-code-row').forEach(r => r.classList.remove('sos-row-active'));
+        setStats(true, bitstring.length, bytes.length, stuffCount);
+        if (btn) { btn.textContent = '↺ Replay'; btn.disabled = false; }
+      }, msOffset + 500);
+    }
+
+    // ── Main refresh ───────────────────────────────────────────────────────────
+
+    function refresh(tokens, codes) {
+      _tokens = tokens || [];
+      _codes  = codes  || {};
+      const btn = document.getElementById('sosReplayBtn');
+      const ph  = document.getElementById('sosPlaceholder');
+      clearPanels();
+      setStats(false);
+      if (!_tokens.length) {
+        if (ph) ph.style.display = '';
+        if (btn) { btn.textContent = '▶ Animate packing'; btn.disabled = true; }
+        return;
+      }
+      if (ph) ph.style.display = 'none';
+      renderCodeList(_tokens, _codes);
+      if (btn) { btn.textContent = '▶ Animate packing'; btn.disabled = false; }
+    }
+
+    document.addEventListener('huffmanChanged', e => {
+      refresh(e.detail.tokens, e.detail.codes);
+    });
+
+    // ── Replay button ──────────────────────────────────────────────────────────
+
+    const _sosBtn = document.getElementById('sosReplayBtn');
+    if (_sosBtn) {
+      _sosBtn.addEventListener('click', () => {
+        if (_tokens.length && Object.keys(_codes).length) runAnimation(_tokens, _codes);
+      });
+    }
+
+    // Auto-play once on first scroll into view
+    const _sosSec = document.getElementById('s-sos');
+    if (_sosSec) {
+      const _sosObs = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting && !_autoPlayed && _tokens.length) {
+          _autoPlayed = true;
+          setTimeout(() => runAnimation(_tokens, _codes), 600);
+          _sosObs.disconnect();
+        }
+      }, { threshold: 0.3 });
+      _sosObs.observe(_sosSec);
+    }
+
   }());
 
   // ─── Quality Slider Sync (S13 / S14 → S09) ──────────────────────────────────
