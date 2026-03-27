@@ -2767,6 +2767,91 @@
       color: #92400e; font-weight: 700;
     }
 
+    /* ── SOS Explorer Split Layout ──────────────────────────────────────────── */
+    .sos-explorer-split {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start;
+    }
+    @media (max-width: 820px) { .sos-explorer-split { grid-template-columns: 1fr; } }
+
+    .sos-bits-panel {
+      border: 1.5px solid var(--border); border-radius: 10px;
+      padding: 12px; background: var(--bg-secondary);
+    }
+    .sos-bits-header {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 10px; flex-wrap: wrap;
+    }
+    .sos-bits-title {
+      font-size: 0.75rem; font-weight: 700; color: var(--text-secondary);
+    }
+    .sos-bits-legend { display: flex; gap: 4px; align-items: center; }
+    .sbk {
+      font-size: 0.62rem; font-weight: 700;
+      padding: 1px 5px; border-radius: 8px; border: 1px solid;
+    }
+    .sbk-y  { background: #fef9c3; border-color: #fbbf24; color: #713f12; }
+    .sbk-cb { background: #dbeafe; border-color: #60a5fa; color: #1e3a8a; }
+    .sbk-cr { background: #fdf4ff; border-color: #e879f9; color: #701a75; }
+    .sbk-dc { background: #ede9fe; border-color: #a78bfa; color: #3730a3; }
+    .sbk-ac { background: #dcfce7; border-color: #34d399; color: #065f46; }
+
+    /* Bit cells */
+    .sos-bits-grid { display: flex; flex-wrap: wrap; gap: 3px; }
+    .sos-byte-grp {
+      display: flex; gap: 2px; margin-right: 3px; margin-bottom: 3px;
+      padding: 2px 3px; border-radius: 4px;
+      background: rgba(0,0,0,0.025); border: 1px solid transparent;
+    }
+    .sos-bc {
+      width: 14px; height: 18px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 2px; cursor: default;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; font-weight: 600;
+      border: 1px solid transparent;
+      transition: opacity 0.13s, background 0.12s, border-color 0.12s;
+    }
+    /* Default channel tints */
+    .sos-bc[data-ch="y"]  { background: #fefce8; border-color: #fde047; color: #713f12; }
+    .sos-bc[data-ch="cb"] { background: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
+    .sos-bc[data-ch="cr"] { background: #fdf4ff; border-color: #e9d5ff; color: #6b21a8; }
+    /* Highlight mode: dim non-matching */
+    .sos-bits-grid.hl-active .sos-bc         { opacity: 0.12; }
+    .sos-bits-grid.hl-active .sos-bc.hl-match { opacity: 1; }
+    /* Per-level highlight colours */
+    .sos-bits-grid.hl-active .sos-bc.hl-match[data-ch="y"]  { background: #fef08a; border-color: #facc15; }
+    .sos-bits-grid.hl-active .sos-bc.hl-match[data-ch="cb"] { background: #bfdbfe; border-color: #3b82f6; }
+    .sos-bits-grid.hl-active .sos-bc.hl-match[data-ch="cr"] { background: #e9d5ff; border-color: #a855f7; }
+    /* DC type override */
+    .sos-bits-grid.hl-active .sos-bc.hl-match.hl-type[data-type="dc"] { background: #ede9fe; border-color: #8b5cf6; color: #3730a3; }
+    /* AC type override */
+    .sos-bits-grid.hl-active .sos-bc.hl-match.hl-type[data-type="ac"] { background: #dcfce7; border-color: #22c55e; color: #14532d; }
+    /* SOS / MCU → all bits in steel-blue */
+    .sos-bits-grid.hl-active .sos-bc.hl-match.hl-all { background: #dbeafe; border-color: #3b82f6; color: #1e3a8a; }
+    /* MCU section labels in bits panel */
+    .sos-mcu-label {
+      width: 100%; flex-basis: 100%;
+      font-size: 0.65rem; font-weight: 700; color: var(--text-secondary);
+      margin: 6px 0 3px; padding-left: 2px;
+    }
+    .sos-mcu-label:first-child { margin-top: 0; }
+    .sos-mcu-label--dim { color: var(--text-muted, #94a3b8); font-weight: 500; }
+    .sos-mcu-sep {
+      width: 100%; flex-basis: 100%;
+      height: 1px; background: var(--border); margin: 5px 0;
+    }
+    .sos-mcu-empty {
+      font-size: 0.7rem; color: var(--text-muted, #94a3b8);
+      font-style: italic; padding: 2px 4px; flex-basis: 100%;
+    }
+    /* Adjacent MCU groups dimmed by default */
+    .sos-byte-grp[data-mcu-role="prev"],
+    .sos-byte-grp[data-mcu-role="next"] { opacity: 0.35; transition: opacity 0.15s; }
+    /* Reset group opacity in highlight mode so per-cell CSS takes over */
+    .sos-bits-grid.hl-active .sos-byte-grp { opacity: 1; }
+    /* Token pills get a cursor hint */
+    .sos-tnode-tok { cursor: default; }
+    .sos-tnode-tok:not(.tok-eob):hover { filter: brightness(0.9); cursor: pointer; }
+
     /* ── S13: Live JPEG Compression ─────────────────────────────────────────── */
     .quality-preview-wrap {
       display: flex;
@@ -3831,9 +3916,24 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
       <!-- Component 4: SOS Structure Tree Explorer -->
       <div class="demo-card reveal">
-        <p class="matrix-panel-label">SOS structure explorer <span class="sos-panel-sub">— click any node to expand</span></p>
-        <div id="sosTreeWrap" class="sos-tree-wrap">
-          <p class="section-placeholder" id="sosTreePh" style="margin:0">Select a block above</p>
+        <p class="matrix-panel-label">SOS structure explorer <span class="sos-panel-sub">— click to expand · hover to highlight bits</span></p>
+        <div class="sos-explorer-split">
+          <div id="sosTreeWrap" class="sos-tree-wrap">
+            <p class="section-placeholder" id="sosTreePh" style="margin:0">Select a block above</p>
+          </div>
+          <div class="sos-bits-panel" id="sosBitsPanel">
+            <div class="sos-bits-header">
+              <span class="sos-bits-title">Binary stream — selected MCU</span>
+              <span class="sos-bits-legend" id="sosBitsLegend" style="display:none">
+                <span class="sbk sbk-y">Y</span><span class="sbk sbk-cb">Cb</span><span class="sbk sbk-cr">Cr</span>
+                <span style="color:var(--text-muted,#94a3b8);padding:0 2px">·</span>
+                <span class="sbk sbk-dc">DC</span><span class="sbk sbk-ac">AC</span>
+              </span>
+            </div>
+            <div class="sos-bits-grid" id="sosBitsGrid">
+              <p class="section-placeholder" style="margin:0">Select a block above</p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -8994,8 +9094,24 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
   // ─── Section 12b: SOS Structure Tree Explorer ────────────────────────────────
   (function () {
     let _tokens = [];
+    let _codes  = {};
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // Standard JPEG zigzag order: maps zigzag position → flat block index
+    const ZZ = [
+       0,  1,  8, 16,  9,  2,  3, 10,
+      17, 24, 32, 25, 18, 11,  4,  5,
+      12, 19, 26, 33, 40, 48, 41, 34,
+      27, 20, 13,  6,  7, 14, 21, 28,
+      35, 42, 49, 56, 57, 50, 43, 36,
+      29, 22, 15, 23, 30, 37, 44, 51,
+      58, 59, 52, 45, 38, 31, 39, 46,
+      53, 60, 61, 54, 47, 55, 62, 63,
+    ];
+
+    // Cache computed block data; cleared on each rebuild
+    const _cache = new Map();
+
+    // ── Data helpers ─────────────────────────────────────────────────────────
 
     function totalMcus() {
       if (!S.w || !S.h) return 0;
@@ -9006,30 +9122,215 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       const cols = Math.ceil(S.w / 8);
       return ((S.selBy || 0) / 8) * cols + ((S.selBx || 0) / 8);
     }
+    function mcuCoords(idx) {
+      const cols = S.w ? Math.ceil(S.w / 8) : 1;
+      return { bx: (idx % cols) * 8, by: Math.floor(idx / cols) * 8 };
+    }
+
+    // Returns { dc, acTokens } for any block+channel, with caching
+    function computeBlock(ch, bx, by) {
+      const key = `${ch}:${bx}:${by}`;
+      if (_cache.has(key)) return _cache.get(key);
+      const arr = ch === 'y' ? S.yChannel : ch === 'cb' ? S.cbChannel : S.crChannel;
+      if (!arr || !S.w) return null;
+      const block = extractBlock(arr, bx, by, S.w);
+      const qt    = scaleQT(S.quality);
+      const dct   = dct2d(block);
+      const quant = quantize(dct, qt);
+      const dc    = quant[0];
+      // RLE-encode the 63 AC coefficients in zigzag order
+      const acSeq = ZZ.slice(1).map(i => quant[i]);
+      const acTokens = [];
+      let zeros = 0, lastNz = acSeq.length - 1;
+      while (lastNz >= 0 && acSeq[lastNz] === 0) lastNz--;
+      for (let i = 0; i <= lastNz; i++) {
+        if (acSeq[i] === 0) {
+          zeros++;
+          if (zeros === 16) { acTokens.push({ skip: 15, value: 0 }); zeros = 0; }
+        } else {
+          acTokens.push({ skip: zeros, value: acSeq[i] }); zeros = 0;
+        }
+      }
+      acTokens.push({ skip: 0, value: 'EOB' });
+      const result = { dc, acTokens };
+      _cache.set(key, result);
+      return result;
+    }
+
+    // Returns { dc, diff, prevDc } — diff is DPCM delta from previous MCU
+    function dcInfo(ch, mcuIdx) {
+      const { bx, by } = mcuCoords(mcuIdx);
+      const curr = computeBlock(ch, bx, by);
+      if (!curr) return null;
+      if (mcuIdx === 0) return { dc: curr.dc, diff: curr.dc, prevDc: 0, acTokens: curr.acTokens };
+      const { bx: pbx, by: pby } = mcuCoords(mcuIdx - 1);
+      const prev  = computeBlock(ch, pbx, pby);
+      const prevDc = prev ? prev.dc : 0;
+      return { dc: curr.dc, diff: curr.dc - prevDc, prevDc, acTokens: curr.acTokens };
+    }
+
+    function signStr(n) { return n > 0 ? `+${n}` : `${n}`; }
+
+    // ── Binary bits panel ─────────────────────────────────────────────────────
+
+    // Build annotated bit array for a single MCU using current _codes
+    // Returns { bit, ch, type, tokenIdx } per bit
+    function computeMcuBits(mcuIdx) {
+      const out = [];
+      ['y', 'cb', 'cr'].forEach(ch => {
+        const info = dcInfo(ch, mcuIdx);
+        if (!info) return;
+        // DC: try raw dc value and dpcm diff to find matching code key
+        const dcCode = _codes[`(0,${info.dc})`] || _codes[`(0,${info.diff})`] || '';
+        for (const b of dcCode) out.push({ bit: b, ch, type: 'dc', tokenIdx: 0 });
+        // AC tokens — each gets its own tokenIdx for token-level highlighting
+        info.acTokens.forEach((t, ti) => {
+          const key  = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
+          const code = _codes[key] || '';
+          for (const b of code) out.push({ bit: b, ch, type: 'ac', tokenIdx: ti });
+        });
+      });
+      return out;
+    }
+
+    function renderBitsPanel(selMcuIdx) {
+      const grid   = document.getElementById('sosBitsGrid');
+      const legend = document.getElementById('sosBitsLegend');
+      if (!grid) return;
+
+      // Gather prev / selected / next MCU segments
+      const total = totalMcus();
+      const segs  = [];
+      if (selMcuIdx > 0)           segs.push({ idx: selMcuIdx - 1, role: 'prev' });
+      segs.push(                                { idx: selMcuIdx,     role: 'sel'  });
+      if (selMcuIdx < total - 1)   segs.push({ idx: selMcuIdx + 1, role: 'next' });
+
+      // Bail if selected MCU has no bits
+      if (!computeMcuBits(selMcuIdx).length) {
+        grid.innerHTML = '<p class="section-placeholder" style="margin:0">No codes available yet</p>';
+        if (legend) legend.style.display = 'none';
+        return;
+      }
+
+      grid.innerHTML = '';
+      if (legend) legend.style.display = 'flex';
+
+      segs.forEach((seg, si) => {
+        // MCU section label
+        const lbl = document.createElement('div');
+        lbl.className = 'sos-mcu-label' + (seg.role !== 'sel' ? ' sos-mcu-label--dim' : '');
+        lbl.textContent = `MCU ${seg.idx}` + (seg.role === 'sel' ? ' ★' : '');
+        grid.appendChild(lbl);
+
+        const bits = computeMcuBits(seg.idx);
+        if (!bits.length) {
+          const ph = document.createElement('div');
+          ph.className = 'sos-mcu-empty';
+          ph.textContent = '(no matching codes)';
+          grid.appendChild(ph);
+        } else {
+          for (let i = 0; i < bits.length; i += 8) {
+            const grp = document.createElement('div');
+            grp.className  = 'sos-byte-grp';
+            grp.dataset.mcuRole = seg.role;
+            grp.dataset.mcuIdx  = seg.idx;
+            bits.slice(i, i + 8).forEach(b => {
+              const cell = document.createElement('span');
+              cell.className = 'sos-bc';
+              cell.textContent = b.bit;
+              cell.dataset.ch       = b.ch;
+              cell.dataset.type     = b.type;
+              cell.dataset.tokenIdx = b.tokenIdx;
+              cell.dataset.mcuIdx   = seg.idx;
+              cell.dataset.mcuRole  = seg.role;
+              grp.appendChild(cell);
+            });
+            grid.appendChild(grp);
+          }
+        }
+
+        if (si < segs.length - 1) {
+          const sep = document.createElement('div');
+          sep.className = 'sos-mcu-sep';
+          grid.appendChild(sep);
+        }
+      });
+    }
+
+    function highlightBits(node) {
+      const grid = document.getElementById('sosBitsGrid');
+      if (!grid) return;
+      const type   = node.dataset.ntype;
+      const ch     = node.dataset.ch;
+      const mcuIdx = node.dataset.mcuIdx; // string comparison below
+      grid.querySelectorAll('.sos-bc').forEach(c => {
+        c.classList.remove('hl-match', 'hl-type', 'hl-all');
+        const cCh = c.dataset.ch, cType = c.dataset.type;
+        const cMcu = c.dataset.mcuIdx, cRole = c.dataset.mcuRole;
+        let match = false, typeMatch = false, allMatch = false;
+        if (type === 'sos') {
+          match = allMatch = true;
+        } else if (type === 'mcu') {
+          // Highlight only that MCU's bits (all channels/types)
+          match = allMatch = (cMcu === mcuIdx);
+        } else if (type === 'y' || type === 'cb' || type === 'cr') {
+          match = (cRole === 'sel' && cCh === type);
+        } else if (type === 'dc') {
+          match = typeMatch = (cRole === 'sel' && cCh === ch && cType === 'dc');
+        } else if (type === 'ac') {
+          match = typeMatch = (cRole === 'sel' && cCh === ch && cType === 'ac');
+        }
+        if (match)     c.classList.add('hl-match');
+        if (typeMatch) c.classList.add('hl-type');
+        if (allMatch)  c.classList.add('hl-all');
+      });
+      grid.classList.add('hl-active');
+    }
+
+    // Token-level highlight: called from individual AC (and DC) token pill hover
+    function highlightTokenBits(ch, tokenIdx, type) {
+      const grid = document.getElementById('sosBitsGrid');
+      if (!grid) return;
+      grid.querySelectorAll('.sos-bc').forEach(c => {
+        c.classList.remove('hl-match', 'hl-type', 'hl-all');
+        if (c.dataset.mcuRole === 'sel' &&
+            c.dataset.ch      === ch    &&
+            c.dataset.type    === type  &&
+            +c.dataset.tokenIdx === tokenIdx) {
+          c.classList.add('hl-match', 'hl-type');
+        }
+      });
+      grid.classList.add('hl-active');
+    }
+
+    function clearHighlight() {
+      const grid = document.getElementById('sosBitsGrid');
+      if (!grid) return;
+      grid.classList.remove('hl-active');
+      grid.querySelectorAll('.sos-bc').forEach(c =>
+        c.classList.remove('hl-match', 'hl-type', 'hl-all')
+      );
+    }
 
     // ── Node factory ─────────────────────────────────────────────────────────
 
-    /**
-     * Create a tree node element and append it to `parent`.
-     * opts: { type, label, hex, badge, dot, expandable, selected }
-     * Returns the outer .sos-tnode div.
-     */
     function makeNode(parent, opts) {
       const node = document.createElement('div');
       node.className = `sos-tnode sos-tnode--${opts.type}` +
                        (opts.selected ? ' tnode-sel' : '') +
                        (opts.expandable ? '' : ' sos-tnode--leaf');
       node.dataset.ntype = opts.type;
+      if (opts.mcuIdx !== undefined) node.dataset.mcuIdx = opts.mcuIdx;
+      if (opts.ch)                   node.dataset.ch     = opts.ch;
 
-      // Card row
       const card = document.createElement('div');
       card.className = 'sos-tnode-card';
       card.innerHTML =
         (opts.expandable ? `<span class="sos-tnode-arrow">▶</span>` : `<span style="width:10px;flex-shrink:0"></span>`) +
-        (opts.dot        ? `<span class="sos-tnode-dot"></span>` : '') +
+        (opts.dot  ? `<span class="sos-tnode-dot"></span>` : '') +
         `<span class="sos-tnode-label">${opts.label}</span>` +
-        (opts.hex        ? `<span class="sos-tnode-hex">${opts.hex}</span>` : '') +
-        (opts.badge      ? `<span class="sos-tnode-badge">${opts.badge}</span>` : '');
+        (opts.hex   ? `<span class="sos-tnode-hex">${opts.hex}</span>` : '') +
+        (opts.badge ? `<span class="sos-tnode-badge">${opts.badge}</span>` : '');
       node.appendChild(card);
 
       if (opts.expandable) {
@@ -9038,7 +9339,9 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         node.appendChild(children);
         card.addEventListener('click', () => toggleNode(node));
       }
-
+      // Hover → highlight matching bits in the binary panel
+      card.addEventListener('mouseenter', () => highlightBits(node));
+      card.addEventListener('mouseleave', clearHighlight);
       parent.appendChild(node);
       return node;
     }
@@ -9052,18 +9355,16 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       } else {
         node.classList.add('tnode-open');
         const children = node.querySelector('.sos-tnode-children');
-        if (children && children.children.length === 0) {
-          buildChildren(node, children);
-        }
+        if (children && children.children.length === 0) buildChildren(node, children);
       }
     }
 
     function buildChildren(node, container) {
       const type = node.dataset.ntype;
-      if      (type === 'sos')     fillSos(container);
-      else if (type === 'mcu')     fillMcu(container, node);
-      else if (type === 'y' || type === 'cb' || type === 'cr') fillChannel(container, type);
-      else if (type === 'ac')      fillAc(container);
+      if      (type === 'sos')                               fillSos(container);
+      else if (type === 'mcu')                               fillMcu(container, node);
+      else if (type === 'y' || type === 'cb' || type === 'cr') fillChannel(container, node);
+      else if (type === 'ac')                                fillAc(container, node);
     }
 
     // ── Level builders ───────────────────────────────────────────────────────
@@ -9071,11 +9372,9 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     function fillSos(container) {
       const total  = totalMcus();
       const selIdx = Math.round(selectedMcuIdx());
-      const cols   = S.w ? Math.ceil(S.w / 8) : 1;
 
-      // Always show MCU 0,1,2 plus selected if not already included
       const show = new Set([0, 1, 2]);
-      if (selIdx >= 0) show.add(selIdx);
+      if (selIdx >= 0 && selIdx < total) show.add(selIdx);
       const indices = [...show].sort((a, b) => a - b).filter(i => i < total);
 
       let prevIdx = -1;
@@ -9087,17 +9386,31 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           container.appendChild(gap);
         }
         prevIdx = i;
-        const bx   = (i % cols) * 8;
-        const by   = Math.floor(i / cols) * 8;
+        const { bx, by } = mcuCoords(i);
         const isSel = i === selIdx;
+
+        // Compact DC summary for all 3 channels in the badge
+        let badge = `(${bx},${by})`;
+        if (S.yChannel) {
+          const y  = dcInfo('y',  i);
+          const cb = dcInfo('cb', i);
+          const cr = dcInfo('cr', i);
+          badge = [
+            y  ? `Y:${y.dc}`   : 'Y:—',
+            cb ? `Cb:${cb.dc}` : 'Cb:—',
+            cr ? `Cr:${cr.dc}` : 'Cr:—',
+          ].join('  ') + (isSel ? '  ★' : '');
+        }
+
         const n = makeNode(container, {
           type: 'mcu', expandable: true, selected: isSel,
-          label: `MCU ${i}`,
-          badge: isSel ? 'selected ★' : `block (${bx},${by})`,
+          label: `MCU ${i}`, mcuIdx: i, badge,
         });
-        n.dataset.mcuIdx = i;
-        // Auto-expand the selected MCU
-        if (isSel) { n.classList.add('tnode-open'); buildChildren(n, n.querySelector('.sos-tnode-children')); }
+        // Auto-expand the selected MCU on first build
+        if (isSel) {
+          n.classList.add('tnode-open');
+          buildChildren(n, n.querySelector('.sos-tnode-children'));
+        }
       });
 
       if (total > (prevIdx + 1)) {
@@ -9109,52 +9422,61 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     }
 
     function fillMcu(container, mcuNode) {
-      const selIdx = Math.round(selectedMcuIdx());
-      const isSel  = +mcuNode.dataset.mcuIdx === selIdx;
+      const mcuIdx = +mcuNode.dataset.mcuIdx;
+      const labels = { y: 'Y', cb: 'Cb', cr: 'Cr' };
       ['y', 'cb', 'cr'].forEach(ch => {
-        const labels = { y: 'Y', cb: 'Cb', cr: 'Cr' };
+        let badge = '—';
+        if (S.yChannel) {
+          const info = dcInfo(ch, mcuIdx);
+          if (info) badge = `DC=${info.dc}  Δ=${signStr(info.diff)}`;
+        }
         makeNode(container, {
           type: ch, expandable: true, dot: true,
-          label: labels[ch],
-          badge: isSel ? 'real data' : 'structure',
+          label: labels[ch], mcuIdx, ch, badge,
         });
       });
     }
 
-    function fillChannel(container, ch) {
-      const selIdx = Math.round(selectedMcuIdx());
+    function fillChannel(container, chNode) {
+      const mcuIdx = +chNode.dataset.mcuIdx;
+      const ch     = chNode.dataset.ch;
+      if (!ch) return;
+      const info = dcInfo(ch, mcuIdx);
 
-      // DC leaf — show actual value for Y of selected block
-      const dcVal = (ch === 'y' && _tokens.length > 0)
-        ? `Δ = ${_tokens[0].value}`
-        : 'Δ = —';
+      const dcBadge = info
+        ? `${info.dc}  Δ=${signStr(info.diff)}  (prev=${info.prevDc})`
+        : '—';
+      const acBadge = info ? `${info.acTokens.length} tokens` : '—';
+
       makeNode(container, {
         type: 'dc', expandable: false, dot: true,
-        label: 'DC', badge: dcVal,
+        label: 'DC', mcuIdx, ch, badge: dcBadge,
       });
-
-      // AC node — expandable to show tokens
-      const acCount = (ch === 'y')
-        ? `${Math.max(0, _tokens.length - 1)} tokens`
-        : '— tokens';
-      const acNode = makeNode(container, {
-        type: 'ac', expandable: ch === 'y', dot: true,
-        label: 'AC', badge: acCount,
+      makeNode(container, {
+        type: 'ac', expandable: !!info, dot: true,
+        label: 'AC', mcuIdx, ch, badge: acBadge,
       });
     }
 
-    function fillAc(container) {
-      const acTokens = _tokens.slice(1); // skip DC
-      if (!acTokens.length) return;
+    function fillAc(container, acNode) {
+      const mcuIdx = +acNode.dataset.mcuIdx;
+      const ch     = acNode.dataset.ch;
+      const { bx, by } = mcuCoords(mcuIdx);
+      const data = computeBlock(ch, bx, by);
+      if (!data || !data.acTokens.length) return;
+
       const wrap = document.createElement('div');
       wrap.className = 'sos-tnode-tokens';
-      acTokens.forEach((t, i) => {
+      data.acTokens.forEach((t, ti) => {
         const pill = document.createElement('span');
         pill.className = 'sos-tnode-tok' + (t.value === 'EOB' ? ' tok-eob' : '');
         pill.textContent = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
-        pill.style.animationDelay = `${i * 25}ms`;
+        pill.style.animationDelay = `${ti * 25}ms`;
         pill.style.opacity = '0';
         pill.style.animationFillMode = 'forwards';
+        // Token-level hover: highlight just this token's bits in the binary panel
+        pill.addEventListener('mouseenter', () => highlightTokenBits(ch, ti, 'ac'));
+        pill.addEventListener('mouseleave', clearHighlight);
         wrap.appendChild(pill);
       });
       container.appendChild(wrap);
@@ -9166,19 +9488,26 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       const wrap = document.getElementById('sosTreeWrap');
       const ph   = document.getElementById('sosTreePh');
       if (!wrap) return;
+      _cache.clear();
+      clearHighlight();
       if (ph) ph.style.display = 'none';
       wrap.innerHTML = '';
-
       const total = totalMcus();
-      const root  = makeNode(wrap, {
+      makeNode(wrap, {
         type: 'sos', expandable: true,
         label: 'SOS', hex: 'FF DA',
         badge: total ? `${total} MCUs` : '— MCUs',
       });
+      // Render binary panel for the selected MCU
+      const selIdx = Math.round(selectedMcuIdx());
+      if (total > 0 && Object.keys(_codes).length > 0) {
+        renderBitsPanel(selIdx);
+      }
     }
 
     document.addEventListener('huffmanChanged', e => {
       _tokens = e.detail.tokens || [];
+      _codes  = e.detail.codes  || {};
       buildRoot();
     });
 
