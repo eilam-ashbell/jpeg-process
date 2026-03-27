@@ -2412,6 +2412,35 @@
       font-family: 'JetBrains Mono', monospace;
     }
 
+    /* ── S12: Huffman animations ───────────────────────────────────────────── */
+    @keyframes huffPopIn {
+      0%   { opacity: 0; transform: scale(0.3); }
+      65%  { opacity: 1; transform: scale(1.12); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes huffFadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes huffMergeFlash {
+      0%   { opacity: 1; }
+      40%  { opacity: 0.35; }
+      100% { opacity: 1; }
+    }
+    .huff-anim-leaf {
+      opacity: 0;
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+    .huff-anim-node {
+      opacity: 0;
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+    .huff-anim-edge {
+      opacity: 0;
+    }
+
     /* ── S13: Live JPEG Compression ─────────────────────────────────────────── */
     .quality-preview-wrap {
       display: flex;
@@ -8175,14 +8204,17 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         freq[k] = (freq[k] || 0) + 1;
       });
       let nodes = Object.entries(freq).map(([s, c]) => ({ s, c, l: null, r: null }));
-      if (nodes.length === 0) return null;
-      if (nodes.length === 1) return { s: null, c: nodes[0].c, l: nodes[0], r: null };
+      if (nodes.length === 0) return { root: null, steps: [] };
+      if (nodes.length === 1) return { root: { s: null, c: nodes[0].c, l: nodes[0], r: null }, steps: [] };
+      const steps = [];
       while (nodes.length > 1) {
         nodes.sort((a, b) => a.c - b.c);
         const left = nodes.shift(), right = nodes.shift();
-        nodes.push({ s: null, c: left.c + right.c, l: left, r: right });
+        const parent = { s: null, c: left.c + right.c, l: left, r: right };
+        steps.push({ left, right, parent });
+        nodes.push(parent);
       }
-      return nodes[0];
+      return { root: nodes[0], steps };
     }
 
     function genCodes(node, prefix, out) {
@@ -8202,9 +8234,9 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     function esc(s)     { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
     function escAttr(s) { return String(s).replace(/"/g,'&quot;'); }
 
-    function renderTree(root) {
+    function renderTree(root, steps) {
       const svg = document.getElementById('huffmanTreeSvg');
-      if (!svg || !root) return;
+      if (!svg || !root) { if (svg) svg.innerHTML = ''; return; }
 
       const LEAF_W = 52, LH = 64, LEAF_R = 18, INT_R = 10, PAD = 24;
       const leafCount = Math.max(countLeaves(root), 1);
@@ -8230,58 +8262,119 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       svg.setAttribute('height',  svgH);
       svg.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`);
 
-      const px = n => (PAD + pos.get(n).x * (svgW - PAD * 2) / leafCount).toFixed(1);
-      const py = n => (PAD + pos.get(n).d * LH);
+      const pxOf = n => +(PAD + pos.get(n).x * (svgW - PAD * 2) / leafCount).toFixed(1);
+      const pyOf = n =>   PAD + pos.get(n).d * LH;
 
-      let html = '';
-
-      function drawEdges(n) {
-        if (!n) return;
-        const x1 = px(n), y1 = py(n);
-        if (n.l) {
-          const x2 = px(n.l), y2 = py(n.l);
-          const mx = ((+x1 + +x2) / 2 - 8).toFixed(1), my = ((y1 + y2) / 2 + 4).toFixed(1);
-          html += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#cbd5e1" stroke-width="1.5"/>`;
-          html += `<text x="${mx}" y="${my}" font-size="10" fill="#94a3b8" font-family="JetBrains Mono,monospace">0</text>`;
-          drawEdges(n.l);
-        }
-        if (n.r) {
-          const x2 = px(n.r), y2 = py(n.r);
-          const mx = ((+x1 + +x2) / 2 + 4).toFixed(1), my = ((y1 + y2) / 2 + 4).toFixed(1);
-          html += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#cbd5e1" stroke-width="1.5"/>`;
-          html += `<text x="${mx}" y="${my}" font-size="10" fill="#94a3b8" font-family="JetBrains Mono,monospace">1</text>`;
-          drawEdges(n.r);
-        }
+      const NS = 'http://www.w3.org/2000/svg';
+      function mk(tag, attrs, text) {
+        const el = document.createElementNS(NS, tag);
+        for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+        if (text != null) el.textContent = text;
+        return el;
       }
-      drawEdges(root);
 
-      function drawNodes(n) {
+      svg.innerHTML = '';
+
+      // ── Collect leaves in left-to-right order ──────────────────────────────
+      const leafNodes = [];
+      (function collectLeaves(n) {
         if (!n) return;
-        const x = px(n), y = py(n);
-        const isLeaf = !n.l && !n.r;
-        if (isLeaf) {
-          const label  = n.s === 'EOB' ? 'EOB' : n.s.slice(1, -1); // strip parens
-          const parts  = label.split(',');
-          html += `<g class="huff-leaf" data-sym="${escAttr(n.s)}" style="cursor:pointer">`;
-          html += `<circle cx="${x}" cy="${y}" r="${LEAF_R}" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>`;
-          if (parts.length === 2) {
-            html += `<text x="${x}" y="${y - 2}" text-anchor="middle" font-size="8" fill="#1e40af" font-family="JetBrains Mono,monospace" pointer-events="none">${esc(parts[0])},</text>`;
-            html += `<text x="${x}" y="${y + 8}" text-anchor="middle" font-size="8" fill="#1e40af" font-family="JetBrains Mono,monospace" pointer-events="none">${esc(parts[1])}</text>`;
-          } else {
-            html += `<text x="${x}" y="${y + 4}" text-anchor="middle" font-size="8" fill="#1e40af" font-family="JetBrains Mono,monospace" pointer-events="none">${esc(label)}</text>`;
-          }
-          html += `</g>`;
+        if (!n.l && !n.r) { leafNodes.push(n); return; }
+        collectLeaves(n.l);
+        collectLeaves(n.r);
+      }(root));
+      leafNodes.sort((a, b) => pxOf(a) - pxOf(b));
+
+      // ── Timing constants ───────────────────────────────────────────────────
+      const LEAF_STAGGER = 55;          // ms between each leaf pop-in
+      const AFTER_LEAVES = 320;         // pause after all leaves are shown
+      const STEP_GAP     = 300;         // ms allocated per merge step
+
+      // ── Phase 1: render leaf nodes with staggered pop-in ──────────────────
+      // We use a <g> wrapper so transform-origin: center works in SVG
+      leafNodes.forEach((n, i) => {
+        const cx = pxOf(n), cy = pyOf(n);
+        const label = n.s === 'EOB' ? 'EOB' : n.s.slice(1, -1);
+        const parts  = label.split(',');
+        const d = i * LEAF_STAGGER;
+
+        const g = mk('g', {
+          class: 'huff-leaf huff-anim-leaf',
+          'data-sym': n.s,
+          style: `cursor:pointer; animation: huffPopIn 0.38s cubic-bezier(.34,1.56,.64,1) ${d}ms forwards`
+        });
+        g.appendChild(mk('circle', { cx, cy, r: LEAF_R, fill: '#dbeafe', stroke: '#2563eb', 'stroke-width': '1.5' }));
+        if (parts.length === 2) {
+          g.appendChild(mk('text', { x: cx, y: cy - 2, 'text-anchor': 'middle', 'font-size': '8', fill: '#1e40af', 'font-family': 'JetBrains Mono,monospace', 'pointer-events': 'none' }, parts[0] + ','));
+          g.appendChild(mk('text', { x: cx, y: cy + 8, 'text-anchor': 'middle', 'font-size': '8', fill: '#1e40af', 'font-family': 'JetBrains Mono,monospace', 'pointer-events': 'none' }, parts[1]));
         } else {
-          html += `<circle cx="${x}" cy="${y}" r="${INT_R}" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5"/>`;
-          html += `<text x="${x}" y="${y + 3}" text-anchor="middle" font-size="8" fill="#94a3b8" font-family="Inter,sans-serif" pointer-events="none">${n.c}</text>`;
+          g.appendChild(mk('text', { x: cx, y: cy + 4, 'text-anchor': 'middle', 'font-size': '8', fill: '#1e40af', 'font-family': 'JetBrains Mono,monospace', 'pointer-events': 'none' }, label));
         }
-        drawNodes(n.l);
-        drawNodes(n.r);
-      }
-      drawNodes(root);
+        svg.appendChild(g);
+      });
 
-      svg.innerHTML = html;
+      // ── Phase 2: animate each merge step (edges + internal node) ──────────
+      // Steps are in build order: first = deepest (rarest pair), last = root
+      let stepDelay = leafNodes.length * LEAF_STAGGER + AFTER_LEAVES;
 
+      // We need a layer for edges so they sit below leaf nodes.
+      // Insert an SVG <g> at the front to hold edges.
+      const edgeLayer = mk('g', { class: 'huff-edge-layer' });
+      svg.insertBefore(edgeLayer, svg.firstChild);
+
+      steps.forEach(({ left, right, parent }) => {
+        const px = pxOf(parent), py = pyOf(parent);
+
+        // Left edge + "0" label
+        if (left && pos.has(left)) {
+          const lx = pxOf(left), ly = pyOf(left);
+          edgeLayer.appendChild(mk('line', {
+            x1: px, y1: py, x2: lx, y2: ly,
+            stroke: '#cbd5e1', 'stroke-width': '1.5',
+            class: 'huff-anim-edge',
+            style: `animation: huffFadeIn 0.22s ease ${stepDelay}ms forwards`
+          }));
+          const mx = ((px + lx) / 2 - 8).toFixed(1), my = ((py + ly) / 2 + 4).toFixed(1);
+          edgeLayer.appendChild(mk('text', {
+            x: mx, y: my, 'font-size': '10', fill: '#94a3b8',
+            'font-family': 'JetBrains Mono,monospace',
+            class: 'huff-anim-edge',
+            style: `animation: huffFadeIn 0.18s ease ${stepDelay + 60}ms forwards`
+          }, '0'));
+        }
+
+        // Right edge + "1" label
+        if (right && pos.has(right)) {
+          const rx = pxOf(right), ry = pyOf(right);
+          edgeLayer.appendChild(mk('line', {
+            x1: px, y1: py, x2: rx, y2: ry,
+            stroke: '#cbd5e1', 'stroke-width': '1.5',
+            class: 'huff-anim-edge',
+            style: `animation: huffFadeIn 0.22s ease ${stepDelay + 40}ms forwards`
+          }));
+          const mx = ((px + rx) / 2 + 4).toFixed(1), my = ((py + ry) / 2 + 4).toFixed(1);
+          edgeLayer.appendChild(mk('text', {
+            x: mx, y: my, 'font-size': '10', fill: '#94a3b8',
+            'font-family': 'JetBrains Mono,monospace',
+            class: 'huff-anim-edge',
+            style: `animation: huffFadeIn 0.18s ease ${stepDelay + 80}ms forwards`
+          }, '1'));
+        }
+
+        // Internal node (popping in after its edges)
+        const nodeDelay = stepDelay + 110;
+        const ng = mk('g', {
+          class: 'huff-anim-node',
+          style: `animation: huffPopIn 0.3s cubic-bezier(.34,1.56,.64,1) ${nodeDelay}ms forwards`
+        });
+        ng.appendChild(mk('circle', { cx: px, cy: py, r: INT_R, fill: '#f1f5f9', stroke: '#cbd5e1', 'stroke-width': '1.5' }));
+        ng.appendChild(mk('text', { x: px, y: py + 3, 'text-anchor': 'middle', 'font-size': '8', fill: '#94a3b8', 'font-family': 'Inter,sans-serif', 'pointer-events': 'none' }, parent.c));
+        svg.appendChild(ng);
+
+        stepDelay += STEP_GAP;
+      });
+
+      // ── Attach hover listeners ─────────────────────────────────────────────
       svg.querySelectorAll('.huff-leaf').forEach(g => {
         const sym = g.getAttribute('data-sym');
         g.addEventListener('mouseenter', () => setHighlight(sym));
@@ -8359,9 +8452,10 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         freq[k] = (freq[k] || 0) + 1;
       });
 
-      _root  = buildTree(S.rleSeq);
+      const { root, steps } = buildTree(S.rleSeq);
+      _root  = root;
       _codes = _root ? genCodes(_root, '', {}) : {};
-      renderTree(_root);
+      renderTree(_root, steps);
       renderTable(_codes, freq);
       updateHuffStats(S.rleSeq, _codes);
     }
