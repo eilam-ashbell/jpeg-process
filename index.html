@@ -2412,6 +2412,38 @@
       font-family: 'JetBrains Mono', monospace;
     }
 
+    /* ── DPCM transform card ────────────────────────────────────────────────── */
+    .dpcm-transform-row {
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    }
+    .dpcm-col {
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+    }
+    .dpcm-col-label {
+      font-size: 0.68rem; font-weight: 700; color: var(--text-muted, #94a3b8);
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .dpcm-col-note {
+      font-size: 0.68rem; color: var(--text-secondary); font-style: italic;
+    }
+    .dpcm-token {
+      font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700;
+      padding: 8px 18px; border-radius: 8px; border: 2px solid;
+    }
+    .dpcm-raw      { background: #fefce8; border-color: #fde047; color: #713f12; }
+    .dpcm-diff     { background: #ede9fe; border-color: #8b5cf6; color: #3730a3; }
+    .dpcm-diff.no-change { background: #f0fdf4; border-color: #86efac; color: #166534; }
+    .dpcm-arrow-col {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 4px; padding: 0 8px;
+    }
+    .dpcm-eq     { font-size: 1.5rem; color: var(--text-muted, #94a3b8); line-height: 1; }
+    .dpcm-formula {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;
+      color: var(--text-secondary); white-space: nowrap;
+      background: var(--bg-secondary); padding: 2px 8px; border-radius: 4px;
+    }
+
     /* ── S12: Huffman animations ───────────────────────────────────────────── */
     @keyframes huffPopIn {
       0%   { opacity: 0; transform: scale(0.3); }
@@ -3766,6 +3798,15 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       <p class="section-body-text reveal">
         The result is a stream of bits that's as compact as possible without losing any information. Combined with all the previous steps, your original 36 MB of raw pixel data is now compressed to around 300 KB — over 100 times smaller. That's the magic of JPEG.
       </p>
+      <p class="section-body-text reveal">
+        But before Huffman coding begins, one important transformation happens to the <strong>DC coefficient</strong> (the first token in the RLE sequence). Instead of encoding the raw value, JPEG encodes its <strong>difference from the previous block's DC</strong>. This is called <em>Differential Pulse Code Modulation (DPCM)</em>. Adjacent blocks tend to have similar average brightness, so the differences stay small — and small numbers compress better. The Huffman tree is built from these differences, not the raw values.
+      </p>
+      <div class="demo-card reveal" id="dcDpcmCard" style="display:none">
+        <p class="matrix-panel-label">DC coefficient — DPCM step <span class="sos-panel-sub">applied before building the Huffman tree</span></p>
+        <div class="dpcm-transform-row" id="dpcmRow">
+          <p class="section-placeholder" style="margin:0">Select a block above</p>
+        </div>
+      </div>
       <div class="demo-card reveal">
         <div class="huffman-layout">
           <div>
@@ -9066,6 +9107,35 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       if (el4) el4.style.display = '';
     }
 
+    // Populate the DPCM card showing the before→after DC token transformation
+    function updateDpcmCard(rawDC, diff) {
+      const card = document.getElementById('dcDpcmCard');
+      const row  = document.getElementById('dpcmRow');
+      if (!card || !row) return;
+      card.style.display = '';
+      const noChange   = (diff === rawDC);
+      const prevDC     = rawDC - diff;
+      const signedDiff = (!noChange && diff > 0) ? `+${diff}` : `${diff}`;
+      row.innerHTML = `
+        <div class="dpcm-col">
+          <div class="dpcm-col-label">From RLE</div>
+          <div class="dpcm-token dpcm-raw">(0,&thinsp;${rawDC})</div>
+          <div class="dpcm-col-note">raw DC value</div>
+        </div>
+        <div class="dpcm-arrow-col">
+          <div class="dpcm-eq">→</div>
+          <div class="dpcm-formula">${noChange
+            ? 'first block — prev&thinsp;=&thinsp;0'
+            : `${rawDC}&thinsp;−&thinsp;${prevDC}&thinsp;=&thinsp;${signedDiff}`
+          }</div>
+        </div>
+        <div class="dpcm-col">
+          <div class="dpcm-col-label">To Huffman</div>
+          <div class="dpcm-token dpcm-diff${noChange ? ' no-change' : ''}">(0,&thinsp;${signedDiff})</div>
+          <div class="dpcm-col-note">${noChange ? 'unchanged — first block' : 'DPCM difference'}</div>
+        </div>`;
+    }
+
     // Returns a copy of rleSeq with the DC token replaced by the DPCM difference
     // from the previous MCU (Y-channel). MCU 0 is unchanged (prevDC = 0).
     function applyDcDpcm(rleSeq) {
@@ -9088,6 +9158,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
       // Use DPCM-encoded DC (diff from previous block) — matches actual JPEG encoding
       const tokens = applyDcDpcm(S.rleSeq);
+      updateDpcmCard(S.rleSeq[0].value, tokens[0].value);
 
       const freq = {};
       tokens.forEach(t => {
