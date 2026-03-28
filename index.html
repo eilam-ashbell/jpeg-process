@@ -2745,18 +2745,18 @@
       cursor: pointer; user-select: none;
       transition: filter 0.12s;
     }
-    .sos-tnode-card:hover { filter: brightness(0.96); }
+    .sos-tnode-card:hover { filter: brightness(0.92) saturate(1.05); }
     .sos-tnode--leaf > .sos-tnode-card { cursor: default; }
     .sos-tnode--leaf > .sos-tnode-card:hover { filter: none; }
     /* type colours — monotone slate */
-    .sos-tnode--sos  > .sos-tnode-card { background: #f1f5f9; border-color: #94a3b8; }
-    .sos-tnode--mcu  > .sos-tnode-card { background: var(--bg-secondary); }
-    .sos-tnode--mcu.tnode-sel > .sos-tnode-card { background: #e2e8f0; border-color: #64748b; }
-    .sos-tnode--y    > .sos-tnode-card { background: #f8fafc; border-color: #cbd5e1; }
-    .sos-tnode--cb   > .sos-tnode-card { background: #f1f5f9; border-color: #94a3b8; }
-    .sos-tnode--cr   > .sos-tnode-card { background: #e8ecf0; border-color: #94a3b8; }
-    .sos-tnode--dc   > .sos-tnode-card { background: #dde2e8; border-color: #64748b; }
-    .sos-tnode--ac   > .sos-tnode-card { background: #f1f5f9; border-color: #c4cacf; }
+    .sos-tnode--sos  > .sos-tnode-card { background: #dbeafe; border-color: #60a5fa; }
+    .sos-tnode--mcu  > .sos-tnode-card { background: #f0f4ff; border-color: #93c5fd; }
+    .sos-tnode--mcu.tnode-sel > .sos-tnode-card { background: #bfdbfe; border-color: #2563eb; }
+    .sos-tnode--y    > .sos-tnode-card { background: #fef9e7; border-color: #f6d55c; }
+    .sos-tnode--cb   > .sos-tnode-card { background: #dbeafe; border-color: #60a5fa; }
+    .sos-tnode--cr   > .sos-tnode-card { background: #fed7aa; border-color: #fb923c; }
+    .sos-tnode--dc   > .sos-tnode-card { background: #bfdbfe; border-color: #3b82f6; }
+    .sos-tnode--ac   > .sos-tnode-card { background: #c7d2fe; border-color: #4f46e5; }
     /* arrow */
     .sos-tnode-arrow {
       font-size: 0.58rem; color: var(--text-muted, #94a3b8);
@@ -2767,27 +2767,37 @@
     .sos-tnode-dot {
       width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
     }
-    .sos-tnode--y  .sos-tnode-dot { background: #94a3b8; }
-    .sos-tnode--cb .sos-tnode-dot { background: #64748b; }
-    .sos-tnode--cr .sos-tnode-dot { background: #475569; }
-    .sos-tnode--dc .sos-tnode-dot { background: #334155; }
-    .sos-tnode--ac .sos-tnode-dot { background: #94a3b8; }
+    .sos-tnode--y  .sos-tnode-dot { background: #f6d55c; }
+    .sos-tnode--cb .sos-tnode-dot { background: #60a5fa; }
+    .sos-tnode--cr .sos-tnode-dot { background: #fb923c; }
+    .sos-tnode--dc .sos-tnode-dot { background: #3b82f6; }
+    .sos-tnode--ac .sos-tnode-dot { background: #4f46e5; }
     .sos-tnode-label  { font-weight: 700; color: var(--text-primary); }
+    .sos-tnode--y  > .sos-tnode-card .sos-tnode-label { color: #854d0e; }
+    .sos-tnode--cb > .sos-tnode-card .sos-tnode-label { color: #1e40af; }
+    .sos-tnode--cr > .sos-tnode-card .sos-tnode-label { color: #9a3412; }
+    .sos-tnode--dc > .sos-tnode-card .sos-tnode-label { color: #1e40af; }
+    .sos-tnode--ac > .sos-tnode-card .sos-tnode-label { color: #3730a3; }
     .sos-tnode-hex {
       font-family: 'JetBrains Mono', monospace; font-size: 0.62rem;
-      color: var(--text-muted, #94a3b8); background: rgba(0,0,0,0.05);
+      color: #475569; background: rgba(0,0,0,0.08);
       padding: 1px 5px; border-radius: 3px;
     }
     .sos-tnode-badge {
-      margin-left: auto; font-size: 0.68rem; color: var(--text-secondary);
-      background: rgba(0,0,0,0.06); padding: 2px 8px; border-radius: 10px;
+      margin-left: auto; font-size: 0.68rem; color: #64748b;
+      background: rgba(255,255,255,0.7); padding: 2px 8px; border-radius: 10px;
       white-space: nowrap;
     }
-    .tnode-sel .sos-tnode-badge { background: #cbd5e1; color: #1e293b; font-weight: 600; }
+    .sos-tnode--y  > .sos-tnode-card .sos-tnode-badge { color: #854d0e; background: rgba(255,255,255,0.8); }
+    .sos-tnode--cb > .sos-tnode-card .sos-tnode-badge { color: #1e40af; background: rgba(255,255,255,0.8); }
+    .sos-tnode--cr > .sos-tnode-card .sos-tnode-badge { color: #9a3412; background: rgba(255,255,255,0.8); }
+    .sos-tnode--dc > .sos-tnode-card .sos-tnode-badge { color: #1e40af; background: rgba(255,255,255,0.8); }
+    .sos-tnode--ac > .sos-tnode-card .sos-tnode-badge { color: #3730a3; background: rgba(255,255,255,0.8); }
+    .tnode-sel .sos-tnode-badge { background: #1e40af; color: #ffffff; font-weight: 600; }
     /* children indented with left border */
     .sos-tnode-children {
       margin-left: 16px; padding-left: 14px;
-      border-left: 2px solid var(--border); margin-top: 2px;
+      border-left: 2px solid #bfdbfe; margin-top: 2px;
       overflow: hidden; max-height: 0; opacity: 0;
       transition: max-height 0.28s ease, opacity 0.2s ease;
     }
@@ -2801,16 +2811,16 @@
     }
     .sos-tnode-tok {
       font-family: 'JetBrains Mono', monospace; font-size: 0.67rem;
-      background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px;
-      padding: 2px 6px; color: #334155;
+      background: #c7d2fe; border: 1px solid #4f46e5; border-radius: 4px;
+      padding: 2px 6px; color: #3730a3;
       animation: sosBitPop 0.18s ease forwards;
     }
     .sos-tnode-tok.tok-eob {
-      background: #e2e8f0; border-color: #94a3b8;
-      color: #475569; font-weight: 700;
+      background: #bfdbfe; border-color: #3b82f6;
+      color: #1e40af; font-weight: 700;
     }
     .sos-tnode-tok--dc {
-      background: #dde2e8; border-color: #64748b; color: #1e293b;
+      background: #bfdbfe; border-color: #3b82f6; color: #1e40af;
     }
 
     /* ── SOS Explorer Split Layout ──────────────────────────────────────────── */
@@ -2835,11 +2845,11 @@
       font-size: 0.62rem; font-weight: 700;
       padding: 1px 5px; border-radius: 8px; border: 1px solid;
     }
-    .sbk-y  { background: #f8fafc; border-color: #94a3b8; color: #374151; }
-    .sbk-cb { background: #f1f5f9; border-color: #64748b; color: #1e293b; }
-    .sbk-cr { background: #e8ecf0; border-color: #6b7280; color: #1e293b; }
-    .sbk-dc { background: #d1d5db; border-color: #4b5563; color: #111827; }
-    .sbk-ac { background: #e2e8f0; border-color: #6b7280; color: #1e293b; }
+    .sbk-y  { background: #fef9e7; border-color: #f6d55c; color: #854d0e; }
+    .sbk-cb { background: #dbeafe; border-color: #60a5fa; color: #1e40af; }
+    .sbk-cr { background: #fed7aa; border-color: #fb923c; color: #9a3412; }
+    .sbk-dc { background: #bfdbfe; border-color: #3b82f6; color: #1e40af; }
+    .sbk-ac { background: #c7d2fe; border-color: #4f46e5; color: #3730a3; }
 
     /* Bit cells */
     .sos-bits-grid { display: flex; flex-wrap: wrap; gap: 3px; }
@@ -2856,23 +2866,23 @@
       border: 1px solid transparent;
       transition: opacity 0.13s, background 0.12s, border-color 0.12s;
     }
-    /* Default channel tints — monotone slate */
-    .sos-bc[data-ch="y"]  { background: #f8fafc; border-color: #e2e8f0; color: #334155; }
-    .sos-bc[data-ch="cb"] { background: #f1f5f9; border-color: #cbd5e1; color: #334155; }
-    .sos-bc[data-ch="cr"] { background: #e8ecf0; border-color: #c4cacf; color: #334155; }
+    /* Default channel tints — vibrant themed colors */
+    .sos-bc[data-ch="y"]  { background: #fef9e7; border-color: #f6d55c; color: #854d0e; }
+    .sos-bc[data-ch="cb"] { background: #dbeafe; border-color: #60a5fa; color: #1e40af; }
+    .sos-bc[data-ch="cr"] { background: #fed7aa; border-color: #fb923c; color: #9a3412; }
     /* Highlight mode: dim non-matching */
     .sos-bits-grid.hl-active .sos-bc         { opacity: 0.12; }
     .sos-bits-grid.hl-active .sos-bc.hl-match { opacity: 1; }
     /* Per-level highlight colours */
-    .sos-bits-grid.hl-active .sos-bc.hl-match[data-ch="y"]  { background: #e2e8f0; border-color: #94a3b8; color: #0f172a; }
-    .sos-bits-grid.hl-active .sos-bc.hl-match[data-ch="cb"] { background: #cbd5e1; border-color: #64748b; color: #0f172a; }
-    .sos-bits-grid.hl-active .sos-bc.hl-match[data-ch="cr"] { background: #b8c4cc; border-color: #475569; color: #0f172a; }
-    /* DC type override — darkest shade to stand out */
-    .sos-bits-grid.hl-active .sos-bc.hl-match.hl-type[data-type="dc"] { background: #64748b; border-color: #334155; color: #f8fafc; }
+    .sos-bits-grid.hl-active .sos-bc.hl-match[data-ch="y"]  { background: #fef3c7; border-color: #f6d55c; color: #854d0e; }
+    .sos-bits-grid.hl-active .sos-bc.hl-match[data-ch="cb"] { background: #bfdbfe; border-color: #3b82f6; color: #1e40af; }
+    .sos-bits-grid.hl-active .sos-bc.hl-match[data-ch="cr"] { background: #fed7aa; border-color: #fb923c; color: #9a3412; }
+    /* DC type override — stand out */
+    .sos-bits-grid.hl-active .sos-bc.hl-match.hl-type[data-type="dc"] { background: #3b82f6; border-color: #1e40af; color: #ffffff; }
     /* AC type override */
-    .sos-bits-grid.hl-active .sos-bc.hl-match.hl-type[data-type="ac"] { background: #cbd5e1; border-color: #475569; color: #0f172a; }
+    .sos-bits-grid.hl-active .sos-bc.hl-match.hl-type[data-type="ac"] { background: #4f46e5; border-color: #3730a3; color: #ffffff; }
     /* SOS / MCU → all bits */
-    .sos-bits-grid.hl-active .sos-bc.hl-match.hl-all { background: #e2e8f0; border-color: #94a3b8; color: #0f172a; }
+    .sos-bits-grid.hl-active .sos-bc.hl-match.hl-all { background: #60a5fa; border-color: #3b82f6; color: #ffffff; }
     /* MCU section labels in bits panel */
     .sos-mcu-label {
       width: 100%; flex-basis: 100%;
@@ -9628,10 +9638,14 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           const info = dcInfo(ch, mcuIdx);
           if (info) badge = `DC=${info.dc}  Δ=${signStr(info.diff)}`;
         }
-        makeNode(container, {
+        const chNode = makeNode(container, {
           type: ch, expandable: true, dot: true,
           label: labels[ch], mcuIdx, ch, badge,
         });
+        // Auto-expand color component nodes
+        chNode.classList.add('tnode-open');
+        const chChildren = chNode.querySelector('.sos-tnode-children');
+        if (chChildren) buildChildren(chNode, chChildren);
       });
     }
 
@@ -9716,11 +9730,15 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       if (ph) ph.style.display = 'none';
       wrap.innerHTML = '';
       const total = totalMcus();
-      makeNode(wrap, {
+      const sosNode = makeNode(wrap, {
         type: 'sos', expandable: true,
         label: 'SOS', hex: 'FF DA',
         badge: total ? `${total} MCUs` : '— MCUs',
       });
+      // Auto-expand SOS root
+      sosNode.classList.add('tnode-open');
+      const sosChildren = sosNode.querySelector('.sos-tnode-children');
+      if (sosChildren) buildChildren(sosNode, sosChildren);
       // Render binary panel for the selected MCU
       const selIdx = Math.round(selectedMcuIdx());
       if (total > 0 && Object.keys(_localCodes).length > 0) {
