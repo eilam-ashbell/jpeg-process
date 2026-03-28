@@ -2924,6 +2924,67 @@
     }
     .sos-modal-close-btn:hover { background: var(--border); }
     .sos-modal-body { padding: 12px 20px 20px; }
+
+    /* ── Wizard ──────────────────────────────────────────────────────────── */
+    .wiz-dots { display: flex; gap: 6px; align-items: center; }
+    .wiz-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--border); border: none; padding: 0;
+      transition: background 0.25s, transform 0.25s;
+      cursor: pointer;
+    }
+    .wiz-dot.wiz-past { background: var(--accent-blue); opacity: 0.4; }
+    .wiz-dot.wiz-cur  { background: var(--accent-blue); transform: scale(1.4); opacity: 1; }
+    .wiz-explain {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .wiz-step-num {
+      font-size: 0.67rem; font-weight: 700;
+      color: var(--accent-blue);
+      text-transform: uppercase; letter-spacing: 0.08em;
+      margin-bottom: 2px;
+    }
+    .wiz-step-title {
+      margin: 0 0 6px; font-size: 1.05rem; font-weight: 700;
+      color: var(--text-primary);
+    }
+    .wiz-step-text {
+      font-size: 0.84rem; color: var(--text-secondary); line-height: 1.55; margin: 0;
+    }
+    .wiz-step-text strong { color: var(--text-primary); }
+    .wiz-nav {
+      display: flex; align-items: center;
+      padding: 14px 20px; border-top: 1px solid var(--border); gap: 12px;
+    }
+    .wiz-btn {
+      padding: 7px 18px; border: 1.5px solid var(--border); border-radius: 8px;
+      background: var(--bg-primary); cursor: pointer;
+      font-size: 0.78rem; font-weight: 600; font-family: 'Inter', sans-serif;
+      color: var(--text-secondary); transition: all 0.15s; white-space: nowrap;
+    }
+    .wiz-btn:hover:not(:disabled) { border-color: var(--accent-blue); color: var(--accent-blue); }
+    .wiz-btn:disabled { opacity: 0.35; cursor: default; }
+    .wiz-btn--pri {
+      background: var(--accent-blue); border-color: var(--accent-blue); color: #fff;
+    }
+    .wiz-btn--pri:hover:not(:disabled) { background: var(--accent-blue-dark); border-color: var(--accent-blue-dark); }
+    .wiz-btn--pause { min-width: 82px; }
+    .wiz-btn--pause.is-play { border-color: var(--accent-blue); color: var(--accent-blue); }
+    .wiz-progress { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .wiz-progress-fill { height: 100%; width: 0; background: var(--accent-blue); border-radius: 2px; }
+    /* Panel focus/dim during wizard */
+    .wiz-focus .sos-panel,
+    .wiz-focus .sos-stats-row,
+    .wiz-focus .dct-controls {
+      transition: opacity 0.35s, filter 0.35s;
+      opacity: 0.12; filter: grayscale(0.5) blur(1px);
+    }
+    .wiz-focus .sos-panel.wiz-lit,
+    .wiz-focus .sos-stats-row.wiz-lit,
+    .wiz-focus .dct-controls.wiz-lit { opacity: 1; filter: none; }
+    .sos-code-row.wiz-hl { background: #eff6ff; border-color: var(--accent-blue); }
+
     .sbk {
       font-size: 0.62rem; font-weight: 700;
       padding: 1px 5px; border-radius: 8px; border: 1px solid;
@@ -10007,15 +10068,312 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       refresh(e.detail.tokens);
     });
 
-    // ── Replay button ──────────────────────────────────────────────────────────
+    // ── Wizard (deferred: modal HTML lives after this <script>) ─────────────
+    document.addEventListener('DOMContentLoaded', function () {
+      // Replay button (inside modal, not available at IIFE-exec time)
+      var _sosBtn = document.getElementById('sosReplayBtn');
+      if (_sosBtn) {
+        _sosBtn.addEventListener('click', function () {
+          if (_tokens.length && Object.keys(_codes).length) runAnimation(_tokens, _codes);
+        });
+      }
 
-    const _sosBtn = document.getElementById('sosReplayBtn');
-    if (_sosBtn) {
-      _sosBtn.addEventListener('click', () => {
-        if (_tokens.length && Object.keys(_codes).length) runAnimation(_tokens, _codes);
+      var infoBtn   = document.getElementById('sosBitsInfoBtn');
+      var overlay   = document.getElementById('sosBitsModal');
+      var closeBtn  = document.getElementById('sosBitsModalClose');
+      var mBody     = document.getElementById('sosBitsModalBody');
+      var prevBtn   = document.getElementById('wizPrev');
+      var nextBtn   = document.getElementById('wizNext');
+      var dotsWrap  = document.getElementById('wizDots');
+      var barEl     = document.getElementById('wizBar');
+      var sNumEl    = document.getElementById('wizStepNum');
+      var sTitleEl  = document.getElementById('wizStepTitle');
+      var sTextEl   = document.getElementById('wizStepText');
+      if (!infoBtn || !overlay || !mBody) return;
+
+      var cur = 0, autoTmr = null, pending = [], paused = false;
+      var pauseBtn  = document.getElementById('wizPause');
+
+      /* ── helpers ───────────────────────────────────────────────── */
+      function cancelPending() {
+        pending.forEach(clearTimeout); pending = [];
+        document.querySelectorAll('.sos-code-row').forEach(function (r) {
+          r.classList.remove('sos-row-active', 'wiz-hl');
+        });
+      }
+
+      // Returns row indices of the 3 DC tokens (first token of each channel block).
+      // Structure: [Y DC, ...Y ACs, Y EOB, Cb DC, ...Cb ACs, Cb EOB, Cr DC, ...Cr ACs, Cr EOB]
+      function dcRowIndices() {
+        var idx = [];
+        if (!_tokens.length) return idx;
+        idx.push(0); // Y DC is always first
+        for (var i = 0; i < _tokens.length; i++) {
+          if (_tokens[i].value === 'EOB' && i + 1 < _tokens.length) {
+            idx.push(i + 1); // token right after an EOB is the next channel's DC
+          }
+        }
+        return idx;
+      }
+
+      function populateComplete() {
+        var buf = document.getElementById('sosBitBuffer');
+        var str = document.getElementById('sosByteStream');
+        if (!buf || !str || !_tokens.length || !Object.keys(_codes).length) return;
+        buf.innerHTML = ''; str.innerHTML = '';
+        var allBits = '';
+        _tokens.forEach(function (t) {
+          var key = t.value === 'EOB' ? 'EOB' : '(' + t.skip + ',' + t.value + ')';
+          var c = _codes[key]; if (c) allBits += c;
+        });
+        for (var i = 0; i < allBits.length; i++) {
+          if (i > 0 && i % 8 === 0) {
+            var d = document.createElement('div');
+            d.className = 'sos-byte-boundary'; buf.appendChild(d);
+          }
+          var cell = document.createElement('div');
+          cell.className = 'sos-bit'; cell.textContent = allBits[i]; buf.appendChild(cell);
+        }
+        var res = packBits(_tokens, _codes);
+        res.rawBytes.forEach(function (b) {
+          var bx = document.createElement('div');
+          bx.className = 'sos-hex-byte' + (b === 0xFF ? ' byte-ff' : '');
+          bx.textContent = toHex(b); str.appendChild(bx);
+          if (b === 0xFF) {
+            var sb = document.createElement('div');
+            sb.className = 'sos-hex-byte byte-stuff'; sb.textContent = '00';
+            str.appendChild(sb);
+          }
+        });
+      }
+
+      function animatePartial(maxT) {
+        var buf = document.getElementById('sosBitBuffer');
+        var str = document.getElementById('sosByteStream');
+        if (!buf || !_tokens.length || !Object.keys(_codes).length) return;
+        buf.innerHTML = ''; if (str) str.innerHTML = '';
+        var lim = Math.min(maxT, _tokens.length);
+        var msOff = 0, gBit = 0;
+        for (var i = 0; i < lim; i++) {
+          (function (idx, tStart, bitStart) {
+            var t = _tokens[idx];
+            var key = t.value === 'EOB' ? 'EOB' : '(' + t.skip + ',' + t.value + ')';
+            var code = _codes[key] || ''; if (!code) return;
+            pending.push(setTimeout(function () {
+              document.querySelectorAll('.sos-code-row').forEach(function (r) { r.classList.remove('sos-row-active'); });
+              var row = document.querySelector('.sos-code-row[data-idx="' + idx + '"]');
+              if (row) { row.classList.add('sos-row-active'); row.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+            }, tStart));
+            code.split('').forEach(function (bit, bIdx) {
+              var pos = bitStart + bIdx;
+              pending.push(setTimeout(function () {
+                if (pos > 0 && pos % 8 === 0) {
+                  var d = document.createElement('div');
+                  d.className = 'sos-byte-boundary'; buf.appendChild(d);
+                }
+                var c = document.createElement('div');
+                c.className = 'sos-bit bit-new'; c.textContent = bit;
+                buf.appendChild(c);
+                pending.push(setTimeout(function () { c.classList.remove('bit-new'); }, 350));
+              }, tStart + 120 + bIdx * 50));
+            });
+          })(i, msOff, gBit);
+          var tk = _tokens[i];
+          var tkey = tk.value === 'EOB' ? 'EOB' : '(' + tk.skip + ',' + tk.value + ')';
+          var tcode = _codes[tkey] || '';
+          msOff += 120 + tcode.length * 50 + 120;
+          gBit += tcode.length;
+        }
+      }
+
+      function applyFocus(litArr) {
+        mBody.classList.add('wiz-focus');
+        mBody.querySelectorAll('.sos-packer-layout > .sos-panel').forEach(function (p, i) {
+          p.classList.toggle('wiz-lit', litArr.indexOf(i) !== -1);
+        });
+        var stats = mBody.querySelector('.sos-stats-row');
+        var ctrls = mBody.querySelector('.dct-controls');
+        if (stats) stats.classList.toggle('wiz-lit', litArr.indexOf('stats') !== -1);
+        if (ctrls) ctrls.classList.toggle('wiz-lit', litArr.indexOf('controls') !== -1);
+      }
+
+      function removeFocus() {
+        mBody.classList.remove('wiz-focus');
+        mBody.querySelectorAll('.wiz-lit').forEach(function (el) { el.classList.remove('wiz-lit'); });
+      }
+
+      /* ── step definitions ─────────────────────────────────────── */
+      var STEPS = [
+        {
+          title: 'The Huffman Codebook',
+          text: 'Each symbol is mapped to a variable-length binary code. Frequent symbols get shorter codes, rare ones get longer. The codebook shown here covers all three channels of the selected MCU — <strong>Y</strong> (luma), <strong>Cb</strong> and <strong>Cr</strong> (chroma) — interleaved in that order.',
+          lit: [0], dur: 12000,
+          enter: function () { renderCodeList(_tokens, _codes); clearPanels(); setStats(false); }
+        },
+        {
+          title: 'DC Tokens — One Per Channel',
+          text: 'Each of the three channels (<strong>Y</strong>, <strong>Cb</strong>, <strong>Cr</strong>) opens with its own <strong>DC token</strong>, encoding the average value of that 8\u00D78 block. DC values use DPCM: only the <em>difference</em> from the previous block\u2019s DC is stored, keeping numbers small. All three use the <strong>DC Huffman table</strong>.',
+          lit: [0], dur: 12000,
+          enter: function () {
+            renderCodeList(_tokens, _codes); clearPanels(); setStats(false);
+            dcRowIndices().forEach(function (i) {
+              var row = document.querySelector('.sos-code-row[data-idx="' + i + '"]');
+              if (row) row.classList.add('wiz-hl');
+            });
+          }
+        },
+        {
+          title: 'AC Tokens — Details & Texture',
+          text: 'After each DC token come the <strong>AC coefficients</strong> — the remaining 63 frequency components in zigzag order — encoded as <strong>(skip, value)</strong> run-length pairs. The sequence ends with <strong>EOB</strong> when all remaining coefficients are zero. This Y\u2009\u2192\u2009Cb\u2009\u2192\u2009Cr pattern repeats for every MCU.',
+          lit: [0], dur: 12000,
+          enter: function () {
+            renderCodeList(_tokens, _codes); clearPanels(); setStats(false);
+            var dcIdx = dcRowIndices();
+            document.querySelectorAll('.sos-code-row').forEach(function (r, i) {
+              if (dcIdx.indexOf(i) === -1) r.classList.add('wiz-hl'); // highlight all non-DC rows
+            });
+          }
+        },
+        {
+          title: 'Packing Bits into the Buffer',
+          text: 'Each Huffman code is written <strong>bit-by-bit</strong> into a continuous buffer. Bits pack tightly — no gaps between symbols. The blue dividers mark byte boundaries (every 8 bits).',
+          lit: [0, 1], dur: 14000,
+          enter: function () { renderCodeList(_tokens, _codes); setStats(false); animatePartial(3); }
+        },
+        {
+          title: 'Byte Assembly & Byte Stuffing',
+          text: 'Every 8 bits form one <strong>byte</strong> (shown in hex). If a byte equals <strong>0xFF</strong>, an extra <strong>0x00</strong> \u201Cstuff byte\u201D is inserted — preventing confusion with JPEG marker bytes.',
+          lit: [1, 2], dur: 12000,
+          enter: function () { renderCodeList(_tokens, _codes); setStats(false); populateComplete(); }
+        },
+        {
+          title: 'The Complete Bitstream',
+          text: 'This process repeats for every channel (<strong>Y, Cb, Cr</strong>) in each MCU across the entire image — producing the final JPEG scan data. Press <strong>\u25B6 Replay</strong> to watch the full animation.',
+          lit: [0, 1, 2, 'stats', 'controls'], dur: 14000,
+          enter: function () {
+            renderCodeList(_tokens, _codes); populateComplete();
+            if (_tokens.length && Object.keys(_codes).length) {
+              var r = packBits(_tokens, _codes);
+              setStats(true, r.bitstring.length, r.bytes.length, r.stuffCount);
+            }
+            var btn = document.getElementById('sosReplayBtn');
+            if (btn) { btn.disabled = !(_tokens.length && Object.keys(_codes).length); }
+          }
+        }
+      ];
+
+      // Build dot indicators
+      STEPS.forEach(function (_, i) {
+        var dot = document.createElement('button');
+        dot.className = 'wiz-dot'; dot.title = 'Step ' + (i + 1);
+        dot.addEventListener('click', function () { goToStep(i); });
+        dotsWrap.appendChild(dot);
       });
-    }
 
+      /* ── navigation ───────────────────────────────────────────── */
+      function updateUI() {
+        var s = STEPS[cur];
+        if (sNumEl)   sNumEl.textContent  = 'Step ' + (cur + 1) + ' of ' + STEPS.length;
+        if (sTitleEl) sTitleEl.textContent = s.title;
+        if (sTextEl)  sTextEl.innerHTML    = s.text;
+        dotsWrap.querySelectorAll('.wiz-dot').forEach(function (d, i) {
+          d.className = 'wiz-dot' + (i < cur ? ' wiz-past' : '') + (i === cur ? ' wiz-cur' : '');
+        });
+        if (prevBtn) prevBtn.disabled = (cur === 0);
+        if (nextBtn) nextBtn.textContent = (cur === STEPS.length - 1) ? 'Done \u2713' : 'Next \u2192';
+      }
+
+      function freezeBar() {
+        if (!barEl) return;
+        var w  = barEl.getBoundingClientRect().width;
+        var pw = barEl.parentElement ? barEl.parentElement.getBoundingClientRect().width : 0;
+        barEl.style.transition = 'none';
+        barEl.style.width = (pw > 0 ? (w / pw * 100).toFixed(1) : '0') + '%';
+      }
+
+      function syncPauseBtn() {
+        if (!pauseBtn) return;
+        pauseBtn.textContent = paused ? '\u25B6 Play' : '\u23F8 Pause';
+        pauseBtn.classList.toggle('is-play', paused);
+      }
+
+      function startAutoTimer() {
+        clearTimeout(autoTmr);
+        if (barEl) {
+          barEl.style.transition = 'none';
+          barEl.style.width = '0%';
+          void barEl.offsetHeight;
+        }
+        if (paused) return;
+        var s = STEPS[cur];
+        if (barEl) {
+          barEl.style.transition = 'width ' + s.dur + 'ms linear';
+          barEl.style.width = '100%';
+        }
+        if (cur < STEPS.length - 1) {
+          autoTmr = setTimeout(function () { goToStep(cur + 1); }, s.dur);
+        }
+      }
+
+      function goToStep(idx) {
+        if (idx < 0 || idx >= STEPS.length) return;
+        cancelPending();
+        cur = idx;
+        updateUI();
+        applyFocus(STEPS[cur].lit);
+        STEPS[cur].enter();
+        startAutoTimer();
+      }
+
+      function setPaused(val) {
+        paused = val;
+        syncPauseBtn();
+        if (paused) { clearTimeout(autoTmr); freezeBar(); }
+        else startAutoTimer();
+      }
+
+      function openModal() {
+        paused = false;
+        syncPauseBtn();
+        overlay.classList.add('open');
+        document.body.classList.add('scroll-locked');
+        goToStep(0);
+      }
+
+      function closeModal() {
+        clearTimeout(autoTmr);
+        cancelPending();
+        removeFocus();
+        overlay.classList.remove('open');
+        document.body.classList.remove('scroll-locked');
+      }
+
+      infoBtn.addEventListener('click', openModal);
+      if (closeBtn) closeBtn.addEventListener('click', closeModal);
+      if (pauseBtn) pauseBtn.addEventListener('click', function () { setPaused(!paused); });
+      overlay.addEventListener('click', function (e) { if (e.target === overlay) closeModal(); });
+      document.addEventListener('keydown', function (e) {
+        if (!overlay.classList.contains('open')) return;
+        if (e.key === 'Escape') closeModal();
+        if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          paused = true; syncPauseBtn();
+          if (cur === STEPS.length - 1) closeModal(); else goToStep(cur + 1);
+        }
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          paused = true; syncPauseBtn();
+          goToStep(cur - 1);
+        }
+      });
+      if (prevBtn) prevBtn.addEventListener('click', function () {
+        paused = true; syncPauseBtn(); goToStep(cur - 1);
+      });
+      if (nextBtn) nextBtn.addEventListener('click', function () {
+        if (cur === STEPS.length - 1) { closeModal(); return; }
+        paused = true; syncPauseBtn(); goToStep(cur + 1);
+      });
+    });
 
   }());
 
@@ -10648,49 +11006,55 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     updateBlock(bx, by);
   });
 
-  // ─── Bitstream Info Modal ─────────────────────────────────────────────────
-  // Deferred so the modal HTML (placed after this script tag) is in the DOM.
-  document.addEventListener('DOMContentLoaded', function () {
-    const infoBtn   = document.getElementById('sosBitsInfoBtn');
-    const overlay   = document.getElementById('sosBitsModal');
-    const closeBtn  = document.getElementById('sosBitsModalClose');
-    const modalBody = document.getElementById('sosBitsModalBody');
-    const card      = document.getElementById('sosPackerCard');
-    if (!infoBtn || !overlay || !card) return;
-
-    let origParent = null, origNext = null;
-
-    function openModal() {
-      origParent = card.parentNode;
-      origNext   = card.nextSibling;
-      modalBody.appendChild(card);
-      overlay.classList.add('open');
-      document.body.classList.add('scroll-locked');
-    }
-
-    function closeModal() {
-      if (origParent) origParent.insertBefore(card, origNext);
-      overlay.classList.remove('open');
-      document.body.classList.remove('scroll-locked');
-    }
-
-    infoBtn.addEventListener('click', openModal);
-    closeBtn.addEventListener('click', closeModal);
-    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape' && overlay.classList.contains('open')) closeModal();
-    });
-  });
 </script>
 
-<!-- Bitstream Building Animation Modal -->
-<div class="sos-modal-overlay" id="sosBitsModal" role="dialog" aria-modal="true" aria-labelledby="sosBitsModalTitle">
+<!-- Bitstream Wizard Modal -->
+<div class="sos-modal-overlay" id="sosBitsModal" role="dialog" aria-modal="true">
   <div class="sos-modal-box">
     <div class="sos-modal-header">
-      <span class="sos-modal-title" id="sosBitsModalTitle">Bitstream Building Animation</span>
+      <span class="sos-modal-title">How the Bitstream is Built</span>
+      <div class="wiz-dots" id="wizDots"></div>
       <button class="sos-modal-close-btn" id="sosBitsModalClose" aria-label="Close">✕</button>
     </div>
-    <div class="sos-modal-body" id="sosBitsModalBody"></div>
+    <div class="wiz-explain" id="wizExplain">
+      <div class="wiz-step-num" id="wizStepNum"></div>
+      <h3 class="wiz-step-title" id="wizStepTitle"></h3>
+      <p class="wiz-step-text" id="wizStepText"></p>
+    </div>
+    <div class="sos-modal-body" id="sosBitsModalBody">
+      <div class="sos-packer-layout">
+        <div class="sos-panel">
+          <p class="matrix-panel-label">Codebook <span class="sos-panel-sub">(DC first, AC by length)</span></p>
+          <div class="sos-code-list" id="sosCodeList"></div>
+          <p class="section-placeholder" id="sosPlaceholder" style="margin:0">Upload a photo to begin</p>
+        </div>
+        <div class="sos-panel">
+          <p class="matrix-panel-label">Bit buffer (groups of 8 → 1 byte)</p>
+          <div class="sos-bit-buffer" id="sosBitBuffer"></div>
+        </div>
+        <div class="sos-panel">
+          <p class="matrix-panel-label">Byte stream (hex)</p>
+          <div class="sos-byte-stream" id="sosByteStream"></div>
+          <div class="sos-stuffing-note" id="sosStuffNote" style="display:none">
+            <strong>Byte stuffing:</strong> 0xFF in scan data must be followed by 0x00 to avoid confusion with JPEG markers.
+          </div>
+        </div>
+      </div>
+      <div class="sos-stats-row" id="sosStats" style="display:none">
+        <span>Total bits: <strong id="sosTotalBits">—</strong></span>
+        <span>Packed bytes: <strong id="sosPackedBytes">—</strong></span>
+        <span>Stuffed 0x00s: <strong id="sosStuffCount">—</strong></span>
+      </div>
+      <div class="dct-controls" style="justify-content:flex-start;gap:8px;margin-top:16px">
+        <button class="btn-animate" id="sosReplayBtn" disabled>▶ Animate packing</button>
+      </div>
+    </div>
+    <div class="wiz-nav">
+      <button class="wiz-btn" id="wizPrev" disabled>← Previous</button>
+      <button class="wiz-btn wiz-btn--pause" id="wizPause">⏸ Pause</button>
+      <div class="wiz-progress"><div class="wiz-progress-fill" id="wizBar"></div></div>
+      <button class="wiz-btn wiz-btn--pri" id="wizNext">Next →</button>
+    </div>
   </div>
 </div>
 </body>
