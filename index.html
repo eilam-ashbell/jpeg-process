@@ -2412,6 +2412,17 @@
       font-family: 'JetBrains Mono', monospace;
     }
 
+    .huffman-scope-note {
+      margin-top: 14px;
+      padding: 10px 14px;
+      background: var(--bg-secondary);
+      border-left: 3px solid var(--border);
+      border-radius: 0 6px 6px 0;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
     /* ── DPCM transform card ────────────────────────────────────────────────── */
     .dpcm-transform-row {
       display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
@@ -2737,15 +2748,15 @@
     .sos-tnode-card:hover { filter: brightness(0.96); }
     .sos-tnode--leaf > .sos-tnode-card { cursor: default; }
     .sos-tnode--leaf > .sos-tnode-card:hover { filter: none; }
-    /* type colours */
-    .sos-tnode--sos  > .sos-tnode-card { background: #eff6ff; border-color: #93c5fd; }
+    /* type colours — monotone slate */
+    .sos-tnode--sos  > .sos-tnode-card { background: #f1f5f9; border-color: #94a3b8; }
     .sos-tnode--mcu  > .sos-tnode-card { background: var(--bg-secondary); }
-    .sos-tnode--mcu.tnode-sel > .sos-tnode-card { background: #fefce8; border-color: #fde047; }
-    .sos-tnode--y    > .sos-tnode-card { background: #fefce8; border-color: #fde047; }
-    .sos-tnode--cb   > .sos-tnode-card { background: #eff6ff; border-color: #93c5fd; }
-    .sos-tnode--cr   > .sos-tnode-card { background: #fdf2f8; border-color: #f0abfc; }
-    .sos-tnode--dc   > .sos-tnode-card { background: #ede9fe; border-color: #c4b5fd; cursor: default; }
-    .sos-tnode--ac   > .sos-tnode-card { background: #ecfdf5; border-color: #6ee7b7; }
+    .sos-tnode--mcu.tnode-sel > .sos-tnode-card { background: #e2e8f0; border-color: #64748b; }
+    .sos-tnode--y    > .sos-tnode-card { background: #f8fafc; border-color: #cbd5e1; }
+    .sos-tnode--cb   > .sos-tnode-card { background: #f1f5f9; border-color: #94a3b8; }
+    .sos-tnode--cr   > .sos-tnode-card { background: #e8ecf0; border-color: #94a3b8; }
+    .sos-tnode--dc   > .sos-tnode-card { background: #dde2e8; border-color: #64748b; }
+    .sos-tnode--ac   > .sos-tnode-card { background: #f1f5f9; border-color: #c4cacf; }
     /* arrow */
     .sos-tnode-arrow {
       font-size: 0.58rem; color: var(--text-muted, #94a3b8);
@@ -2756,11 +2767,11 @@
     .sos-tnode-dot {
       width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
     }
-    .sos-tnode--y  .sos-tnode-dot { background: #fbbf24; }
-    .sos-tnode--cb .sos-tnode-dot { background: #60a5fa; }
-    .sos-tnode--cr .sos-tnode-dot { background: #e879f9; }
-    .sos-tnode--dc .sos-tnode-dot { background: #a78bfa; }
-    .sos-tnode--ac .sos-tnode-dot { background: #34d399; }
+    .sos-tnode--y  .sos-tnode-dot { background: #94a3b8; }
+    .sos-tnode--cb .sos-tnode-dot { background: #64748b; }
+    .sos-tnode--cr .sos-tnode-dot { background: #475569; }
+    .sos-tnode--dc .sos-tnode-dot { background: #334155; }
+    .sos-tnode--ac .sos-tnode-dot { background: #94a3b8; }
     .sos-tnode-label  { font-weight: 700; color: var(--text-primary); }
     .sos-tnode-hex {
       font-family: 'JetBrains Mono', monospace; font-size: 0.62rem;
@@ -2772,7 +2783,7 @@
       background: rgba(0,0,0,0.06); padding: 2px 8px; border-radius: 10px;
       white-space: nowrap;
     }
-    .tnode-sel .sos-tnode-badge { background: #fde047; color: #713f12; font-weight: 600; }
+    .tnode-sel .sos-tnode-badge { background: #cbd5e1; color: #1e293b; font-weight: 600; }
     /* children indented with left border */
     .sos-tnode-children {
       margin-left: 16px; padding-left: 14px;
@@ -2790,13 +2801,16 @@
     }
     .sos-tnode-tok {
       font-family: 'JetBrains Mono', monospace; font-size: 0.67rem;
-      background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 4px;
-      padding: 2px 6px; color: #065f46;
+      background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px;
+      padding: 2px 6px; color: #334155;
       animation: sosBitPop 0.18s ease forwards;
     }
     .sos-tnode-tok.tok-eob {
-      background: #fef3c7; border-color: #fde68a;
-      color: #92400e; font-weight: 700;
+      background: #e2e8f0; border-color: #94a3b8;
+      color: #475569; font-weight: 700;
+    }
+    .sos-tnode-tok--dc {
+      background: #dde2e8; border-color: #64748b; color: #1e293b;
     }
 
     /* ── SOS Explorer Split Layout ──────────────────────────────────────────── */
@@ -2821,11 +2835,11 @@
       font-size: 0.62rem; font-weight: 700;
       padding: 1px 5px; border-radius: 8px; border: 1px solid;
     }
-    .sbk-y  { background: #fef9c3; border-color: #fbbf24; color: #713f12; }
-    .sbk-cb { background: #dbeafe; border-color: #60a5fa; color: #1e3a8a; }
-    .sbk-cr { background: #fdf4ff; border-color: #e879f9; color: #701a75; }
-    .sbk-dc { background: #ede9fe; border-color: #a78bfa; color: #3730a3; }
-    .sbk-ac { background: #dcfce7; border-color: #34d399; color: #065f46; }
+    .sbk-y  { background: #f8fafc; border-color: #94a3b8; color: #374151; }
+    .sbk-cb { background: #f1f5f9; border-color: #64748b; color: #1e293b; }
+    .sbk-cr { background: #e8ecf0; border-color: #6b7280; color: #1e293b; }
+    .sbk-dc { background: #d1d5db; border-color: #4b5563; color: #111827; }
+    .sbk-ac { background: #e2e8f0; border-color: #6b7280; color: #1e293b; }
 
     /* Bit cells */
     .sos-bits-grid { display: flex; flex-wrap: wrap; gap: 3px; }
@@ -2842,23 +2856,23 @@
       border: 1px solid transparent;
       transition: opacity 0.13s, background 0.12s, border-color 0.12s;
     }
-    /* Default channel tints */
-    .sos-bc[data-ch="y"]  { background: #fefce8; border-color: #fde047; color: #713f12; }
-    .sos-bc[data-ch="cb"] { background: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
-    .sos-bc[data-ch="cr"] { background: #fdf4ff; border-color: #e9d5ff; color: #6b21a8; }
+    /* Default channel tints — monotone slate */
+    .sos-bc[data-ch="y"]  { background: #f8fafc; border-color: #e2e8f0; color: #334155; }
+    .sos-bc[data-ch="cb"] { background: #f1f5f9; border-color: #cbd5e1; color: #334155; }
+    .sos-bc[data-ch="cr"] { background: #e8ecf0; border-color: #c4cacf; color: #334155; }
     /* Highlight mode: dim non-matching */
     .sos-bits-grid.hl-active .sos-bc         { opacity: 0.12; }
     .sos-bits-grid.hl-active .sos-bc.hl-match { opacity: 1; }
     /* Per-level highlight colours */
-    .sos-bits-grid.hl-active .sos-bc.hl-match[data-ch="y"]  { background: #fef08a; border-color: #facc15; }
-    .sos-bits-grid.hl-active .sos-bc.hl-match[data-ch="cb"] { background: #bfdbfe; border-color: #3b82f6; }
-    .sos-bits-grid.hl-active .sos-bc.hl-match[data-ch="cr"] { background: #e9d5ff; border-color: #a855f7; }
-    /* DC type override */
-    .sos-bits-grid.hl-active .sos-bc.hl-match.hl-type[data-type="dc"] { background: #ede9fe; border-color: #8b5cf6; color: #3730a3; }
+    .sos-bits-grid.hl-active .sos-bc.hl-match[data-ch="y"]  { background: #e2e8f0; border-color: #94a3b8; color: #0f172a; }
+    .sos-bits-grid.hl-active .sos-bc.hl-match[data-ch="cb"] { background: #cbd5e1; border-color: #64748b; color: #0f172a; }
+    .sos-bits-grid.hl-active .sos-bc.hl-match[data-ch="cr"] { background: #b8c4cc; border-color: #475569; color: #0f172a; }
+    /* DC type override — darkest shade to stand out */
+    .sos-bits-grid.hl-active .sos-bc.hl-match.hl-type[data-type="dc"] { background: #64748b; border-color: #334155; color: #f8fafc; }
     /* AC type override */
-    .sos-bits-grid.hl-active .sos-bc.hl-match.hl-type[data-type="ac"] { background: #dcfce7; border-color: #22c55e; color: #14532d; }
-    /* SOS / MCU → all bits in steel-blue */
-    .sos-bits-grid.hl-active .sos-bc.hl-match.hl-all { background: #dbeafe; border-color: #3b82f6; color: #1e3a8a; }
+    .sos-bits-grid.hl-active .sos-bc.hl-match.hl-type[data-type="ac"] { background: #cbd5e1; border-color: #475569; color: #0f172a; }
+    /* SOS / MCU → all bits */
+    .sos-bits-grid.hl-active .sos-bc.hl-match.hl-all { background: #e2e8f0; border-color: #94a3b8; color: #0f172a; }
     /* MCU section labels in bits panel */
     .sos-mcu-label {
       width: 100%; flex-basis: 100%;
@@ -3835,6 +3849,11 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           </div>
         </div>
         <p class="section-placeholder" id="huffmanPlaceholder">Select a block above to see Huffman coding</p>
+        <p class="huffman-scope-note" id="huffmanScopeNote" style="display:none">
+          This tree is built from the <strong>selected MCU only</strong> — to keep the visualization readable.
+          In a real JPEG encoder, the Huffman table is derived from <strong>every MCU in the image at once</strong>,
+          giving each symbol a code that reflects its true frequency across the whole scan.
+        </p>
       </div>
     </section>
   </div>
@@ -9105,6 +9124,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       if (el2) el2.textContent = avg;
       if (el3) el3.textContent = savings + '%';
       if (el4) el4.style.display = '';
+      const note = document.getElementById('huffmanScopeNote');
+      if (note) note.style.display = '';
     }
 
     // Populate the DPCM card showing the before→after DC token transformation
@@ -9156,24 +9177,70 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       const phEl = document.getElementById('huffmanPlaceholder');
       if (phEl) phEl.style.display = 'none';
 
-      // Use DPCM-encoded DC (diff from previous block) — matches actual JPEG encoding
-      const tokens = applyDcDpcm(S.rleSeq);
-      updateDpcmCard(S.rleSeq[0].value, tokens[0].value);
+      // Y channel: use existing DPCM-encoded sequence (also drives the DPCM card)
+      const yTokens = applyDcDpcm(S.rleSeq);
+      updateDpcmCard(S.rleSeq[0].value, yTokens[0].value);
+
+      // Build RLE+DPCM token list for Cb or Cr of the selected block
+      function chTokens(ch) {
+        const arr = ch === 'cb' ? S.cbChannel : S.crChannel;
+        if (!arr || !S.w) return [];
+        const cols  = Math.ceil(S.w / 8);
+        const selBx = S.selBx || 0, selBy = S.selBy || 0;
+        const qt    = scaleQT(S.quality);
+        const ZZ_AC = [
+           1,  8, 16,  9,  2,  3, 10, 17, 24, 32, 25, 18, 11,  4,  5,
+          12, 19, 26, 33, 40, 48, 41, 34, 27, 20, 13,  6,  7, 14, 21,
+          28, 35, 42, 49, 56, 57, 50, 43, 36, 29, 22, 15, 23, 30, 37,
+          44, 51, 58, 59, 52, 45, 38, 31, 39, 46, 53, 60, 61, 54, 47,
+          55, 62, 63,
+        ];
+        const quant  = quantize(dct2d(extractBlock(arr, selBx, selBy, S.w)), qt);
+        const dc     = quant[0];
+        const mcuIdx = (selBy / 8) * cols + (selBx / 8);
+        let diff = dc;
+        if (mcuIdx > 0) {
+          const prevBx = ((mcuIdx - 1) % cols) * 8;
+          const prevBy = Math.floor((mcuIdx - 1) / cols) * 8;
+          diff = dc - quantize(dct2d(extractBlock(arr, prevBx, prevBy, S.w)), qt)[0];
+        }
+        const toks = [{ skip: 0, value: diff }];
+        const acSeq = ZZ_AC.map(i => quant[i]);
+        let zeros = 0, lastNz = acSeq.length - 1;
+        while (lastNz >= 0 && acSeq[lastNz] === 0) lastNz--;
+        for (let j = 0; j <= lastNz; j++) {
+          if (acSeq[j] === 0) {
+            zeros++;
+            if (zeros === 16) { toks.push({ skip: 15, value: 0 }); zeros = 0; }
+          } else {
+            toks.push({ skip: zeros, value: acSeq[j] }); zeros = 0;
+          }
+        }
+        toks.push({ skip: 0, value: 'EOB' });
+        return toks;
+      }
+
+      // Full MCU = Y + Cb + Cr tokens (matches what the animation should show)
+      const mcuTokens = [
+        ...yTokens,
+        ...chTokens('cb'),
+        ...chTokens('cr'),
+      ];
 
       const freq = {};
-      tokens.forEach(t => {
+      mcuTokens.forEach(t => {
         const k = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
         freq[k] = (freq[k] || 0) + 1;
       });
 
-      const { root, steps } = buildTree(tokens);
+      const { root, steps } = buildTree(mcuTokens);
       _root  = root;
       _codes = _root ? genCodes(_root, '', {}) : {};
       renderTree(_root, steps);
       renderTable(_codes, freq);
-      updateHuffStats(tokens, _codes);
+      updateHuffStats(mcuTokens, _codes);
       document.dispatchEvent(new CustomEvent('huffmanChanged', {
-        detail: { codes: _codes, tokens: tokens }
+        detail: { codes: _codes, tokens: mcuTokens }
       }));
     }
 
@@ -9182,8 +9249,9 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
   // ─── Section 12b: SOS Structure Tree Explorer ────────────────────────────────
   (function () {
-    let _tokens = [];
-    let _codes  = {};
+    let _tokens     = [];
+    let _codes      = {};  // codes from selected MCU (section 11 tree)
+    let _localCodes = {};  // codes built from all MCUs — used for the bitstream display
 
     // Standard JPEG zigzag order: maps zigzag position → flat block index
     const ZZ = [
@@ -9262,20 +9330,55 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
     // ── Binary bits panel ─────────────────────────────────────────────────────
 
-    // Build annotated bit array for a single MCU using current _codes
+    // Build a Huffman code table covering every token in the image so no token
+    // is missing from the bitstream display (section 11 only covers one MCU).
+    function buildLocalCodes() {
+      const total = totalMcus();
+      if (!total || !S.yChannel) { _localCodes = {}; return; }
+      const freq = {};
+      for (let i = 0; i < total; i++) {
+        ['y', 'cb', 'cr'].forEach(ch => {
+          const info = dcInfo(ch, i);
+          if (!info) return;
+          const dcKey = `(0,${info.diff})`;
+          freq[dcKey] = (freq[dcKey] || 0) + 1;
+          info.acTokens.forEach(t => {
+            const key = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
+            freq[key] = (freq[key] || 0) + 1;
+          });
+        });
+      }
+      let nodes = Object.entries(freq).map(([s, c]) => ({ s, c, l: null, r: null }));
+      if (!nodes.length) { _localCodes = {}; return; }
+      if (nodes.length === 1) { _localCodes = { [nodes[0].s]: '0' }; return; }
+      while (nodes.length > 1) {
+        nodes.sort((a, b) => a.c - b.c);
+        const l = nodes.shift(), r = nodes.shift();
+        nodes.push({ s: null, c: l.c + r.c, l, r });
+      }
+      _localCodes = {};
+      (function gen(node, prefix) {
+        if (!node) return;
+        if (node.s !== null) { _localCodes[node.s] = prefix || '0'; return; }
+        gen(node.l, prefix + '0');
+        gen(node.r, prefix + '1');
+      })(nodes[0], '');
+    }
+
+    // Build annotated bit array for a single MCU using _localCodes (all-MCU table).
     // Returns { bit, ch, type, tokenIdx } per bit
     function computeMcuBits(mcuIdx) {
       const out = [];
       ['y', 'cb', 'cr'].forEach(ch => {
         const info = dcInfo(ch, mcuIdx);
         if (!info) return;
-        // DC is DPCM-encoded: the code in _codes corresponds to the diff, not the raw value
-        const dcCode = _codes[`(0,${info.diff})`] || '';
+        // DC is DPCM-encoded: the code corresponds to the diff, not the raw value
+        const dcCode = _localCodes[`(0,${info.diff})`] || '';
         for (const b of dcCode) out.push({ bit: b, ch, type: 'dc', tokenIdx: 0 });
         // AC tokens — each gets its own tokenIdx for token-level highlighting
         info.acTokens.forEach((t, ti) => {
           const key  = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
-          const code = _codes[key] || '';
+          const code = _localCodes[key] || '';
           for (const b of code) out.push({ bit: b, ch, type: 'ac', tokenIdx: ti });
         });
       });
@@ -9363,11 +9466,11 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           // Highlight only that MCU's bits (all channels/types)
           match = allMatch = (cMcu === mcuIdx);
         } else if (type === 'y' || type === 'cb' || type === 'cr') {
-          match = (cRole === 'sel' && cCh === type);
+          match = (cMcu === mcuIdx && cCh === type);
         } else if (type === 'dc') {
-          match = typeMatch = (cRole === 'sel' && cCh === ch && cType === 'dc');
+          match = typeMatch = (cMcu === mcuIdx && cCh === ch && cType === 'dc');
         } else if (type === 'ac') {
-          match = typeMatch = (cRole === 'sel' && cCh === ch && cType === 'ac');
+          match = typeMatch = (cMcu === mcuIdx && cCh === ch && cType === 'ac');
         }
         if (match)     c.classList.add('hl-match');
         if (typeMatch) c.classList.add('hl-type');
@@ -9377,14 +9480,15 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     }
 
     // Token-level highlight: called from individual AC (and DC) token pill hover
-    function highlightTokenBits(ch, tokenIdx, type) {
+    function highlightTokenBits(ch, tokenIdx, type, mcuIdx) {
       const grid = document.getElementById('sosBitsGrid');
       if (!grid) return;
+      const mcuStr = String(mcuIdx);
       grid.querySelectorAll('.sos-bc').forEach(c => {
         c.classList.remove('hl-match', 'hl-type', 'hl-all');
-        if (c.dataset.mcuRole === 'sel' &&
-            c.dataset.ch      === ch    &&
-            c.dataset.type    === type  &&
+        if (c.dataset.mcuIdx    === mcuStr   &&
+            c.dataset.ch        === ch       &&
+            c.dataset.type      === type     &&
             +c.dataset.tokenIdx === tokenIdx) {
           c.classList.add('hl-match', 'hl-type');
         }
@@ -9450,10 +9554,11 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
     function buildChildren(node, container) {
       const type = node.dataset.ntype;
-      if      (type === 'sos')                               fillSos(container);
-      else if (type === 'mcu')                               fillMcu(container, node);
+      if      (type === 'sos')                                 fillSos(container);
+      else if (type === 'mcu')                                 fillMcu(container, node);
       else if (type === 'y' || type === 'cb' || type === 'cr') fillChannel(container, node);
-      else if (type === 'ac')                                fillAc(container, node);
+      else if (type === 'dc')                                  fillDc(container, node);
+      else if (type === 'ac')                                  fillAc(container, node);
     }
 
     // ── Level builders ───────────────────────────────────────────────────────
@@ -9462,8 +9567,12 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       const total  = totalMcus();
       const selIdx = Math.round(selectedMcuIdx());
 
-      const show = new Set([0, 1, 2]);
-      if (selIdx >= 0 && selIdx < total) show.add(selIdx);
+      const show = new Set([0]);
+      if (selIdx >= 0 && selIdx < total) {
+        if (selIdx - 1 > 0) show.add(selIdx - 1);
+        show.add(selIdx);
+        if (selIdx + 1 < total) show.add(selIdx + 1);
+      }
       const indices = [...show].sort((a, b) => a - b).filter(i => i < total);
 
       let prevIdx = -1;
@@ -9538,7 +9647,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       const acBadge = info ? `${info.acTokens.length} tokens` : '—';
 
       makeNode(container, {
-        type: 'dc', expandable: false, dot: true,
+        type: 'dc', expandable: true, dot: true,
         label: 'DC', mcuIdx, ch, badge: dcBadge,
       });
       makeNode(container, {
@@ -9564,10 +9673,33 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         pill.style.opacity = '0';
         pill.style.animationFillMode = 'forwards';
         // Token-level hover: highlight just this token's bits in the binary panel
-        pill.addEventListener('mouseenter', () => highlightTokenBits(ch, ti, 'ac'));
+        pill.addEventListener('mouseenter', () => highlightTokenBits(ch, ti, 'ac', mcuIdx));
         pill.addEventListener('mouseleave', clearHighlight);
         wrap.appendChild(pill);
       });
+      container.appendChild(wrap);
+    }
+
+    function fillDc(container, dcNode) {
+      const mcuIdx = +dcNode.dataset.mcuIdx;
+      const ch     = dcNode.dataset.ch;
+      const info = dcInfo(ch, mcuIdx);
+      if (!info) return;
+
+      const wrap = document.createElement('div');
+      wrap.className = 'sos-tnode-tokens';
+
+      const pill = document.createElement('span');
+      pill.className = 'sos-tnode-tok sos-tnode-tok--dc';
+      pill.textContent = `(0,${info.diff})`;
+      pill.style.animationDelay = '0ms';
+      pill.style.opacity = '0';
+      pill.style.animationFillMode = 'forwards';
+      // Token-level hover: highlight the DC bits for this channel in the binary panel
+      pill.addEventListener('mouseenter', () => highlightTokenBits(ch, 0, 'dc', mcuIdx));
+      pill.addEventListener('mouseleave', clearHighlight);
+      wrap.appendChild(pill);
+
       container.appendChild(wrap);
     }
 
@@ -9578,6 +9710,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       const ph   = document.getElementById('sosTreePh');
       if (!wrap) return;
       _cache.clear();
+      buildLocalCodes();
+      document.dispatchEvent(new CustomEvent('localCodesReady', { detail: { codes: _localCodes } }));
       clearHighlight();
       if (ph) ph.style.display = 'none';
       wrap.innerHTML = '';
@@ -9589,7 +9723,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       });
       // Render binary panel for the selected MCU
       const selIdx = Math.round(selectedMcuIdx());
-      if (total > 0 && Object.keys(_codes).length > 0) {
+      if (total > 0 && Object.keys(_localCodes).length > 0) {
         renderBitsPanel(selIdx);
       }
     }
@@ -9606,7 +9740,6 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
   (function () {
     let _tokens    = [];
     let _codes     = {};
-    let _autoPlayed = false;
 
     // ── Bit-packing logic ──────────────────────────────────────────────────────
 
@@ -9784,9 +9917,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
     // ── Main refresh ───────────────────────────────────────────────────────────
 
-    function refresh(tokens, codes) {
+    function refresh(tokens) {
       _tokens = tokens || [];
-      _codes  = codes  || {};
       const btn = document.getElementById('sosReplayBtn');
       const ph  = document.getElementById('sosPlaceholder');
       clearPanels();
@@ -9801,8 +9933,14 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       if (btn) { btn.textContent = '▶ Animate packing'; btn.disabled = false; }
     }
 
+    // _codes comes from the SOS explorer's all-MCU Huffman table so symbols
+    // and bit patterns match what the structure explorer displays.
+    document.addEventListener('localCodesReady', e => {
+      _codes = e.detail.codes || {};
+    });
+
     document.addEventListener('huffmanChanged', e => {
-      refresh(e.detail.tokens, e.detail.codes);
+      refresh(e.detail.tokens);
     });
 
     // ── Replay button ──────────────────────────────────────────────────────────
@@ -9814,18 +9952,6 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       });
     }
 
-    // Auto-play once on first scroll into view
-    const _sosSec = document.getElementById('s-sos');
-    if (_sosSec) {
-      const _sosObs = new IntersectionObserver(entries => {
-        if (entries[0].isIntersecting && !_autoPlayed && _tokens.length) {
-          _autoPlayed = true;
-          setTimeout(() => runAnimation(_tokens, _codes), 600);
-          _sosObs.disconnect();
-        }
-      }, { threshold: 0.3 });
-      _sosObs.observe(_sosSec);
-    }
 
   }());
 
