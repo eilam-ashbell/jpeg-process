@@ -2841,6 +2841,89 @@
       font-size: 0.75rem; font-weight: 700; color: var(--text-secondary);
     }
     .sos-bits-legend { display: flex; gap: 4px; align-items: center; }
+
+    /* ── SOS Bits Info Button & Modal ─────────────────────────────────────── */
+    .sos-bits-info-btn {
+      position: relative;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 17px; height: 17px;
+      border: 1.5px solid var(--accent-blue);
+      border-radius: 50%;
+      background: transparent;
+      color: var(--accent-blue);
+      cursor: pointer;
+      padding: 0;
+      font-size: 0.65rem; font-weight: 700; font-family: 'Inter', sans-serif;
+      line-height: 1;
+      flex-shrink: 0;
+      transition: background 0.15s, color 0.15s;
+    }
+    .sos-bits-info-btn:hover {
+      background: var(--accent-blue);
+      color: #fff;
+    }
+    .sos-bits-info-btn::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 7px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      color: #f8fafc;
+      font-size: 0.7rem; font-weight: 400; font-family: 'Inter', sans-serif;
+      white-space: nowrap;
+      padding: 5px 9px;
+      border-radius: 6px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 10;
+    }
+    .sos-bits-info-btn:hover::after { opacity: 1; }
+    .sos-modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(15,23,42,0.55);
+      backdrop-filter: blur(3px);
+      z-index: 1000;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .sos-modal-overlay.open {
+      opacity: 1; pointer-events: all;
+    }
+    .sos-modal-box {
+      background: var(--bg-primary);
+      border-radius: var(--radius);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.18);
+      max-width: 880px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      transform: translateY(14px);
+      transition: transform 0.2s;
+    }
+    .sos-modal-overlay.open .sos-modal-box { transform: translateY(0); }
+    .sos-modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px 0;
+    }
+    .sos-modal-title {
+      font-size: 0.75rem; font-weight: 700; color: var(--text-secondary);
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .sos-modal-close-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px;
+      border: none; background: var(--bg-secondary);
+      border-radius: 50%;
+      cursor: pointer; font-size: 1rem; color: var(--text-secondary);
+      transition: background 0.15s;
+    }
+    .sos-modal-close-btn:hover { background: var(--border); }
+    .sos-modal-body { padding: 12px 20px 20px; }
     .sbk {
       font-size: 0.62rem; font-weight: 700;
       padding: 1px 5px; border-radius: 8px; border: 1px solid;
@@ -3994,6 +4077,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           <div class="sos-bits-panel" id="sosBitsPanel">
             <div class="sos-bits-header">
               <span class="sos-bits-title">Binary stream — selected MCU</span>
+              <button class="sos-bits-info-btn" id="sosBitsInfoBtn" data-tip="Click for more information about bitstream building">i</button>
               <span class="sos-bits-legend" id="sosBitsLegend" style="display:none">
                 <span class="sbk sbk-y">Y</span><span class="sbk sbk-cb">Cb</span><span class="sbk sbk-cr">Cr</span>
                 <span style="color:var(--text-muted,#94a3b8);padding:0 2px">·</span>
@@ -4007,44 +4091,6 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         </div>
       </div>
 
-      <!-- Component 5: Bit Packing Visualizer -->
-      <div class="demo-card reveal">
-        <div class="sos-packer-layout">
-
-          <!-- Left: Huffman codebook (DC first, then AC by length) -->
-          <div class="sos-panel">
-            <p class="matrix-panel-label">Codebook <span class="sos-panel-sub">(DC first, AC by length)</span></p>
-            <div class="sos-code-list" id="sosCodeList"></div>
-            <p class="section-placeholder" id="sosPlaceholder" style="margin:0">Select a block above</p>
-          </div>
-
-          <!-- Center: Bit buffer -->
-          <div class="sos-panel">
-            <p class="matrix-panel-label">Bit buffer (groups of 8 → 1 byte)</p>
-            <div class="sos-bit-buffer" id="sosBitBuffer"></div>
-          </div>
-
-          <!-- Right: Byte stream -->
-          <div class="sos-panel">
-            <p class="matrix-panel-label">Byte stream (hex)</p>
-            <div class="sos-byte-stream" id="sosByteStream"></div>
-            <div class="sos-stuffing-note" id="sosStuffNote" style="display:none">
-              <strong>Byte stuffing:</strong> 0xFF in scan data must be followed by 0x00 to avoid confusion with JPEG markers.
-            </div>
-          </div>
-
-        </div>
-
-        <div class="sos-stats-row" id="sosStats" style="display:none">
-          <span>Total bits: <strong id="sosTotalBits">—</strong></span>
-          <span>Packed bytes: <strong id="sosPackedBytes">—</strong></span>
-          <span>Stuffed 0x00s: <strong id="sosStuffCount">—</strong></span>
-        </div>
-
-        <div class="dct-controls" style="justify-content:flex-start;gap:8px;margin-top:16px">
-          <button class="btn-animate" id="sosReplayBtn" disabled>▶ Animate packing</button>
-        </div>
-      </div>
 
     </section>
   </div>
@@ -10601,6 +10647,51 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     const by = Math.floor(Math.random() * rows) * 8;
     updateBlock(bx, by);
   });
+
+  // ─── Bitstream Info Modal ─────────────────────────────────────────────────
+  // Deferred so the modal HTML (placed after this script tag) is in the DOM.
+  document.addEventListener('DOMContentLoaded', function () {
+    const infoBtn   = document.getElementById('sosBitsInfoBtn');
+    const overlay   = document.getElementById('sosBitsModal');
+    const closeBtn  = document.getElementById('sosBitsModalClose');
+    const modalBody = document.getElementById('sosBitsModalBody');
+    const card      = document.getElementById('sosPackerCard');
+    if (!infoBtn || !overlay || !card) return;
+
+    let origParent = null, origNext = null;
+
+    function openModal() {
+      origParent = card.parentNode;
+      origNext   = card.nextSibling;
+      modalBody.appendChild(card);
+      overlay.classList.add('open');
+      document.body.classList.add('scroll-locked');
+    }
+
+    function closeModal() {
+      if (origParent) origParent.insertBefore(card, origNext);
+      overlay.classList.remove('open');
+      document.body.classList.remove('scroll-locked');
+    }
+
+    infoBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && overlay.classList.contains('open')) closeModal();
+    });
+  });
 </script>
+
+<!-- Bitstream Building Animation Modal -->
+<div class="sos-modal-overlay" id="sosBitsModal" role="dialog" aria-modal="true" aria-labelledby="sosBitsModalTitle">
+  <div class="sos-modal-box">
+    <div class="sos-modal-header">
+      <span class="sos-modal-title" id="sosBitsModalTitle">Bitstream Building Animation</span>
+      <button class="sos-modal-close-btn" id="sosBitsModalClose" aria-label="Close">✕</button>
+    </div>
+    <div class="sos-modal-body" id="sosBitsModalBody"></div>
+  </div>
+</div>
 </body>
 </html>
