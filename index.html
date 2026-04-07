@@ -2423,36 +2423,250 @@
       line-height: 1.5;
     }
 
-    /* ── DPCM transform card ────────────────────────────────────────────────── */
-    .dpcm-transform-row {
-      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    /* ── DPCM scrolling bitstream card ────────────────────────────────────── */
+    .dpcm-stream-wrap {
+      position: relative; padding: 10px 10px 10px; min-height: 70px;
     }
-    .dpcm-col {
-      display: flex; flex-direction: column; align-items: center; gap: 5px;
+    .dpcm-stream-body {
+      display: flex; align-items: center; gap: 8px;
     }
-    .dpcm-col-label {
-      font-size: 0.68rem; font-weight: 700; color: var(--text-muted, #94a3b8);
-      text-transform: uppercase; letter-spacing: 0.04em;
+    .dpcm-ch-indicator {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-width: 34px; padding: 6px 6px; border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem; font-weight: 700; line-height: 1.2;
+      transition: all 0.4s ease;
+      background: var(--bg-secondary, #f1f5f9);
+      color: var(--text-muted, #94a3b8);
+      border: 2px solid transparent; text-align: center;
     }
-    .dpcm-col-note {
-      font-size: 0.68rem; color: var(--text-secondary); font-style: italic;
+    .dpcm-ch-indicator[data-ch="y"]  { background: #ede9fe; border-color: #8b5cf6; color: #5b21b6; }
+    .dpcm-ch-indicator[data-ch="cb"] { background: #dbeafe; border-color: #3b82f6; color: #1e40af; }
+    .dpcm-ch-indicator[data-ch="cr"] { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+    /* viewport clips the scrolling track */
+    .dpcm-viewport {
+      overflow: hidden; flex: 1; min-width: 0; position: relative;
+      padding-top: 10px;
     }
-    .dpcm-token {
-      font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700;
-      padding: 8px 18px; border-radius: 8px; border: 2px solid;
+    .dpcm-track {
+      display: flex; align-items: center; gap: 0;
+      font-family: 'JetBrains Mono', monospace;
+      position: relative;
+      transition: transform 0.55s cubic-bezier(0.4,0,0.2,1);
+      will-change: transform;
+      padding-top: 40px;
     }
-    .dpcm-raw      { background: #fefce8; border-color: #fde047; color: #713f12; }
-    .dpcm-diff     { background: #ede9fe; border-color: #8b5cf6; color: #3730a3; }
-    .dpcm-diff.no-change { background: #f0fdf4; border-color: #86efac; color: #166534; }
-    .dpcm-arrow-col {
-      display: flex; flex-direction: column; align-items: center;
-      gap: 4px; padding: 0 8px;
+    .dpcm-track-svg {
+      position: absolute; top: 0; left: 0;
+      pointer-events: none; overflow: visible;
     }
-    .dpcm-eq     { font-size: 1.5rem; color: var(--text-muted, #94a3b8); line-height: 1; }
-    .dpcm-formula {
-      font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;
-      color: var(--text-secondary); white-space: nowrap;
-      background: var(--bg-secondary); padding: 2px 8px; border-radius: 4px;
+    .dpcm-stream-ac {
+      font-size: 0.55rem; color: var(--text-muted, #94a3b8);
+      opacity: 0.28; letter-spacing: 0.3px; user-select: none; padding: 0 1px;
+    }
+    .dpcm-mcu-sep {
+      display: inline-block; width: 2px; align-self: stretch;
+      background: #94a3b8; margin: 0 8px;
+      opacity: 0.7; flex-shrink: 0; border-radius: 1px;
+    }
+    .dpcm-mcu-group {
+      display: inline-flex; flex-direction: column; align-items: center; gap: 0;
+      flex-shrink: 0; padding: 0 2px; position: relative;
+    }
+    .dpcm-mcu-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.52rem; font-weight: 700; letter-spacing: 0.4px;
+      color: var(--text-muted, #94a3b8); text-transform: uppercase;
+      margin-bottom: 5px; white-space: nowrap;
+    }
+    .dpcm-mcu-content {
+      display: inline-flex; align-items: flex-start; gap: 0;
+    }
+    .dpcm-ch-pair {
+      display: inline-flex; align-items: flex-start; gap: 1px;
+    }
+    .dpcm-ac-wrap {
+      display: inline-flex; flex-direction: column; align-items: center;
+      gap: 2px; margin: 0 1px;
+    }
+    .dpcm-ac-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.42rem; font-weight: 600; letter-spacing: 0.3px;
+      color: var(--text-muted, #94a3b8); opacity: 0.6;
+    }
+    .dpcm-stream-dc {
+      display: inline-flex; flex-direction: column;
+      align-items: center; gap: 2px; margin: 0 2px;
+      transition: opacity 0.3s ease;
+    }
+    .dpcm-dc-top-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.42rem; font-weight: 600; letter-spacing: 0.3px;
+      color: var(--text-muted, #94a3b8); opacity: 0.6;
+    }
+    .dpcm-stream-dc-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem; font-weight: 700;
+      padding: 3px 7px; border-radius: 5px;
+      border: 2px solid; transition: all 0.35s ease;
+      white-space: nowrap; min-width: 22px; text-align: center;
+    }
+    /* channel colors */
+    .dpcm-stream-dc-val[data-ch="y"]  { background: #ede9fe; border-color: #8b5cf6; color: #3730a3; }
+    .dpcm-stream-dc-val[data-ch="cb"] { background: #dbeafe; border-color: #3b82f6; color: #1e3a8a; }
+    .dpcm-stream-dc-val[data-ch="cr"] { background: #fee2e2; border-color: #ef4444; color: #7f1d1d; }
+    .dpcm-stream-dc-val.transforming { transform: scale(1.18); }
+    .dpcm-stream-dc-val[data-ch="y"].transforming  { box-shadow: 0 0 12px rgba(139,92,246,0.5); }
+    .dpcm-stream-dc-val[data-ch="cb"].transforming { box-shadow: 0 0 12px rgba(59,130,246,0.5); }
+    .dpcm-stream-dc-val[data-ch="cr"].transforming { box-shadow: 0 0 12px rgba(239,68,68,0.5); }
+    .dpcm-stream-dc-val.transformed {
+      background: #dcfce7; border-color: #22c55e; color: #166534;
+    }
+    .dpcm-stream-dc-label {
+      font-size: 0.46rem; font-weight: 600;
+      color: var(--text-secondary, #64748b);
+    }
+    /* channel dimming: only the DC column fades for non-active channels; AC stays visible */
+    .dpcm-dim-y  .dpcm-stream-dc[data-ch="cb"],
+    .dpcm-dim-y  .dpcm-stream-dc[data-ch="cr"]  { opacity: 0.15; }
+    .dpcm-dim-cb .dpcm-stream-dc[data-ch="y"],
+    .dpcm-dim-cb .dpcm-stream-dc[data-ch="cr"]  { opacity: 0.15; }
+    .dpcm-dim-cr .dpcm-stream-dc[data-ch="y"],
+    .dpcm-dim-cr .dpcm-stream-dc[data-ch="cb"]  { opacity: 0.15; }
+    /* formula floating above arch */
+    .dpcm-stream-formula {
+      position: absolute; transform: translateX(-50%);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem; font-weight: 600;
+      white-space: nowrap; padding: 2px 7px; border-radius: 4px;
+      border: 1px solid; opacity: 0; transition: opacity 0.35s ease;
+      pointer-events: none; z-index: 2;
+    }
+    .dpcm-stream-formula[data-ch="y"]  { color: #6d28d9; background: #f5f3ff; border-color: #c4b5fd; }
+    .dpcm-stream-formula[data-ch="cb"] { color: #1d4ed8; background: #eff6ff; border-color: #93c5fd; }
+    .dpcm-stream-formula[data-ch="cr"] { color: #b91c1c; background: #fef2f2; border-color: #fca5a5; }
+    .dpcm-stream-formula.visible { opacity: 1; }
+    /* bit-count badge */
+    .dpcm-bits-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.48rem; font-weight: 600;
+      color: #16a34a; white-space: nowrap;
+      opacity: 0; transition: opacity 0.3s ease;
+    }
+    .dpcm-bits-badge.visible { opacity: 1; }
+    /* explain + progress */
+    .dpcm-stream-explain {
+      font-size: 0.72rem; color: var(--text-secondary, #64748b);
+      text-align: center; margin-top: 12px; font-style: italic;
+      min-height: 1.3em;
+    }
+    .dpcm-progress {
+      display: flex; align-items: center; justify-content: center;
+      gap: 6px; margin-top: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.58rem; color: var(--text-muted, #94a3b8);
+    }
+    .dpcm-progress-bar {
+      height: 3px; background: var(--border, #e2e8f0);
+      border-radius: 2px; flex: 1; max-width: 200px; overflow: hidden;
+    }
+    .dpcm-progress-fill {
+      height: 100%; border-radius: 2px;
+      background: var(--accent-blue, #3b82f6);
+      transition: width 0.4s ease; width: 0%;
+    }
+    .dpcm-per-channel-note {
+      font-size: 0.7rem; color: var(--text-secondary);
+      text-align: center; margin-top: 6px; font-style: italic;
+    }
+    /* ── DPCM channel selector ──────────────────────────────────────────── */
+    .dpcm-channel-selector {
+      display: flex; gap: 6px; margin-bottom: 10px;
+    }
+    .dpcm-channel-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem; font-weight: 700;
+      padding: 5px 16px; border-radius: 6px;
+      border: 2px solid var(--border, #e2e8f0);
+      background: var(--bg-secondary, #f8f9fb);
+      color: var(--text-secondary, #64748b);
+      cursor: pointer; transition: all 0.25s ease;
+      outline: none;
+    }
+    .dpcm-channel-btn:hover { background: #f0f4ff; }
+    .dpcm-channel-btn[data-ch="y"].active  { background: #ede9fe; border-color: #8b5cf6; color: #5b21b6; }
+    .dpcm-channel-btn[data-ch="cb"].active { background: #dbeafe; border-color: #3b82f6; color: #1e40af; }
+    .dpcm-channel-btn[data-ch="cr"].active { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+    /* ── DPCM records table ─────────────────────────────────────────────── */
+    .dpcm-records {
+      margin-top: 14px; height: 180px; overflow-y: auto;
+      border: 1px solid var(--border, #e2e8f0); border-radius: 8px;
+    }
+    .dpcm-records-table {
+      width: 100%; border-collapse: collapse;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+    }
+    .dpcm-records-table thead { position: sticky; top: 0; z-index: 1; }
+    .dpcm-records-table th {
+      background: var(--bg-secondary, #f8f9fb); color: var(--text-secondary, #64748b);
+      padding: 5px 10px; text-align: center; font-weight: 600;
+      border-bottom: 1px solid var(--border, #e2e8f0);
+      font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .dpcm-records-table td {
+      padding: 4px 10px; text-align: center;
+      border-bottom: 1px solid #f1f5f9;
+      transition: background 0.3s ease;
+    }
+    .dpcm-records-table tr.dpcm-rec-new td {
+      background: #f0fdf4;
+    }
+    .dpcm-records-table tr.dpcm-rec-first td:nth-child(3),
+    .dpcm-records-table tr.dpcm-rec-first td:nth-child(4) {
+      color: var(--text-muted, #94a3b8); font-style: italic;
+    }
+    .dpcm-records-table .dpcm-rec-diff {
+      font-weight: 700; color: #166534;
+    }
+    .dpcm-records-table .dpcm-rec-arrow {
+      color: var(--text-muted, #94a3b8);
+    }
+    .dpcm-records-empty {
+      text-align: center; padding: 16px;
+      font-size: 0.7rem; color: var(--text-muted, #94a3b8);
+      font-style: italic;
+    }
+
+    .dpcm-savings-wrap {
+      margin-top: 12px; padding: 12px 14px;
+      background: rgba(255,255,255,0.03); border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .dpcm-savings-label {
+      display: block; margin-bottom: 8px;
+      font-size: 0.65rem; font-weight: 600; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--text-muted, #94a3b8);
+    }
+    .dpcm-savings-summary {
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .dpcm-savings-row {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.72rem;
+    }
+    .dpcm-savings-ch {
+      width: 22px; font-weight: 700; opacity: 0.85;
+    }
+    .dpcm-savings-nums {
+      flex: 1; color: var(--text-muted, #94a3b8);
+    }
+    .dpcm-savings-badge {
+      padding: 2px 7px; border-radius: 4px;
+      font-weight: 600; font-size: 0.68rem;
+      background: rgba(52,211,153,0.15); color: #34d399;
+    }
+    .dpcm-savings-badge.neg {
+      background: rgba(248,113,113,0.15); color: #f87171;
     }
 
     /* ── S12: Huffman animations ───────────────────────────────────────────── */
@@ -2482,6 +2696,226 @@
     }
     .huff-anim-edge {
       opacity: 0;
+    }
+
+    /* ── S12: Two-part encoding colors ────────────────────────────────────── */
+    .bit-huff  { color: #2563eb; }
+    .bit-raw   { color: #d97706; }
+    .sos-bit.bit-raw  { background: #fffbeb; border-color: #f59e0b; }
+    .sos-bit.bit-raw.bit-new { background: #fef3c7; border-color: #d97706; }
+    .code-huff { color: #2563eb; font-weight: 600; }
+    .code-raw  { color: #d97706; font-weight: 600; }
+    .sos-part-sep {
+      width: 1px; height: 22px; background: #e5e7eb;
+      margin: 0 1px; flex-shrink: 0;
+    }
+
+    /* ── S12: Table selector controls ─────────────────────────────────────── */
+    .huff-table-selector {
+      display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;
+      align-items: center;
+    }
+    .huff-sel-group {
+      display: inline-flex; gap: 3px;
+      padding: 3px; background: var(--bg-secondary);
+      border-radius: 8px; border: 1px solid var(--border);
+    }
+    .huff-sel-group-label {
+      font-size: 0.65rem; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.04em;
+      margin-right: 4px; align-self: center; padding-left: 6px;
+    }
+    .huff-sel-btn {
+      padding: 5px 12px; border-radius: 6px; border: none;
+      font-size: 0.73rem; font-weight: 600; cursor: pointer;
+      background: transparent; color: var(--text-secondary);
+      transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+      font-family: 'Inter', sans-serif;
+    }
+    .huff-sel-btn:hover { background: var(--bg-primary); }
+    .huff-sel-btn.active {
+      background: var(--accent-blue); color: #fff;
+      box-shadow: 0 1px 4px rgba(37,99,235,.25);
+    }
+
+    /* ── S12: Category split demo card ────────────────────────────────────── */
+    .cat-split-demo {
+      display: flex; flex-direction: column;
+      gap: 0; padding: 12px 0;
+    }
+
+    /* Encoding pipeline container */
+    .cat-pipeline {
+      display: flex; flex-direction: column; gap: 0;
+      border: 1px solid var(--border); border-radius: 10px;
+      overflow: hidden;
+    }
+    .cat-pipeline + .cat-pipeline { margin-top: 16px; }
+    .cat-pipe-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 14px;
+      background: var(--bg-secondary); border-bottom: 1px solid var(--border);
+    }
+    .cat-pipe-badge {
+      font-size: 0.6rem; font-weight: 800; letter-spacing: 0.06em;
+      text-transform: uppercase; padding: 2px 8px; border-radius: 4px;
+    }
+    .cat-pipe-badge--dc { background: #ede9fe; color: #5b21b6; }
+    .cat-pipe-badge--ac { background: #dbeafe; color: #1e40af; }
+    .cat-pipe-title {
+      font-size: 0.72rem; font-weight: 600; color: var(--text-primary);
+    }
+    .cat-pipe-subtitle {
+      font-size: 0.66rem; color: var(--text-secondary); margin-left: auto;
+      font-style: italic;
+    }
+    .cat-pipe-body { padding: 14px 16px; }
+
+    /* Steps inside a pipeline */
+    .cat-steps { display: flex; flex-direction: column; gap: 0; }
+    .cat-step {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 10px 0;
+    }
+    .cat-step + .cat-step { border-top: 1px dashed color-mix(in srgb, var(--border) 60%, transparent); }
+    .cat-step-num {
+      flex-shrink: 0; width: 22px; height: 22px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; font-size: 0.62rem; font-weight: 800;
+      background: var(--bg-secondary); color: var(--text-muted);
+      border: 1.5px solid var(--border); margin-top: 2px;
+    }
+    .cat-step-content { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+    .cat-step-label {
+      font-size: 0.66rem; font-weight: 600; color: var(--text-secondary);
+    }
+    .cat-step-visual {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+
+    /* Token pills */
+    .cat-token-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem; font-weight: 700;
+      padding: 5px 12px; border-radius: 8px; border: 2px solid;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .cat-token-pill--rle { background: #fefce8; border-color: #fde047; color: #713f12; }
+    .cat-token-pill--dc  { background: #ede9fe; border-color: #8b5cf6; color: #3730a3; }
+
+    /* Huff / raw part boxes */
+    .cat-huff-part, .cat-raw-part {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 3px; padding: 7px 13px; border-radius: 8px; border: 2px solid;
+    }
+    .cat-huff-part { background: #dbeafe; border-color: #2563eb; }
+    .cat-raw-part  { background: #fef3c7; border-color: #d97706; }
+    .cat-part-label {
+      font-size: 0.56rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .cat-huff-part .cat-part-label { color: #1e40af; }
+    .cat-raw-part  .cat-part-label { color: #92400e; }
+    .cat-part-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.92rem; font-weight: 700;
+    }
+    .cat-huff-part .cat-part-value { color: #2563eb; }
+    .cat-raw-part  .cat-part-value { color: #d97706; }
+
+    /* Arrows & plus between visual elements */
+    .cat-step-arrow { font-size: 1.1rem; color: var(--text-muted); flex-shrink: 0; }
+    .cat-step-plus  { font-size: 1rem; color: var(--text-muted); font-weight: 700; }
+
+    /* Final combined bits row */
+    .cat-combined-row {
+      display: inline-flex; align-items: center; gap: 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem; font-weight: 700;
+      padding: 5px 10px; border-radius: 6px;
+      background: var(--bg-secondary); border: 1px solid var(--border);
+    }
+    .cat-combined-huff { color: #2563eb; letter-spacing: 1px; }
+    .cat-combined-raw  { color: #d97706; letter-spacing: 1px; }
+    .cat-combined-sep {
+      width: 1.5px; height: 14px;
+      background: var(--border); margin: 0 5px;
+    }
+    .cat-step-explain {
+      font-size: 0.66rem; color: var(--text-secondary);
+      line-height: 1.45;
+    }
+    .cat-step-explain code {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--bg-secondary); padding: 1px 4px; border-radius: 3px;
+      font-size: 0.64rem;
+    }
+
+    /* ── S12: Category reference ─────────────────────────────────────────── */
+    .cat-ref-wrap {
+      margin-top: 16px;
+    }
+    .cat-ref-label {
+      font-size: 0.66rem; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+    .cat-ref-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 4px;
+    }
+    .cat-ref-cell {
+      display: flex; align-items: center; gap: 6px;
+      padding: 5px 8px; border-radius: 6px;
+      border: 1px solid var(--bg-secondary);
+      font-size: 0.72rem; color: var(--text-primary);
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .cat-ref-cell:hover {
+      background: var(--accent-blue-tint);
+      border-color: var(--accent-blue);
+    }
+    .cat-ref-cell.cat-ref-active {
+      background: #dbeafe; border-color: #2563eb;
+    }
+    .cat-ref-cat {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800; font-size: 0.72rem;
+      min-width: 18px; text-align: center;
+      color: #2563eb;
+    }
+    .cat-ref-range {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.66rem; color: var(--text-secondary);
+    }
+    .cat-ref-cell--zero .cat-ref-cat { color: var(--text-muted); }
+    .cat-ref-cell--zero .cat-ref-range { color: var(--text-muted); }
+
+    /* ── S12: Huffman table section dividers ───────────────────────────────── */
+    .huffman-table .huff-section-row td {
+      font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+      color: var(--text-muted); letter-spacing: 0.04em;
+      padding: 8px 12px 4px; border-bottom: 2px solid var(--border);
+      background: transparent !important;
+    }
+
+    /* ── S12: Legend badges for Huff/Raw ───────────────────────────────────── */
+    .sbk-huff { background: #dbeafe; border: 1px solid #2563eb; color: #1e40af; }
+    .sbk-raw  { background: #fef3c7; border: 1px solid #d97706; color: #92400e; }
+
+    /* ── S12b: SOS bits panel part coloring ────────────────────────────────── */
+    .sos-bc[data-part="raw"] {
+      background-image: repeating-linear-gradient(
+        45deg, transparent, transparent 2px,
+        rgba(217, 119, 6, 0.1) 2px, rgba(217, 119, 6, 0.1) 4px
+      );
+    }
+    .sos-bits-grid.hl-active .sos-bc.hl-match[data-part="huff"] {
+      background: #2563eb; border-color: #1d4ed8; color: #fff;
+    }
+    .sos-bits-grid.hl-active .sos-bc.hl-match[data-part="raw"] {
+      background: #d97706; border-color: #b45309; color: #fff;
     }
 
     /* ── S12b: SOS Bitstream ─────────────────────────────────────────────────── */
@@ -3955,28 +4389,69 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     </section>
   </div>
   <div class="section-wrapper section-wrapper--alt">
-    <section id="s-huffman" class="section">
+    <section id="s-dpcm" class="section">
       <div class="section-header reveal">
         <span class="section-number">11</span>
+        <h2 class="section-title">DPCM — DC Differencing</h2>
+      </div>
+      <p class="section-body-text reveal">
+        Before the final encoding step, JPEG applies one more lossless trick to the <strong>DC coefficient</strong> — the very first value in each block's RLE sequence, representing its average brightness. Instead of storing the raw DC value, JPEG stores only the <strong>difference</strong> from the previous block's DC. This technique is called <em>Differential Pulse Code Modulation (DPCM)</em>.
+      </p>
+      <p class="section-body-text reveal">
+        Why does this help? Adjacent 8×8 blocks in an image tend to have very similar average brightness — so the differences between their DC values are usually tiny. Small numbers need fewer bits to represent, which means the next step (Huffman coding) can assign them very short codes. The very first block in the scan has no predecessor, so its DC value is encoded as-is.
+      </p>
+      <p class="section-body-text reveal">
+        Importantly, DPCM operates <strong>independently per channel</strong> — Y tracks its own previous DC, Cb tracks its own, and Cr tracks its own. This keeps the differencing clean and prevents cross-channel interference.
+      </p>
+      <div class="demo-card reveal" id="dcDpcmCard" style="display:none">
+        <p class="matrix-panel-label">DC coefficient — DPCM step <span class="sos-panel-sub">transforms raw DC into a smaller difference value</span></p>
+        <div id="dpcmRow">
+          <p class="section-placeholder" style="margin:0">Select a block above</p>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div class="section-wrapper">
+    <section id="s-huffman" class="section">
+      <div class="section-header reveal">
+        <span class="section-number">12</span>
         <h2 class="section-title">Huffman Coding</h2>
       </div>
       <p class="section-body-text reveal">
-        The last step is Huffman coding — a lossless technique that replaces each RLE token with a binary code. Frequent values get very short codes (maybe 2–3 bits), while rare values get longer codes. It's the same principle that makes Morse code efficient — "E" is just a single dot.
+        The last step is Huffman coding — a lossless technique that assigns variable-length binary codes to symbols. Frequent symbols get very short codes (maybe 2–3 bits), while rare ones get longer codes. It's the same principle that makes Morse code efficient — "E" is just a single dot.
+      </p>
+      <p class="section-body-text reveal">
+        But JPEG doesn't Huffman-encode the full <code>(skip, value)</code> token directly. Instead, it splits each token into <strong>two parts</strong>: a Huffman code for the symbol's <em>category</em> (how many bits the value needs), followed by the actual value in <strong>raw binary</strong> — not Huffman coded. This keeps the Huffman table small and fixed-size.
+      </p>
+      <p class="section-body-text reveal">
+        For <strong>DC coefficients</strong>, the Huffman table has just 12 entries — one per category (0–11). For <strong>AC coefficients</strong>, each (run-length, category) pair gets its own entry — about 162 possible symbols, though most images use far fewer. JPEG uses <strong>4 separate Huffman tables</strong>: DC-luma, DC-chroma, AC-luma, and AC-chroma. Cb and Cr <strong>share</strong> the same chroma tables, but each channel is encoded independently with its own DC coefficient, its own AC tokens, and its own EOB marker.
       </p>
       <p class="section-body-text reveal">
         The result is a stream of bits that's as compact as possible without losing any information. Combined with all the previous steps, your original 36 MB of raw pixel data is now compressed to around 300 KB — over 100 times smaller. That's the magic of JPEG.
       </p>
-      <p class="section-body-text reveal">
-        But before Huffman coding begins, one important transformation happens to the <strong>DC coefficient</strong> (the first token in the RLE sequence). Instead of encoding the raw value, JPEG encodes its <strong>difference from the previous block's DC</strong>. This is called <em>Differential Pulse Code Modulation (DPCM)</em>. Adjacent blocks tend to have similar average brightness, so the differences stay small — and small numbers compress better. The Huffman tree is built from these differences, not the raw values.
-      </p>
-      <div class="demo-card reveal" id="dcDpcmCard" style="display:none">
-        <p class="matrix-panel-label">DC coefficient — DPCM step <span class="sos-panel-sub">applied before building the Huffman tree</span></p>
-        <div class="dpcm-transform-row" id="dpcmRow">
-          <p class="section-placeholder" style="margin:0">Select a block above</p>
+      <div class="demo-card reveal" id="catSplitCard" style="display:none">
+        <p class="matrix-panel-label">Two-part symbol encoding
+          <span class="sos-panel-sub">— category selects the Huffman code, raw bits encode the exact value</span>
+          <button class="sos-bits-info-btn" data-tip="JPEG never Huffman-encodes the exact coefficient value. It only encodes how many bits the value needs (the 'category'), then appends the value as raw bits. This keeps the Huffman alphabet small and fixed-size.">i</button>
+        </p>
+        <div id="catSplitDemo" class="cat-split-demo">
+          <p class="section-placeholder" style="margin:0">Select a block above to see the encoding</p>
         </div>
       </div>
       <div class="demo-card reveal">
         <div class="huffman-layout">
+          <div class="huff-table-selector" id="huffSelBar" style="display:none">
+            <div class="huff-sel-group">
+              <span class="huff-sel-group-label">Type</span>
+              <button class="huff-sel-btn active" data-sel-type="ac">AC</button>
+              <button class="huff-sel-btn" data-sel-type="dc">DC</button>
+            </div>
+            <div class="huff-sel-group">
+              <span class="huff-sel-group-label">Channel</span>
+              <button class="huff-sel-btn active" data-sel-ch="luma">Y (Luma)</button>
+              <button class="huff-sel-btn" data-sel-ch="chroma">Cb+Cr (Chroma)</button>
+            </div>
+          </div>
           <div>
             <p class="matrix-panel-label">Huffman tree</p>
             <div class="huffman-tree-wrap">
@@ -3989,8 +4464,9 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
                 <tr>
                   <th>Symbol</th>
                   <th>Freq</th>
-                  <th>Code</th>
-                  <th>Bits</th>
+                  <th>Huffman Code</th>
+                  <th>+ Raw Bits</th>
+                  <th>Total</th>
                 </tr>
               </thead>
               <tbody id="huffmanTableBody"></tbody>
@@ -4007,6 +4483,9 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           This tree is built from the <strong>selected MCU only</strong> — to keep the visualization readable.
           In a real JPEG encoder, the Huffman table is derived from <strong>every MCU in the image at once</strong>,
           giving each symbol a code that reflects its true frequency across the whole scan.
+          Each code in the tree represents a <strong>(run, category)</strong> pair — the actual coefficient value
+          is appended as raw bits after the Huffman code.
+          <br><strong>Cb and Cr</strong> share the same chroma table but are encoded as <strong>separate token sequences</strong> — each with its own DC, AC tokens, and EOB.
         </p>
       </div>
     </section>
@@ -4015,7 +4494,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
   <div class="section-wrapper">
     <section id="s-sos" class="section">
       <div class="section-header reveal">
-        <span class="section-number">12</span>
+        <span class="section-number">13</span>
         <h2 class="section-title">Building the Bitstream</h2>
       </div>
       <p class="section-body-text reveal">
@@ -4025,7 +4504,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         The scan data is not a flat, unstructured stream. Each 8×8 block is encoded with a strict two-part layout: the <strong>DC coefficient</strong> comes first — that's the top-left value from the quantized DCT block, representing the block's average brightness. Then the <strong>AC coefficients</strong> follow in zigzag frequency order, using run-length (skip, value) pairs ending in EOB. DC and AC use entirely separate Huffman tables, which is why the SOS header explicitly lists both a DC table ID and an AC table ID for each channel.
       </p>
       <p class="section-body-text reveal">
-        There's one more trick: the DC value is not encoded raw. JPEG encodes the <strong>difference</strong> from the previous block's DC — this is called DPCM (Differential Pulse Code Modulation). Adjacent blocks tend to have similar average brightness, so the differences are usually small, and small values get shorter Huffman codes. The very first block's DC is encoded as-is (no previous block to subtract from).
+        Remember: the DC value here is not the raw coefficient — it's the <strong>DPCM difference</strong> we computed earlier. That small delta gets a short Huffman code, which is exactly why the differencing step pays off.
       </p>
 
       <!-- Component 1: JPEG File Anatomy Bar -->
@@ -4143,6 +4622,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
                 <span class="sbk sbk-y">Y</span><span class="sbk sbk-cb">Cb</span><span class="sbk sbk-cr">Cr</span>
                 <span style="color:var(--text-muted,#94a3b8);padding:0 2px">·</span>
                 <span class="sbk sbk-dc">DC</span><span class="sbk sbk-ac">AC</span>
+                <span style="color:var(--text-muted,#94a3b8);padding:0 2px">·</span>
+                <span class="sbk sbk-huff">Huff</span><span class="sbk sbk-raw">Raw</span>
               </span>
             </div>
             <div class="sos-bits-grid" id="sosBitsGrid">
@@ -4159,7 +4640,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
   <div class="section-wrapper">
     <section id="s-quality" class="section">
       <div class="section-header reveal">
-        <span class="section-number">12</span>
+        <span class="section-number">14</span>
         <h2 class="section-title">Live JPEG Compression</h2>
       </div>
       <p class="section-body-text reveal">
@@ -4194,7 +4675,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
   <div class="section-wrapper section-wrapper--alt">
     <section id="s-compare" class="section">
       <div class="section-header reveal">
-        <span class="section-number">13</span>
+        <span class="section-number">15</span>
         <h2 class="section-title">Original vs Compressed</h2>
       </div>
       <p class="section-body-text reveal">
@@ -4236,7 +4717,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
   <div class="section-wrapper">
     <section id="s-undo" class="section">
       <div class="section-header reveal">
-        <span class="section-number">14</span>
+        <span class="section-number">16</span>
         <h2 class="section-title">Undo JPEG: Decode Pipeline</h2>
       </div>
       <p class="section-body-text reveal">
@@ -5023,6 +5504,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     { id: 's-quant',   stageLabel: 'After quantization',       shortLabel: 'Quantization',       icon: '✂️', mobileLabel: 'Quant',    rawMB: 3,    pct: 8   },
     { id: 's-zigzag',  stageLabel: 'After zigzag scan',        shortLabel: 'Zigzag Scan',        icon: '↗️', mobileLabel: 'Zigzag',   rawMB: 3,    pct: 8   },
     { id: 's-rle',     stageLabel: 'After RLE',                shortLabel: 'Run-Length Enc.',    icon: '🗜️', mobileLabel: 'RLE',      rawMB: 0.8,  pct: 2.2 },
+    { id: 's-dpcm',   stageLabel: 'After DC differencing',    shortLabel: 'DPCM',              icon: '⊿',  mobileLabel: 'DPCM',    rawMB: 0.8,  pct: 2.2 },
     { id: 's-huffman', stageLabel: 'After Huffman coding',     shortLabel: 'Huffman Coding',     icon: '🌳', mobileLabel: 'Huffman',  rawMB: 0.3,  pct: 0.8 },
     { id: 's-sos',     stageLabel: 'Bit-packed SOS segment',  shortLabel: 'SOS Bitstream',      icon: '📦', mobileLabel: 'SOS',      rawMB: 0.3,  pct: 0.8 },
     { id: 's-quality', stageLabel: 'Live (quality-adjusted)',  shortLabel: 'Live Quality',       icon: '🎛️', mobileLabel: 'Quality',  rawMB: 0.3,  pct: 0.8 },
@@ -8995,16 +9477,45 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     }
   }());
 
+  // ─── Shared Huffman helpers (used by Sections 12, 12b, 12c) ─────────────
+  // JPEG category: number of bits needed to represent |value|
+  function jpegCategory(value) {
+    if (value === 0) return 0;
+    let abs = Math.abs(value), cat = 0;
+    while (abs > 0) { cat++; abs >>= 1; }
+    return cat;
+  }
+
+  // Raw bits: ones' complement encoding for the value within its category
+  function jpegRawBits(value, cat) {
+    if (cat === 0) return '';
+    if (value >= 0) return value.toString(2).padStart(cat, '0');
+    return (value + (1 << cat) - 1).toString(2).padStart(cat, '0');
+  }
+
+  // Symbol key for DC Huffman table: just the category
+  function dcSymbolKey(diff) { return 'DC:' + jpegCategory(diff); }
+
+  // Symbol key for AC Huffman table: (run, category) pair
+  function acSymbolKey(skip, value) {
+    if (value === 'EOB') return 'AC:EOB';
+    if (skip === 15 && value === 0) return 'AC:ZRL';
+    return 'AC:(' + skip + ',' + jpegCategory(value) + ')';
+  }
+
   // ─── Section 12: Huffman Coding ──────────────────────────────────────────
   (function () {
-    let _root = null, _codes = {};
+    // 4 separate tables: DC-luma, DC-chroma, AC-luma, AC-chroma
+    let _tables = { dcLuma: {}, dcChroma: {}, acLuma: {}, acChroma: {} };
+    let _freqs  = { dcLuma: {}, dcChroma: {}, acLuma: {}, acChroma: {} };
+    let _roots  = { dcLuma: null, dcChroma: null, acLuma: null, acChroma: null };
+    let _steps  = { dcLuma: [], dcChroma: [], acLuma: [], acChroma: [] };
+    let _selType = 'ac', _selCh = 'luma';  // current selector state
+    let _mcuTokens = [];  // full MCU tokens for downstream dispatch
 
-    function buildTree(tokens) {
-      const freq = {};
-      tokens.forEach(t => {
-        const k = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
-        freq[k] = (freq[k] || 0) + 1;
-      });
+    // ── Tree helpers ─────────────────────────────────────────────────────────
+
+    function buildTreeFromFreq(freq) {
       let nodes = Object.entries(freq).map(([s, c]) => ({ s, c, l: null, r: null }));
       if (nodes.length === 0) return { root: null, steps: [] };
       if (nodes.length === 1) return { root: { s: null, c: nodes[0].c, l: nodes[0], r: null }, steps: [] };
@@ -9034,7 +9545,25 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     }
 
     function esc(s)     { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-    function escAttr(s) { return String(s).replace(/"/g,'&quot;'); }
+
+    // ── Current table key based on selector state ────────────────────────────
+    function tableKey() {
+      return (_selType === 'dc' ? 'dc' : 'ac') + (_selCh === 'luma' ? 'Luma' : 'Chroma');
+    }
+
+    // ── Leaf label rendering for new symbol format ───────────────────────────
+    function leafLabel(sym) {
+      if (sym === 'AC:EOB') return ['EOB'];
+      if (sym === 'AC:ZRL') return ['ZRL'];
+      if (sym.startsWith('DC:')) return ['DC', 'cat ' + sym.slice(3)];
+      if (sym.startsWith('AC:(')) {
+        const inner = sym.slice(4, -1); // "3,3"
+        return ['(' + inner + ')'];
+      }
+      return [sym];
+    }
+
+    // ── Render Huffman tree SVG ──────────────────────────────────────────────
 
     function renderTree(root, steps) {
       const svg = document.getElementById('huffmanTreeSvg');
@@ -9077,7 +9606,6 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
       svg.innerHTML = '';
 
-      // ── Collect leaves in left-to-right order ──────────────────────────────
       const leafNodes = [];
       (function collectLeaves(n) {
         if (!n) return;
@@ -9087,17 +9615,11 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       }(root));
       leafNodes.sort((a, b) => pxOf(a) - pxOf(b));
 
-      // ── Timing constants ───────────────────────────────────────────────────
-      const LEAF_STAGGER = 55;          // ms between each leaf pop-in
-      const AFTER_LEAVES = 320;         // pause after all leaves are shown
-      const STEP_GAP     = 300;         // ms allocated per merge step
+      const LEAF_STAGGER = 55, AFTER_LEAVES = 320, STEP_GAP = 300;
 
-      // ── Phase 1: render leaf nodes with staggered pop-in ──────────────────
-      // We use a <g> wrapper so transform-origin: center works in SVG
       leafNodes.forEach((n, i) => {
         const cx = pxOf(n), cy = pyOf(n);
-        const label = n.s === 'EOB' ? 'EOB' : n.s.slice(1, -1);
-        const parts  = label.split(',');
+        const lines = leafLabel(n.s);
         const d = i * LEAF_STAGGER;
 
         const g = mk('g', {
@@ -9106,28 +9628,21 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           style: `cursor:pointer; animation: huffPopIn 0.38s cubic-bezier(.34,1.56,.64,1) ${d}ms forwards`
         });
         g.appendChild(mk('circle', { cx, cy, r: LEAF_R, fill: '#dbeafe', stroke: '#2563eb', 'stroke-width': '1.5' }));
-        if (parts.length === 2) {
-          g.appendChild(mk('text', { x: cx, y: cy - 2, 'text-anchor': 'middle', 'font-size': '8', fill: '#1e40af', 'font-family': 'JetBrains Mono,monospace', 'pointer-events': 'none' }, parts[0] + ','));
-          g.appendChild(mk('text', { x: cx, y: cy + 8, 'text-anchor': 'middle', 'font-size': '8', fill: '#1e40af', 'font-family': 'JetBrains Mono,monospace', 'pointer-events': 'none' }, parts[1]));
+        if (lines.length === 2) {
+          g.appendChild(mk('text', { x: cx, y: cy - 2, 'text-anchor': 'middle', 'font-size': '8', fill: '#1e40af', 'font-family': 'JetBrains Mono,monospace', 'pointer-events': 'none' }, lines[0]));
+          g.appendChild(mk('text', { x: cx, y: cy + 8, 'text-anchor': 'middle', 'font-size': '8', fill: '#1e40af', 'font-family': 'JetBrains Mono,monospace', 'pointer-events': 'none' }, lines[1]));
         } else {
-          g.appendChild(mk('text', { x: cx, y: cy + 4, 'text-anchor': 'middle', 'font-size': '8', fill: '#1e40af', 'font-family': 'JetBrains Mono,monospace', 'pointer-events': 'none' }, label));
+          g.appendChild(mk('text', { x: cx, y: cy + 4, 'text-anchor': 'middle', 'font-size': '8', fill: '#1e40af', 'font-family': 'JetBrains Mono,monospace', 'pointer-events': 'none' }, lines[0]));
         }
         svg.appendChild(g);
       });
 
-      // ── Phase 2: animate each merge step (edges + internal node) ──────────
-      // Steps are in build order: first = deepest (rarest pair), last = root
       let stepDelay = leafNodes.length * LEAF_STAGGER + AFTER_LEAVES;
-
-      // We need a layer for edges so they sit below leaf nodes.
-      // Insert an SVG <g> at the front to hold edges.
       const edgeLayer = mk('g', { class: 'huff-edge-layer' });
       svg.insertBefore(edgeLayer, svg.firstChild);
 
       steps.forEach(({ left, right, parent }) => {
         const px = pxOf(parent), py = pyOf(parent);
-
-        // Left edge + "0" label
         if (left && pos.has(left)) {
           const lx = pxOf(left), ly = pyOf(left);
           edgeLayer.appendChild(mk('line', {
@@ -9144,8 +9659,6 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
             style: `animation: huffFadeIn 0.18s ease ${stepDelay + 60}ms forwards`
           }, '0'));
         }
-
-        // Right edge + "1" label
         if (right && pos.has(right)) {
           const rx = pxOf(right), ry = pyOf(right);
           edgeLayer.appendChild(mk('line', {
@@ -9162,8 +9675,6 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
             style: `animation: huffFadeIn 0.18s ease ${stepDelay + 80}ms forwards`
           }, '1'));
         }
-
-        // Internal node (popping in after its edges)
         const nodeDelay = stepDelay + 110;
         const ng = mk('g', {
           class: 'huff-anim-node',
@@ -9172,11 +9683,9 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         ng.appendChild(mk('circle', { cx: px, cy: py, r: INT_R, fill: '#f1f5f9', stroke: '#cbd5e1', 'stroke-width': '1.5' }));
         ng.appendChild(mk('text', { x: px, y: py + 3, 'text-anchor': 'middle', 'font-size': '8', fill: '#94a3b8', 'font-family': 'Inter,sans-serif', 'pointer-events': 'none' }, parent.c));
         svg.appendChild(ng);
-
         stepDelay += STEP_GAP;
       });
 
-      // ── Attach hover listeners ─────────────────────────────────────────────
       svg.querySelectorAll('.huff-leaf').forEach(g => {
         const sym = g.getAttribute('data-sym');
         g.addEventListener('mouseenter', () => setHighlight(sym));
@@ -9206,33 +9715,65 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       }
     }
 
+    // ── Render Huffman table with 5 columns ──────────────────────────────────
+
+    function symbolDisplayName(sym) {
+      if (sym === 'AC:EOB') return 'EOB';
+      if (sym === 'AC:ZRL') return 'ZRL (15,0)';
+      if (sym.startsWith('DC:')) return 'cat ' + sym.slice(3);
+      if (sym.startsWith('AC:(')) return sym.slice(3); // "(R,C)"
+      return sym;
+    }
+
+    function categoryFromSymbol(sym) {
+      if (sym === 'AC:EOB' || sym === 'AC:ZRL') return 0;
+      if (sym.startsWith('DC:')) return parseInt(sym.slice(3), 10);
+      if (sym.startsWith('AC:(')) {
+        const parts = sym.slice(4, -1).split(',');
+        return parseInt(parts[1], 10);
+      }
+      return 0;
+    }
+
     function renderTable(codes, freq) {
       const tbody = document.getElementById('huffmanTableBody');
       if (!tbody) return;
       const entries = Object.entries(codes).sort((a, b) => (freq[b[0]] || 0) - (freq[a[0]] || 0));
       tbody.innerHTML = '';
       entries.forEach(([sym, code]) => {
+        const cat = categoryFromSymbol(sym);
+        const rawBitsStr = cat > 0 ? cat + ' bits' : '—';
+        const totalBits = code.length + cat;
         const tr = document.createElement('tr');
         tr.setAttribute('data-sym', sym);
-        tr.innerHTML = `<td class="text-code">${esc(sym)}</td>` +
+        tr.innerHTML = `<td class="text-code">${esc(symbolDisplayName(sym))}</td>` +
                        `<td>${freq[sym] || 0}</td>` +
-                       `<td class="code-cell">${esc(code)}</td>` +
-                       `<td>${code.length}</td>`;
+                       `<td class="code-cell"><span class="code-huff">${esc(code)}</span></td>` +
+                       `<td>${rawBitsStr}</td>` +
+                       `<td>${totalBits}</td>`;
         tr.addEventListener('mouseenter', () => setHighlight(sym));
         tr.addEventListener('mouseleave', () => setHighlight(null));
         tbody.appendChild(tr);
       });
     }
 
-    function updateHuffStats(tokens, codes) {
+    // ── Stats: total bits = huffCode.length + raw bits per token ──────────────
+
+    function updateHuffStats(tokens, allCodes) {
       let totalBits = 0;
       tokens.forEach(t => {
-        const k = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
-        if (codes[k]) totalBits += codes[k].length;
+        const isDC = (t._isDC === true);
+        const isLuma = (t._ch === 'y');
+        const key = isDC ? dcSymbolKey(t.value) : acSymbolKey(t.skip, t.value);
+        const tblKey = (isDC ? 'dc' : 'ac') + (isLuma ? 'Luma' : 'Chroma');
+        const codes = allCodes[tblKey] || {};
+        const huffLen = codes[key] ? codes[key].length : 0;
+        const cat = (t.value === 'EOB' || (t.skip === 15 && t.value === 0)) ? 0 : jpegCategory(t.value);
+        totalBits += huffLen + cat;
       });
       const n = tokens.length;
-      const avg      = n > 0 ? (totalBits / n).toFixed(1) : 0;
-      const savings  = n > 0 ? Math.round((1 - totalBits / (n * 8)) * 100) : 0;
+      const avg = n > 0 ? (totalBits / n).toFixed(1) : 0;
+      const savings = n > 0 ? Math.round((1 - totalBits / (n * 8)) * 100) : 0;
       const el1 = document.getElementById('huffTotalBits');
       const el2 = document.getElementById('huffAvgBits');
       const el3 = document.getElementById('huffSavings');
@@ -9245,60 +9786,739 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       if (note) note.style.display = '';
     }
 
-    // Populate the DPCM card showing the before→after DC token transformation
-    function updateDpcmCard(rawDC, diff) {
+    // ── DPCM scrolling bitstream animation card ────────────────────────
+
+    let _dpcmTimer = null;
+    let _dpcmActiveCh = 'y';
+    let _dpcmAllDcs = null;
+    let _dpcmMcuN = 0;
+    let _dpcmSavings = {};
+    const _CH_CFG = [
+      { key: 'y',  name: 'Y',  label: 'Luma',        stroke: '#8b5cf6' },
+      { key: 'cb', name: 'Cb', label: 'Blue chroma',  stroke: '#3b82f6' },
+      { key: 'cr', name: 'Cr', label: 'Red chroma',   stroke: '#ef4444' },
+    ];
+
+    function stopDpcmAnim() {
+      if (_dpcmTimer) { clearInterval(_dpcmTimer); _dpcmTimer = null; }
+    }
+
+    /* ---- offset from element to an ancestor (track-relative coords) ---- */
+    function _offTo(el, ancestor) {
+      let x = 0, y = 0, cur = el;
+      while (cur && cur !== ancestor) {
+        x += cur.offsetLeft; y += cur.offsetTop;
+        cur = cur.offsetParent;
+      }
+      return { x, y };
+    }
+
+    /* ---- build & launch ------------------------------------------------ */
+    function updateDpcmCard() {
+      stopDpcmAnim();
       const card = document.getElementById('dcDpcmCard');
       const row  = document.getElementById('dpcmRow');
       if (!card || !row) return;
+      if (!S.yChannel || !S.w || !S.h) { card.style.display = 'none'; return; }
       card.style.display = '';
-      const noChange   = (diff === rawDC);
-      const prevDC     = rawDC - diff;
-      const signedDiff = (!noChange && diff > 0) ? `+${diff}` : `${diff}`;
-      row.innerHTML = `
-        <div class="dpcm-col">
-          <div class="dpcm-col-label">From RLE</div>
-          <div class="dpcm-token dpcm-raw">(0,&thinsp;${rawDC})</div>
-          <div class="dpcm-col-note">raw DC value</div>
-        </div>
-        <div class="dpcm-arrow-col">
-          <div class="dpcm-eq">→</div>
-          <div class="dpcm-formula">${noChange
-            ? 'first block — prev&thinsp;=&thinsp;0'
-            : `${rawDC}&thinsp;−&thinsp;${prevDC}&thinsp;=&thinsp;${signedDiff}`
-          }</div>
-        </div>
-        <div class="dpcm-col">
-          <div class="dpcm-col-label">To Huffman</div>
-          <div class="dpcm-token dpcm-diff${noChange ? ' no-change' : ''}">(0,&thinsp;${signedDiff})</div>
-          <div class="dpcm-col-note">${noChange ? 'unchanged — first block' : 'DPCM difference'}</div>
-        </div>`;
+
+      const cols  = Math.ceil(S.w / 8);
+      const rows  = Math.ceil(S.h / 8);
+      const total = cols * rows;
+      const mcuN  = Math.min(total, Math.min(cols, 15));   // first row, max 15
+      if (mcuN < 2) {
+        row.innerHTML = '<p class="section-placeholder" style="margin:0">Need at least 2 blocks for DPCM</p>';
+        return;
+      }
+
+      // Gather DC values + short AC-bit previews for each channel × MCU
+      const ZZac = [1,8,16,9,2,3,10,17,24,32,25,18,11,4,5,12,19,26];
+      const allDcs = {};
+      _CH_CFG.forEach(ch => {
+        const arr = ch.key === 'y' ? S.yChannel : ch.key === 'cb' ? S.cbChannel : S.crChannel;
+        if (!arr) { allDcs[ch.key] = []; return; }
+        const dcs = [];
+        for (let m = 0; m < mcuN; m++) {
+          const bx = m * 8, by = 0;                        // first row only
+          const q  = quantize(dct2d(extractBlock(arr, bx, by, S.w)), scaleQT(S.quality));
+          const dc = q[0], prev = m > 0 ? dcs[m - 1].dc : 0;
+          let ac = '';
+          for (let j = 0; j < ZZac.length && ac.length < 8; j++) {
+            const v = q[ZZac[j]];
+            ac += v === 0 ? '0' : Math.abs(v).toString(2);
+          }
+          ac = ac.slice(0, 5 + (m & 1) * 2);
+          if (ac.length < 3) ac = ac.padEnd(3, '0');
+          dcs.push({ dc, prev, diff: dc - prev, ac });
+        }
+        allDcs[ch.key] = dcs;
+      });
+
+      _dpcmAllDcs = allDcs;
+      _dpcmMcuN = mcuN;
+
+      // Compute whole-image bits saved per channel from DPCM
+      const qt = scaleQT(S.quality);
+      _dpcmSavings = {};
+      _CH_CFG.forEach(ch => {
+        const arr = ch.key === 'y' ? S.yChannel : ch.key === 'cb' ? S.cbChannel : S.crChannel;
+        if (!arr) { _dpcmSavings[ch.key] = { before: 0, after: 0 }; return; }
+        let before = 0, after = 0, prevDc = 0;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const q = quantize(dct2d(extractBlock(arr, c * 8, r * 8, S.w)), qt);
+            const dc = q[0];
+            const diff = (r === 0 && c === 0) ? dc : dc - prevDc;
+            before += jpegCategory(dc);
+            after  += jpegCategory(diff);
+            prevDc = dc;
+          }
+        }
+        _dpcmSavings[ch.key] = { before, after };
+      });
+
+      // Build HTML: channel selector + indicator + viewport > track > MCU groups + records table
+      let h = '';
+
+      // Channel selector
+      h += '<div class="dpcm-channel-selector">';
+      _CH_CFG.forEach(ch => {
+        const active = ch.key === _dpcmActiveCh ? ' active' : '';
+        h += `<button class="dpcm-channel-btn${active}" data-ch="${ch.key}" onclick="switchDpcmChannel('${ch.key}')">${ch.name} <span style="font-weight:400;opacity:0.7;font-size:0.6rem">${ch.label}</span></button>`;
+      });
+      h += '</div>';
+
+      h += '<div class="dpcm-stream-wrap">';
+      h += '<div class="dpcm-stream-body">';
+      h += '<div class="dpcm-viewport">';
+      h += '<div class="dpcm-track" id="dpcmTrack">';
+      h += '<svg class="dpcm-track-svg" id="dpcmSvg"></svg>';
+      for (let m = 0; m < mcuN; m++) {
+        if (m > 0) h += '<span class="dpcm-mcu-sep"></span>';
+        h += `<div class="dpcm-mcu-group" data-mcu="${m}">`;
+        h += `<span class="dpcm-mcu-label">MCU ${m}</span>`;
+        h += `<div class="dpcm-mcu-content">`;
+        _CH_CFG.forEach(ch => {
+          const dcs = allDcs[ch.key];
+          if (!dcs || !dcs[m]) return;
+          const d = dcs[m], s = d.diff > 0 ? '+' + d.diff : '' + d.diff;
+          h += `<span class="dpcm-ch-pair" data-ch="${ch.key}">`;
+          h += `<span class="dpcm-stream-dc" data-ch="${ch.key}">` +
+               `<span class="dpcm-dc-top-label">DC</span>` +
+               `<span class="dpcm-stream-dc-val" data-ch="${ch.key}" data-mcu="${m}" data-raw="${d.dc}" data-diff="${s}">${d.dc}</span>` +
+               `<span class="dpcm-stream-dc-label">${ch.name}</span>` +
+               `<span class="dpcm-bits-badge" data-ch="${ch.key}" data-mcu="${m}"></span>` +
+               `</span>`;
+          h += `<span class="dpcm-ac-wrap"><span class="dpcm-ac-label">AC</span><span class="dpcm-stream-ac">${d.ac}</span></span>`;
+          h += `</span>`;
+        });
+        h += `</div>`;
+        h += '</div>';
+      }
+      h += '</div></div></div>';
+      h += '</div>';
+
+      // Records table
+      h += '<div class="dpcm-records" id="dpcmRecords">';
+      h += '<table class="dpcm-records-table"><thead><tr>';
+      h += '<th>MCU</th><th>Original DC</th><th>Prev DC</th><th>Difference</th><th>Encoded</th><th>Bits before</th><th>Bits after</th>';
+      h += '</tr></thead><tbody id="dpcmRecordsBody"></tbody></table>';
+      h += '<div class="dpcm-records-empty" id="dpcmRecordsEmpty">Records will appear as the animation progresses\u2026</div>';
+      h += '</div>';
+
+      // DPCM savings summary (populated after render via _updateDpcmSavingsDisplay)
+      h += '<div class="dpcm-savings-wrap">';
+      h += '<span class="dpcm-savings-label">Total DC bits saved by DPCM</span>';
+      h += '<div class="dpcm-savings-summary" id="dpcmSavings"></div>';
+      h += '</div>';
+
+      row.innerHTML = h;
+      _updateDpcmSavingsDisplay(_dpcmActiveCh);
+
+      // Apply initial channel dim and start animation
+      setTimeout(() => _startDpcmForChannel(_dpcmActiveCh), 350);
     }
 
-    // Returns a copy of rleSeq with the DC token replaced by the DPCM difference
-    // from the previous MCU (Y-channel). MCU 0 is unchanged (prevDC = 0).
+    /* ---- savings display for current channel ---------------------------- */
+    function _updateDpcmSavingsDisplay(chKey) {
+      const el = document.getElementById('dpcmSavings');
+      if (!el) return;
+      const cfg = _CH_CFG.find(c => c.key === chKey);
+      const s = _dpcmSavings[chKey];
+      if (!cfg || !s) { el.innerHTML = ''; return; }
+      const saved = s.before - s.after;
+      const pct = s.before > 0 ? Math.round(saved / s.before * 100) : 0;
+      el.innerHTML =
+        `<div class="dpcm-savings-row">` +
+        `<span class="dpcm-savings-ch">${cfg.name}</span>` +
+        `<span class="dpcm-savings-nums">${s.before.toLocaleString()} → ${s.after.toLocaleString()} bits</span>` +
+        `<span class="dpcm-savings-badge${saved >= 0 ? '' : ' neg'}">` +
+        `${saved >= 0 ? '−' : '+'}${Math.abs(saved).toLocaleString()} bits (${saved >= 0 ? '-' : '+'}${Math.abs(pct)}%)` +
+        `</span>` +
+        `</div>`;
+    }
+
+    /* ---- switch active channel ----------------------------------------- */
+    window.switchDpcmChannel = function switchDpcmChannel(chKey) {
+      if (chKey === _dpcmActiveCh && _dpcmTimer) return;
+      _dpcmActiveCh = chKey;
+
+      // Update button states
+      document.querySelectorAll('.dpcm-channel-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.ch === chKey);
+      });
+
+      _updateDpcmSavingsDisplay(chKey);
+      _startDpcmForChannel(chKey);
+    }
+
+    /* ---- start/restart animation for a specific channel ---------------- */
+    function _startDpcmForChannel(chKey) {
+      stopDpcmAnim();
+      _clearDpcmOv();
+      _resetDcs();
+
+      // Clear records
+      const tbody = document.getElementById('dpcmRecordsBody');
+      const empty = document.getElementById('dpcmRecordsEmpty');
+      if (tbody) tbody.innerHTML = '';
+      if (empty) empty.style.display = '';
+
+      const track = document.getElementById('dpcmTrack');
+      if (track) {
+        track.style.transform = 'translateX(0)';
+        // Apply permanent dim for non-selected channels
+        track.querySelectorAll('.dpcm-mcu-group').forEach(g => {
+          g.classList.remove('dpcm-dim-y', 'dpcm-dim-cb', 'dpcm-dim-cr');
+          g.classList.add('dpcm-dim-' + chKey);
+        });
+        track.querySelectorAll('.dpcm-bits-badge').forEach(b => { b.classList.remove('visible'); b.textContent = ''; });
+      }
+
+      const ind = document.getElementById('dpcmChInd');
+      const chCfg = _CH_CFG.find(c => c.key === chKey);
+      if (ind && chCfg) { ind.setAttribute('data-ch', chKey); ind.textContent = chCfg.name; }
+
+      if (_dpcmAllDcs && _dpcmMcuN > 1) {
+        _animateDpcmScroll(_dpcmAllDcs, _dpcmMcuN, chKey);
+      }
+    }
+
+    /* ---- scroll the track so MCU pair (m-1, m) is centered ------------- */
+    function _scrollToMcu(mcuIdx) {
+      const track = document.getElementById('dpcmTrack');
+      const vp    = track && track.parentElement;
+      if (!track || !vp) return;
+      const grpPrev = track.querySelector(`.dpcm-mcu-group[data-mcu="${mcuIdx - 1}"]`);
+      const grpCur  = track.querySelector(`.dpcm-mcu-group[data-mcu="${mcuIdx}"]`);
+      if (!grpPrev || !grpCur) return;
+      const pairLeft  = grpPrev.offsetLeft;
+      const pairRight = grpCur.offsetLeft + grpCur.offsetWidth;
+      const pairCenter = (pairLeft + pairRight) / 2;
+      const vpW = vp.clientWidth;
+      const tx = Math.max(0, pairCenter - vpW / 2);
+      track.style.transform = `translateX(${-tx}px)`;
+    }
+
+    /* ---- phase timeline builder (single channel) ----------------------- */
+    function _animateDpcmScroll(allDcs, mcuN, chKey) {
+      stopDpcmAnim();
+      const ch = _CH_CFG.find(c => c.key === chKey);
+      if (!ch) return;
+      const dcs = allDcs[chKey];
+      if (!dcs || dcs.length < 2) return;
+      const pairs = mcuN - 1;
+
+      const P = [{ t: 'idle', ch: chKey, d: 1200 }];
+
+      for (let m = 1; m < mcuN; m++) {
+        P.push({ t: 'scroll', mcu: m, d: 600 });
+        P.push({ t: 'ch-start', ch: chKey, name: ch.name, label: ch.label, stroke: ch.stroke, mcu: m, d: 400 });
+        P.push({ t: 'arch',     ch: chKey, mcu: m, stroke: ch.stroke, d: 700 });
+        P.push({ t: 'formula',  ch: chKey, mcu: m, stroke: ch.stroke, dcs, d: 600 });
+        P.push({ t: 'transform',ch: chKey, mcu: m, dcs, d: 600 });
+        P.push({ t: 'ch-hold',  d: 300 });
+        P.push({ t: 'mcu-done', mcu: m, ch: chKey, d: 400 });
+      }
+
+      P.push({ t: 'summary', allDcs, mcuN, ch: chKey, d: 3500 });
+      P.push({ t: 'reset', ch: chKey, d: 1000 });
+
+      let pi = 0, t0 = Date.now(), lastPi = -1;
+      _dpcmTimer = setInterval(() => {
+        if (pi !== lastPi) { lastPi = pi; _dpcmExec(P[pi], pairs); }
+        if (Date.now() - t0 >= P[pi].d) { pi = (pi + 1) % P.length; t0 = Date.now(); lastPi = -1; }
+      }, 40);
+    }
+
+    /* ---- add a record row to the table --------------------------------- */
+    function _addDpcmRecord(mcu, dc, prevDc, diff, isFirst) {
+      const tbody = document.getElementById('dpcmRecordsBody');
+      const empty = document.getElementById('dpcmRecordsEmpty');
+      if (!tbody) return;
+      if (empty) empty.style.display = 'none';
+
+      // Remove "new" highlight from previous rows
+      tbody.querySelectorAll('.dpcm-rec-new').forEach(r => r.classList.remove('dpcm-rec-new'));
+
+      const tr = document.createElement('tr');
+      tr.className = 'dpcm-rec-new' + (isFirst ? ' dpcm-rec-first' : '');
+      const sign = diff > 0 ? '+' : '';
+      const bitsBefore = jpegCategory(dc);
+      const bitsAfter  = isFirst ? bitsBefore : jpegCategory(diff);
+      const saved = bitsBefore - bitsAfter;
+      const bitsAfterCell = saved < 0
+        ? `<td style="color:#dc2626;font-weight:700">${bitsAfter} <span style="font-size:0.6em">▲${-saved}</span></td>`
+        : `<td>${bitsAfter}</td>`;
+      if (isFirst) {
+        tr.innerHTML = `<td>${mcu}</td><td>${dc}</td><td>\u2014</td><td>\u2014</td><td>${dc}</td><td>${bitsBefore}</td>${bitsAfterCell}`;
+      } else {
+        tr.innerHTML = `<td>${mcu}</td><td>${dc}</td><td>${prevDc}</td><td class="dpcm-rec-diff">${sign}${diff}</td><td class="dpcm-rec-diff">${sign}${diff}</td><td>${bitsBefore}</td>${bitsAfterCell}`;
+      }
+      tbody.appendChild(tr);
+
+      // Auto-scroll records container
+      const container = document.getElementById('dpcmRecords');
+      if (container) container.scrollTop = container.scrollHeight;
+    }
+
+    /* ---- phase executor ------------------------------------------------ */
+    function _dpcmExec(ph, totalPairs) {
+      const track = document.getElementById('dpcmTrack');
+      const svg   = document.getElementById('dpcmSvg');
+      const ex    = document.getElementById('dpcmExplain');
+      const ind   = document.getElementById('dpcmChInd');
+      const pLbl  = document.getElementById('dpcmProgLabel');
+      const pFill = document.getElementById('dpcmProgFill');
+      if (!track) return;
+
+      const activeCh = _dpcmActiveCh;
+      const chCfg = _CH_CFG.find(c => c.key === activeCh);
+
+      // ── idle ──
+      if (ph.t === 'idle') {
+        _clearDpcmOv(); _resetDcs();
+        track.style.transform = 'translateX(0)';
+        // Keep channel dim active
+        track.querySelectorAll('.dpcm-mcu-group').forEach(g => {
+          g.classList.remove('dpcm-dim-y', 'dpcm-dim-cb', 'dpcm-dim-cr');
+          g.classList.add('dpcm-dim-' + activeCh);
+        });
+        if (ind && chCfg) { ind.setAttribute('data-ch', activeCh); ind.textContent = chCfg.name; }
+        if (ex) ex.innerHTML = `<strong>${chCfg ? chCfg.name : ''}</strong> DC is replaced by the <strong>difference</strong> from the previous block\u2026`;
+        if (pFill) pFill.style.width = '0%';
+        if (pLbl)  pLbl.textContent = '';
+
+        // Add MCU 0 record (first block, no delta)
+        const tbody = document.getElementById('dpcmRecordsBody');
+        if (tbody) tbody.innerHTML = '';
+        const empty = document.getElementById('dpcmRecordsEmpty');
+        if (empty) empty.style.display = '';
+        const dcs = _dpcmAllDcs && _dpcmAllDcs[activeCh];
+        if (dcs && dcs.length > 0) {
+          _addDpcmRecord(0, dcs[0].dc, 0, 0, true);
+        }
+      }
+
+      // ── scroll ──
+      else if (ph.t === 'scroll') {
+        _clearDpcmOv();
+        _scrollToMcu(ph.mcu);
+        if (pLbl)  pLbl.textContent = `MCU ${ph.mcu} of ${totalPairs}`;
+        if (pFill) pFill.style.width = Math.round((ph.mcu / totalPairs) * 100) + '%';
+      }
+
+      // ── ch-start: highlight the active channel's DC pair ──
+      else if (ph.t === 'ch-start') {
+        _clearDpcmOv();
+        if (ex) ex.innerHTML = `<strong>${ph.name}</strong> (${ph.label}) \u2014 MCU ${ph.mcu}\u2026`;
+      }
+
+      // ── arch: draw SVG arch between prev and current DC badges ──
+      else if (ph.t === 'arch') {
+        const e1 = track.querySelector(`.dpcm-stream-dc-val[data-ch="${ph.ch}"][data-mcu="${ph.mcu - 1}"]`);
+        const e2 = track.querySelector(`.dpcm-stream-dc-val[data-ch="${ph.ch}"][data-mcu="${ph.mcu}"]`);
+        if (!svg || !e1 || !e2) return;
+        const o1 = _offTo(e1, track), o2 = _offTo(e2, track);
+        const x1 = o1.x + e1.offsetWidth / 2, y1 = o1.y;
+        const x2 = o2.x + e2.offsetWidth / 2, y2 = o2.y;
+        svg.setAttribute('width', track.scrollWidth);
+        svg.setAttribute('height', track.scrollHeight);
+        const mx = (x1 + x2) / 2;
+        const cy = Math.min(y1, y2) - Math.max(22, (x2 - x1) * 0.18);
+        const ns = 'http://www.w3.org/2000/svg';
+        const p  = document.createElementNS(ns, 'path');
+        p.setAttribute('d', `M${x1} ${y1} Q${mx} ${cy} ${x2} ${y2}`);
+        p.setAttribute('fill', 'none');
+        p.setAttribute('stroke', ph.stroke);
+        p.setAttribute('stroke-width', '2');
+        p.setAttribute('stroke-linecap', 'round');
+        p.classList.add('dpcm-arch-path');
+        const len = p.getTotalLength();
+        p.style.strokeDasharray  = len;
+        p.style.strokeDashoffset = len;
+        svg.appendChild(p);
+        requestAnimationFrame(() => { p.style.transition = 'stroke-dashoffset 0.55s ease-out'; p.style.strokeDashoffset = '0'; });
+      }
+
+      // ── formula: show "curr − prev = diff" above the arch ──
+      else if (ph.t === 'formula') {
+        const dcs = ph.dcs;
+        const e1 = track.querySelector(`.dpcm-stream-dc-val[data-ch="${ph.ch}"][data-mcu="${ph.mcu - 1}"]`);
+        const e2 = track.querySelector(`.dpcm-stream-dc-val[data-ch="${ph.ch}"][data-mcu="${ph.mcu}"]`);
+        if (!e1 || !e2 || !dcs) return;
+        const o1 = _offTo(e1, track), o2 = _offTo(e2, track);
+        const x1 = o1.x + e1.offsetWidth / 2, x2 = o2.x + e2.offsetWidth / 2;
+        const y1 = o1.y, y2 = o2.y;
+        const mx = (x1 + x2) / 2;
+        const ah = Math.max(22, (x2 - x1) * 0.18);
+        const ty = Math.min(y1, y2) - ah - 18;
+        const cur = dcs[ph.mcu].dc, prv = dcs[ph.mcu - 1].dc;
+        const df = cur - prv, s = df > 0 ? '+' : '';
+        const el = document.createElement('div');
+        el.className = 'dpcm-stream-formula';
+        el.setAttribute('data-ch', ph.ch);
+        el.textContent = `${cur} \u2212 ${prv} = ${s}${df}`;
+        el.style.left = mx + 'px';
+        el.style.top  = ty + 'px';
+        track.appendChild(el);
+        requestAnimationFrame(() => el.classList.add('visible'));
+        if (ex) ex.innerHTML = `<strong>${cur} \u2212 ${prv} = ${s}${df}</strong>`;
+      }
+
+      // ── transform: pulse badge + replace value + show bit-count + add record ──
+      else if (ph.t === 'transform') {
+        const el = track.querySelector(`.dpcm-stream-dc-val[data-ch="${ph.ch}"][data-mcu="${ph.mcu}"]`);
+        if (!el) return;
+        el.classList.add('transforming');
+        setTimeout(() => {
+          el.textContent = el.dataset.diff;
+          el.classList.remove('transforming');
+          el.classList.add('transformed');
+        }, 280);
+        const dcs = ph.dcs;
+        if (dcs) {
+          const d = dcs[ph.mcu];
+          const cat = jpegCategory(d.diff);
+          const badge = track.querySelector(`.dpcm-bits-badge[data-ch="${ph.ch}"][data-mcu="${ph.mcu}"]`);
+          if (badge) {
+            badge.textContent = cat + ' bit' + (cat !== 1 ? 's' : '');
+            requestAnimationFrame(() => badge.classList.add('visible'));
+          }
+          if (ex) {
+            const s2 = d.diff > 0 ? '+' : '';
+            ex.textContent = `Store ${s2}${d.diff} instead of ${d.dc} \u2014 ${cat} bit${cat !== 1 ? 's' : ''} instead of raw`;
+          }
+          // Add record row
+          _addDpcmRecord(ph.mcu, d.dc, dcs[ph.mcu - 1].dc, d.diff, false);
+        }
+      }
+
+      // ── ch-hold: brief pause, nothing to do ──
+      else if (ph.t === 'ch-hold') { /* no-op */ }
+
+      // ── mcu-done: clear arches (keep dim) ──
+      else if (ph.t === 'mcu-done') {
+        _clearDpcmOv();
+      }
+
+      // ── summary: show raw → encoded for the active channel ──
+      else if (ph.t === 'summary') {
+        _clearDpcmOv();
+        if (!ex) return;
+        const dcs = ph.allDcs[activeCh];
+        if (!dcs || !dcs.length) return;
+        const chName = chCfg ? chCfg.name : activeCh;
+        const raw = dcs.map(d => d.dc).join(', ');
+        const enc = dcs.map((d, i) => i === 0 ? d.dc : (d.diff > 0 ? '+' + d.diff : d.diff)).join(', ');
+        ex.innerHTML = `<strong>${chName}:</strong> [${raw}] \u279C [${enc}]`;
+      }
+
+      // ── reset: restore all values, scroll back to start ──
+      else if (ph.t === 'reset') {
+        _clearDpcmOv();
+        _resetDcs();
+        track.querySelectorAll('.dpcm-mcu-group').forEach(g => {
+          g.classList.remove('dpcm-dim-y', 'dpcm-dim-cb', 'dpcm-dim-cr');
+          g.classList.add('dpcm-dim-' + activeCh);
+        });
+        track.style.transform = 'translateX(0)';
+        if (ind && chCfg) { ind.setAttribute('data-ch', activeCh); ind.textContent = chCfg.name; }
+        if (ex) ex.textContent = '';
+        track.querySelectorAll('.dpcm-bits-badge').forEach(b => { b.classList.remove('visible'); b.textContent = ''; });
+      }
+    }
+
+    /* ---- helpers -------------------------------------------------------- */
+    function _clearDpcmOv() {
+      const track = document.getElementById('dpcmTrack');
+      if (!track) return;
+      track.querySelectorAll('.dpcm-arch-path').forEach(p => p.remove());
+      track.querySelectorAll('.dpcm-stream-formula').forEach(f => f.remove());
+    }
+
+    function _resetDcs() {
+      document.querySelectorAll('.dpcm-stream-dc-val').forEach(el => {
+        el.textContent = el.dataset.raw;
+        el.classList.remove('transformed', 'transforming');
+      });
+    }
+
+    function _dpcmUndim(track) {
+      if (!track) return;
+      track.querySelectorAll('.dpcm-mcu-group').forEach(g => {
+        g.classList.remove('dpcm-dim-y', 'dpcm-dim-cb', 'dpcm-dim-cr');
+      });
+    }
+
     function applyDcDpcm(rleSeq) {
       if (!rleSeq || !rleSeq.length) return rleSeq;
       const cols   = S.w ? Math.ceil(S.w / 8) : 1;
       const mcuIdx = ((S.selBy || 0) / 8) * cols + ((S.selBx || 0) / 8);
-      if (mcuIdx === 0 || !S.yChannel || !S.w) return rleSeq; // MCU 0: diff = rawDC (prev = 0)
+      if (mcuIdx === 0 || !S.yChannel || !S.w) return rleSeq;
       const prevBx = ((mcuIdx - 1) % cols) * 8;
       const prevBy = Math.floor((mcuIdx - 1) / cols) * 8;
       const prevDC = quantize(dct2d(extractBlock(S.yChannel, prevBx, prevBy, S.w)), scaleQT(S.quality))[0];
       const diff   = rleSeq[0].value - prevDC;
-      if (diff === rleSeq[0].value) return rleSeq; // no change
+      if (diff === rleSeq[0].value) return rleSeq;
       return [{ skip: 0, value: diff }, ...rleSeq.slice(1)];
     }
+
+    // ── Category split demo ──────────────────────────────────────────────────
+
+    function renderCatSplitDemo(yTokens, cbTokens, crTokens) {
+      const card = document.getElementById('catSplitCard');
+      const el   = document.getElementById('catSplitDemo');
+      if (!card || !el) return;
+      card.style.display = '';
+
+      // Pick an interesting AC token (nonzero skip + nonzero value preferred)
+      const allAC = [...yTokens.slice(1), ...cbTokens.slice(1), ...crTokens.slice(1)]
+        .filter(t => t.value !== 'EOB' && !(t.skip === 15 && t.value === 0));
+      const acToken = allAC.find(t => t.skip > 0 && t.value !== 0)
+                   || allAC.find(t => t.value !== 0)
+                   || allAC[0];
+
+      // DC token
+      const dcDiff = yTokens[0].value;
+      const dcCat  = jpegCategory(dcDiff);
+      const dcRaw  = jpegRawBits(dcDiff, dcCat);
+
+      // Lookup Huffman code from current table if available
+      const dcHuff = _tables.dcLuma ? (_tables.dcLuma[dcSymbolKey(dcDiff)] || '?') : '?';
+
+      let html = '';
+
+      // ── DC Pipeline ──────────────────────────────────────────────────────
+      html += `<div class="cat-pipeline">
+        <div class="cat-pipe-header">
+          <span class="cat-pipe-badge cat-pipe-badge--dc">DC</span>
+          <span class="cat-pipe-title">Encoding the DC difference</span>
+          <span class="cat-pipe-subtitle">value = ${dcDiff}</span>
+        </div>
+        <div class="cat-pipe-body"><div class="cat-steps">`;
+
+      // Step 1: start with DPCM diff
+      html += `<div class="cat-step">
+        <div class="cat-step-num">1</div>
+        <div class="cat-step-content">
+          <div class="cat-step-label">Start with the DPCM difference value</div>
+          <div class="cat-step-visual">
+            <div class="cat-token-pill cat-token-pill--dc">diff = ${dcDiff}</div>
+          </div>
+        </div>
+      </div>`;
+
+      // Step 2: find category
+      html += `<div class="cat-step">
+        <div class="cat-step-num">2</div>
+        <div class="cat-step-content">
+          <div class="cat-step-label">Find the category — how many bits does <code>|${dcDiff}|</code> need?</div>
+          <div class="cat-step-visual">
+            <div class="cat-token-pill cat-token-pill--dc">|${dcDiff}|</div>
+            <span class="cat-step-arrow">→</span>
+            <div class="cat-huff-part">
+              <div class="cat-part-label">Category</div>
+              <div class="cat-part-value">${dcCat}</div>
+            </div>
+          </div>
+          <div class="cat-step-explain">${dcCat === 0
+            ? 'Value is 0 — category 0, no extra bits needed'
+            : `<code>|${dcDiff}|</code> = ${Math.abs(dcDiff)} fits in ${dcCat} bit${dcCat !== 1 ? 's' : ''} (range: ${(1 << (dcCat - 1))}…${(1 << dcCat) - 1})`
+          }</div>
+        </div>
+      </div>`;
+
+      // Step 3: Huffman-encode the category
+      html += `<div class="cat-step">
+        <div class="cat-step-num">3</div>
+        <div class="cat-step-content">
+          <div class="cat-step-label">Look up Huffman code for category ${dcCat}</div>
+          <div class="cat-step-visual">
+            <div class="cat-huff-part">
+              <div class="cat-part-label">Huffman code</div>
+              <div class="cat-part-value">${dcHuff}</div>
+            </div>`;
+      if (dcCat > 0) {
+        html += `
+            <span class="cat-step-plus">+</span>
+            <div class="cat-raw-part">
+              <div class="cat-part-label">Raw bits</div>
+              <div class="cat-part-value">${dcRaw}</div>
+            </div>`;
+      }
+      html += `</div>
+          <div class="cat-step-explain">${dcCat > 0
+            ? `The Huffman code tells the decoder "the next ${dcCat} bits are the value". Raw bits use ones' complement: ${dcDiff >= 0 ? `${dcDiff} in binary` : `flip of ${Math.abs(dcDiff)}`} = <code>${dcRaw}</code>`
+            : 'Category 0 means the value is 0 — nothing more to send'
+          }</div>
+        </div>
+      </div>`;
+
+      // Step 4: final output
+      html += `<div class="cat-step">
+        <div class="cat-step-num">4</div>
+        <div class="cat-step-content">
+          <div class="cat-step-label">Final bitstream output</div>
+          <div class="cat-step-visual">
+            <div class="cat-combined-row">
+              <span class="cat-combined-huff">${dcHuff}</span>`;
+      if (dcCat > 0) {
+        html += `<span class="cat-combined-sep"></span><span class="cat-combined-raw">${dcRaw}</span>`;
+      }
+      html += `</div>
+            <span style="font-size:0.68rem;color:var(--text-muted)">${dcHuff.length}${dcCat > 0 ? ' + ' + dcCat : ''} = ${dcHuff.length + dcCat} bits total</span>
+          </div>
+        </div>
+      </div>`;
+
+      html += `</div></div></div>`; // close cat-steps, cat-pipe-body, cat-pipeline
+
+      // ── AC Pipeline ──────────────────────────────────────────────────────
+      if (acToken) {
+        const acCat = jpegCategory(acToken.value);
+        const acRawBits = jpegRawBits(acToken.value, acCat);
+        const acSymK = acSymbolKey(acToken.skip, acToken.value);
+        const acHuff = _tables.acLuma ? (_tables.acLuma[acSymK] || _tables.acChroma[acSymK] || '?') : '?';
+
+        html += `<div class="cat-pipeline">
+          <div class="cat-pipe-header">
+            <span class="cat-pipe-badge cat-pipe-badge--ac">AC</span>
+            <span class="cat-pipe-title">Encoding an AC coefficient</span>
+            <span class="cat-pipe-subtitle">token (${acToken.skip}, ${acToken.value})</span>
+          </div>
+          <div class="cat-pipe-body"><div class="cat-steps">`;
+
+        // Step 1: RLE token
+        html += `<div class="cat-step">
+          <div class="cat-step-num">1</div>
+          <div class="cat-step-content">
+            <div class="cat-step-label">Start with the RLE token</div>
+            <div class="cat-step-visual">
+              <div class="cat-token-pill cat-token-pill--rle">(${acToken.skip}, ${acToken.value})</div>
+            </div>
+            <div class="cat-step-explain">Skip ${acToken.skip} zero${acToken.skip !== 1 ? 's' : ''}, then coefficient = ${acToken.value}</div>
+          </div>
+        </div>`;
+
+        // Step 2: split into (run, category)
+        html += `<div class="cat-step">
+          <div class="cat-step-num">2</div>
+          <div class="cat-step-content">
+            <div class="cat-step-label">Replace the value with its category</div>
+            <div class="cat-step-visual">
+              <div class="cat-token-pill cat-token-pill--rle">(${acToken.skip}, ${acToken.value})</div>
+              <span class="cat-step-arrow">→</span>
+              <div class="cat-huff-part">
+                <div class="cat-part-label">Huffman symbol</div>
+                <div class="cat-part-value">(${acToken.skip}, ${acCat})</div>
+              </div>
+            </div>
+            <div class="cat-step-explain"><code>|${acToken.value}|</code> = ${Math.abs(acToken.value)} → needs ${acCat} bit${acCat !== 1 ? 's' : ''} → category ${acCat}. The run-length (${acToken.skip}) stays as-is.</div>
+          </div>
+        </div>`;
+
+        // Step 3: Huffman + raw
+        html += `<div class="cat-step">
+          <div class="cat-step-num">3</div>
+          <div class="cat-step-content">
+            <div class="cat-step-label">Look up Huffman code for (${acToken.skip}, ${acCat}), then append raw bits for the value</div>
+            <div class="cat-step-visual">
+              <div class="cat-huff-part">
+                <div class="cat-part-label">Huffman code</div>
+                <div class="cat-part-value">${acHuff}</div>
+              </div>
+              <span class="cat-step-plus">+</span>
+              <div class="cat-raw-part">
+                <div class="cat-part-label">Raw bits</div>
+                <div class="cat-part-value">${acRawBits}</div>
+              </div>
+            </div>
+            <div class="cat-step-explain">Raw bits: ${acToken.value >= 0 ? `${acToken.value} in ${acCat}-bit binary` : `ones' complement of ${Math.abs(acToken.value)}`} = <code>${acRawBits}</code></div>
+          </div>
+        </div>`;
+
+        // Step 4: final
+        html += `<div class="cat-step">
+          <div class="cat-step-num">4</div>
+          <div class="cat-step-content">
+            <div class="cat-step-label">Final bitstream output</div>
+            <div class="cat-step-visual">
+              <div class="cat-combined-row">
+                <span class="cat-combined-huff">${acHuff}</span>
+                <span class="cat-combined-sep"></span>
+                <span class="cat-combined-raw">${acRawBits}</span>
+              </div>
+              <span style="font-size:0.68rem;color:var(--text-muted)">${acHuff.length} + ${acCat} = ${acHuff.length + acCat} bits total</span>
+            </div>
+          </div>
+        </div>`;
+
+        html += `</div></div></div>`; // close cat-steps, cat-pipe-body, cat-pipeline
+      }
+
+      // ── Category reference grid ──────────────────────────────────────────
+      const activeCats = new Set();
+      activeCats.add(dcCat);
+      if (acToken) activeCats.add(jpegCategory(acToken.value));
+
+      html += `<div class="cat-ref-wrap">
+        <div class="cat-ref-label">Category reference — which category for which values?</div>
+        <div class="cat-ref-grid">`;
+      for (let c = 0; c <= 10; c++) {
+        const lo = c === 0 ? 0 : (1 << (c - 1));
+        const hi = (1 << c) - 1;
+        const range = c === 0 ? '0' : `\u00B1${lo}\u2026${hi}`;
+        const isActive = activeCats.has(c);
+        const isZero = c === 0;
+        html += `<div class="cat-ref-cell${isActive ? ' cat-ref-active' : ''}${isZero ? ' cat-ref-cell--zero' : ''}">
+          <span class="cat-ref-cat">${c}</span>
+          <span class="cat-ref-range">${range}</span>
+        </div>`;
+      }
+      html += `</div></div>`;
+
+      el.innerHTML = html;
+    }
+
+    // ── Re-render current selector view ──────────────────────────────────────
+
+    function renderCurrentView() {
+      const key = tableKey();
+      renderTree(_roots[key], _steps[key]);
+      renderTable(_tables[key], _freqs[key]);
+    }
+
+    // ── Main refresh ─────────────────────────────────────────────────────────
 
     function refreshHuffman() {
       if (!S.rleSeq) return;
       const phEl = document.getElementById('huffmanPlaceholder');
       if (phEl) phEl.style.display = 'none';
 
-      // Y channel: use existing DPCM-encoded sequence (also drives the DPCM card)
       const yTokens = applyDcDpcm(S.rleSeq);
-      updateDpcmCard(S.rleSeq[0].value, yTokens[0].value);
+      updateDpcmCard();
 
-      // Build RLE+DPCM token list for Cb or Cr of the selected block
       function chTokens(ch) {
         const arr = ch === 'cb' ? S.cbChannel : S.crChannel;
         if (!arr || !S.w) return [];
@@ -9337,29 +10557,73 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         return toks;
       }
 
-      // Full MCU = Y + Cb + Cr tokens (matches what the animation should show)
-      const mcuTokens = [
-        ...yTokens,
-        ...chTokens('cb'),
-        ...chTokens('cr'),
+      const cbToks = chTokens('cb');
+      const crToks = chTokens('cr');
+
+      // Tag tokens with channel and DC/AC info for stats and downstream
+      function tagTokens(toks, ch) {
+        return toks.map((t, i) => ({ ...t, _ch: ch, _isDC: i === 0 }));
+      }
+      _mcuTokens = [
+        ...tagTokens(yTokens, 'y'),
+        ...tagTokens(cbToks, 'cb'),
+        ...tagTokens(crToks, 'cr'),
       ];
 
-      const freq = {};
-      mcuTokens.forEach(t => {
-        const k = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
-        freq[k] = (freq[k] || 0) + 1;
+      // Build 4 separate frequency maps using symbol keys
+      const freqs = { dcLuma: {}, dcChroma: {}, acLuma: {}, acChroma: {} };
+      _mcuTokens.forEach(t => {
+        const isDC = t._isDC;
+        const isLuma = (t._ch === 'y');
+        const key = isDC ? dcSymbolKey(t.value) : acSymbolKey(t.skip, t.value);
+        const tblKey = (isDC ? 'dc' : 'ac') + (isLuma ? 'Luma' : 'Chroma');
+        freqs[tblKey][key] = (freqs[tblKey][key] || 0) + 1;
+      });
+      _freqs = freqs;
+
+      // Build tree + codes for each table
+      ['dcLuma', 'dcChroma', 'acLuma', 'acChroma'].forEach(k => {
+        const { root, steps } = buildTreeFromFreq(freqs[k]);
+        _roots[k] = root;
+        _steps[k] = steps;
+        _tables[k] = root ? genCodes(root, '', {}) : {};
       });
 
-      const { root, steps } = buildTree(mcuTokens);
-      _root  = root;
-      _codes = _root ? genCodes(_root, '', {}) : {};
-      renderTree(_root, steps);
-      renderTable(_codes, freq);
-      updateHuffStats(mcuTokens, _codes);
+      // Show selector bar
+      const selBar = document.getElementById('huffSelBar');
+      if (selBar) selBar.style.display = '';
+
+      // Render current view
+      renderCurrentView();
+      updateHuffStats(_mcuTokens, _tables);
+
+      // Render category split demo
+      renderCatSplitDemo(yTokens, cbToks, crToks);
+
+      // Dispatch for downstream sections — include all 4 code tables
       document.dispatchEvent(new CustomEvent('huffmanChanged', {
-        detail: { codes: _codes, tokens: mcuTokens }
+        detail: { codes: _tables, tokens: _mcuTokens }
       }));
     }
+
+    // ── Selector button wiring ───────────────────────────────────────────────
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('[data-sel-type]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          _selType = btn.dataset.selType;
+          document.querySelectorAll('[data-sel-type]').forEach(b => b.classList.toggle('active', b === btn));
+          renderCurrentView();
+        });
+      });
+      document.querySelectorAll('[data-sel-ch]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          _selCh = btn.dataset.selCh;
+          document.querySelectorAll('[data-sel-ch]').forEach(b => b.classList.toggle('active', b === btn));
+          renderCurrentView();
+        });
+      });
+    });
 
     document.addEventListener('rleChanged', refreshHuffman);
   }());
@@ -9447,56 +10711,76 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
     // ── Binary bits panel ─────────────────────────────────────────────────────
 
-    // Build a Huffman code table covering every token in the image so no token
-    // is missing from the bitstream display (section 11 only covers one MCU).
+    // Build 4 separate Huffman code tables covering every token in the image.
+    // _localCodes = { dcLuma: {}, dcChroma: {}, acLuma: {}, acChroma: {} }
     function buildLocalCodes() {
       const total = totalMcus();
-      if (!total || !S.yChannel) { _localCodes = {}; return; }
-      const freq = {};
+      if (!total || !S.yChannel) { _localCodes = { dcLuma: {}, dcChroma: {}, acLuma: {}, acChroma: {} }; return; }
+      const freqs = { dcLuma: {}, dcChroma: {}, acLuma: {}, acChroma: {} };
       for (let i = 0; i < total; i++) {
         ['y', 'cb', 'cr'].forEach(ch => {
           const info = dcInfo(ch, i);
           if (!info) return;
-          const dcKey = `(0,${info.diff})`;
-          freq[dcKey] = (freq[dcKey] || 0) + 1;
+          const isLuma = (ch === 'y');
+          const dcKey = dcSymbolKey(info.diff);
+          const dcTbl = isLuma ? 'dcLuma' : 'dcChroma';
+          freqs[dcTbl][dcKey] = (freqs[dcTbl][dcKey] || 0) + 1;
+          const acTbl = isLuma ? 'acLuma' : 'acChroma';
           info.acTokens.forEach(t => {
-            const key = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
-            freq[key] = (freq[key] || 0) + 1;
+            const key = acSymbolKey(t.skip, t.value);
+            freqs[acTbl][key] = (freqs[acTbl][key] || 0) + 1;
           });
         });
       }
-      let nodes = Object.entries(freq).map(([s, c]) => ({ s, c, l: null, r: null }));
-      if (!nodes.length) { _localCodes = {}; return; }
-      if (nodes.length === 1) { _localCodes = { [nodes[0].s]: '0' }; return; }
-      while (nodes.length > 1) {
-        nodes.sort((a, b) => a.c - b.c);
-        const l = nodes.shift(), r = nodes.shift();
-        nodes.push({ s: null, c: l.c + r.c, l, r });
-      }
       _localCodes = {};
-      (function gen(node, prefix) {
-        if (!node) return;
-        if (node.s !== null) { _localCodes[node.s] = prefix || '0'; return; }
-        gen(node.l, prefix + '0');
-        gen(node.r, prefix + '1');
-      })(nodes[0], '');
+      ['dcLuma', 'dcChroma', 'acLuma', 'acChroma'].forEach(k => {
+        const entries = Object.entries(freqs[k]);
+        if (!entries.length) { _localCodes[k] = {}; return; }
+        let nodes = entries.map(([s, c]) => ({ s, c, l: null, r: null }));
+        if (nodes.length === 1) { _localCodes[k] = { [nodes[0].s]: '0' }; return; }
+        while (nodes.length > 1) {
+          nodes.sort((a, b) => a.c - b.c);
+          const l = nodes.shift(), r = nodes.shift();
+          nodes.push({ s: null, c: l.c + r.c, l, r });
+        }
+        _localCodes[k] = {};
+        (function gen(node, prefix) {
+          if (!node) return;
+          if (node.s !== null) { _localCodes[k][node.s] = prefix || '0'; return; }
+          gen(node.l, prefix + '0');
+          gen(node.r, prefix + '1');
+        })(nodes[0], '');
+      });
     }
 
-    // Build annotated bit array for a single MCU using _localCodes (all-MCU table).
-    // Returns { bit, ch, type, tokenIdx } per bit
+    // Build annotated bit array for a single MCU using _localCodes (all-MCU tables).
+    // Returns { bit, ch, type, tokenIdx, part } per bit (part = 'huff' or 'raw')
     function computeMcuBits(mcuIdx) {
       const out = [];
       ['y', 'cb', 'cr'].forEach(ch => {
         const info = dcInfo(ch, mcuIdx);
         if (!info) return;
-        // DC is DPCM-encoded: the code corresponds to the diff, not the raw value
-        const dcCode = _localCodes[`(0,${info.diff})`] || '';
-        for (const b of dcCode) out.push({ bit: b, ch, type: 'dc', tokenIdx: 0 });
-        // AC tokens — each gets its own tokenIdx for token-level highlighting
+        const isLuma = (ch === 'y');
+
+        // DC: Huffman code for category + raw bits for the diff value
+        const dcSymKey  = dcSymbolKey(info.diff);
+        const dcTbl     = isLuma ? 'dcLuma' : 'dcChroma';
+        const dcHuff    = (_localCodes[dcTbl] || {})[dcSymKey] || '';
+        const dcCat     = jpegCategory(info.diff);
+        const dcRaw     = jpegRawBits(info.diff, dcCat);
+        for (const b of dcHuff) out.push({ bit: b, ch, type: 'dc', tokenIdx: 0, part: 'huff' });
+        for (const b of dcRaw)  out.push({ bit: b, ch, type: 'dc', tokenIdx: 0, part: 'raw' });
+
+        // AC tokens
+        const acTbl = isLuma ? 'acLuma' : 'acChroma';
         info.acTokens.forEach((t, ti) => {
-          const key  = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
-          const code = _localCodes[key] || '';
-          for (const b of code) out.push({ bit: b, ch, type: 'ac', tokenIdx: ti });
+          const symKey = acSymbolKey(t.skip, t.value);
+          const huff   = (_localCodes[acTbl] || {})[symKey] || '';
+          const isSpecial = (t.value === 'EOB' || (t.skip === 15 && t.value === 0));
+          const cat    = isSpecial ? 0 : jpegCategory(t.value);
+          const raw    = isSpecial ? '' : jpegRawBits(t.value, cat);
+          for (const b of huff) out.push({ bit: b, ch, type: 'ac', tokenIdx: ti, part: 'huff' });
+          for (const b of raw)  out.push({ bit: b, ch, type: 'ac', tokenIdx: ti, part: 'raw' });
         });
       });
       return out;
@@ -9552,6 +10836,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
               cell.dataset.tokenIdx = b.tokenIdx;
               cell.dataset.mcuIdx   = seg.idx;
               cell.dataset.mcuRole  = seg.role;
+              cell.dataset.part     = b.part || 'huff';
               grp.appendChild(cell);
             });
             grid.appendChild(grp);
@@ -9788,12 +11073,20 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       wrap.className = 'sos-tnode-tokens';
       data.acTokens.forEach((t, ti) => {
         const pill = document.createElement('span');
+        const isSpecial = (t.value === 'EOB' || (t.skip === 15 && t.value === 0));
         pill.className = 'sos-tnode-tok' + (t.value === 'EOB' ? ' tok-eob' : '');
-        pill.textContent = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
+        if (isSpecial) {
+          pill.textContent = t.value === 'EOB' ? 'EOB' : 'ZRL';
+        } else {
+          const cat = jpegCategory(t.value);
+          const raw = jpegRawBits(t.value, cat);
+          pill.innerHTML = `<span class="code-huff">(${t.skip},${cat})</span>` +
+                           `<span class="code-raw" style="margin-left:2px">${raw}</span>`;
+          pill.title = `Original: (${t.skip},${t.value}) → cat ${cat}, raw: ${raw}`;
+        }
         pill.style.animationDelay = `${ti * 25}ms`;
         pill.style.opacity = '0';
         pill.style.animationFillMode = 'forwards';
-        // Token-level hover: highlight just this token's bits in the binary panel
         pill.addEventListener('mouseenter', () => highlightTokenBits(ch, ti, 'ac', mcuIdx));
         pill.addEventListener('mouseleave', clearHighlight);
         wrap.appendChild(pill);
@@ -9812,11 +11105,19 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
       const pill = document.createElement('span');
       pill.className = 'sos-tnode-tok sos-tnode-tok--dc';
-      pill.textContent = `(0,${info.diff})`;
+      const cat = jpegCategory(info.diff);
+      const raw = jpegRawBits(info.diff, cat);
+      if (cat > 0) {
+        pill.innerHTML = `<span class="code-huff">cat ${cat}</span>` +
+                         `<span class="code-raw" style="margin-left:2px">${raw}</span>`;
+        pill.title = `DC diff=${info.diff} → cat ${cat}, raw: ${raw}`;
+      } else {
+        pill.innerHTML = `<span class="code-huff">cat 0</span>`;
+        pill.title = `DC diff=0 → cat 0, no raw bits`;
+      }
       pill.style.animationDelay = '0ms';
       pill.style.opacity = '0';
       pill.style.animationFillMode = 'forwards';
-      // Token-level hover: highlight the DC bits for this channel in the binary panel
       pill.addEventListener('mouseenter', () => highlightTokenBits(ch, 0, 'dc', mcuIdx));
       pill.addEventListener('mouseleave', clearHighlight);
       wrap.appendChild(pill);
@@ -9864,32 +11165,44 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
   // ─── Section 12b: Building the Bitstream (SOS) ───────────────────────────────
   (function () {
     let _tokens    = [];
-    let _codes     = {};
+    let _codes     = {};  // { dcLuma: {}, dcChroma: {}, acLuma: {}, acChroma: {} }
 
-    // ── Bit-packing logic ──────────────────────────────────────────────────────
+    // ── Two-part bit-packing logic ───────────────────────────────────────────
+
+    // Get the full bit sequence for a token: huffman code + raw appended bits
+    function tokenBits(t, codes) {
+      const isDC = (t._isDC === true);
+      const isLuma = (t._ch === 'y');
+      const symKey = isDC ? dcSymbolKey(t.value) : acSymbolKey(t.skip, t.value);
+      const tblKey = (isDC ? 'dc' : 'ac') + (isLuma ? 'Luma' : 'Chroma');
+      const tbl    = codes[tblKey] || {};
+      const huffCode = tbl[symKey] || '';
+      const isSpecial = (t.value === 'EOB' || (t.skip === 15 && t.value === 0));
+      const cat  = (isDC || isSpecial) ? (isSpecial ? 0 : jpegCategory(t.value)) : jpegCategory(t.value);
+      const raw  = (isSpecial || cat === 0) ? '' : jpegRawBits(t.value, cat);
+      return { symKey, huffCode, raw, fullBits: huffCode + raw };
+    }
 
     function packBits(tokens, codes) {
       let bits = '';
+      const tokenDetails = [];
       tokens.forEach(t => {
-        const key  = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
-        const code = codes[key];
-        if (code) bits += code;
+        const td = tokenBits(t, codes);
+        tokenDetails.push(td);
+        bits += td.fullBits;
       });
-      // Pad last incomplete byte with 1s (JPEG spec)
       const padded = bits.length % 8 === 0 ? bits : bits + '1'.repeat(8 - bits.length % 8);
-      // Build raw byte array
       const rawBytes = [];
       for (let i = 0; i < padded.length; i += 8) {
         rawBytes.push(parseInt(padded.slice(i, i + 8), 2));
       }
-      // Byte-stuff: 0xFF → [0xFF, 0x00]
       const stuffed = [];
       let stuffCount = 0;
       rawBytes.forEach(b => {
         stuffed.push(b);
         if (b === 0xFF) { stuffed.push(0x00); stuffCount++; }
       });
-      return { bytes: stuffed, stuffCount, bitstring: bits, rawBytes };
+      return { bytes: stuffed, stuffCount, bitstring: bits, rawBytes, tokenDetails };
     }
 
     function toHex(b) { return b.toString(16).toUpperCase().padStart(2, '0'); }
@@ -9903,14 +11216,16 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       if (ph) ph.style.display = 'none';
       el.innerHTML = '';
       tokens.forEach((t, i) => {
-        const key  = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
-        const code = codes[key] || '?';
-        const row  = document.createElement('div');
+        const td  = tokenBits(t, codes);
+        const row = document.createElement('div');
         row.className = 'sos-code-row';
         row.dataset.idx = i;
         row.innerHTML =
-          `<span class="code-sym">${key}</span>` +
-          `<span class="code-bits">${code}</span>`;
+          `<span class="code-sym">${td.symKey}</span>` +
+          `<span class="code-bits">` +
+            `<span class="code-huff">${td.huffCode}</span>` +
+            (td.raw ? `<span class="code-raw">${td.raw}</span>` : '') +
+          `</span>`;
         el.appendChild(row);
       });
     }
@@ -9937,11 +11252,11 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       if (sn) sn.style.display = stuffCount > 0 ? '' : 'none';
     }
 
-    // ── Animation ──────────────────────────────────────────────────────────────
+    // ── Animation with two-part coloring ─────────────────────────────────────
 
-    const BIT_DELAY   = 30;   // ms per bit cell
-    const TOKEN_GAP   = 100;  // extra gap between tokens
-    const BYTE_OFFSET = 55;   // ms after last bit of byte before hex box appears
+    const BIT_DELAY   = 30;
+    const TOKEN_GAP   = 100;
+    const BYTE_OFFSET = 55;
 
     function runAnimation(tokens, codes) {
       const btn    = document.getElementById('sosReplayBtn');
@@ -9954,47 +11269,48 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       setStats(false);
       document.querySelectorAll('.sos-code-row').forEach(r => r.classList.remove('sos-row-active'));
 
-      const { bytes, stuffCount, bitstring, rawBytes } = packBits(tokens, codes);
+      const { bytes, stuffCount, bitstring, rawBytes, tokenDetails } = packBits(tokens, codes);
 
-      let msOffset    = 0;   // accumulated setTimeout offset
-      let globalBitPos = 0;  // total bits emitted so far
-      let bytesDone   = 0;   // how many raw bytes have been emitted to the stream
+      let msOffset = 0, globalBitPos = 0, bytesDone = 0;
 
       tokens.forEach((t, tIdx) => {
-        const key  = t.value === 'EOB' ? 'EOB' : `(${t.skip},${t.value})`;
-        const code = codes[key] || '';
-        if (!code) return;
+        const td = tokenDetails[tIdx];
+        const allBits = td.fullBits;
+        if (!allBits) return;
+        const huffLen = td.huffCode.length;
 
         const tStart = msOffset;
         msOffset += TOKEN_GAP;
 
-        // Highlight this token row
         setTimeout(() => {
           document.querySelectorAll('.sos-code-row').forEach(r => r.classList.remove('sos-row-active'));
           const row = document.querySelector(`.sos-code-row[data-idx="${tIdx}"]`);
           if (row) { row.classList.add('sos-row-active'); row.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
         }, tStart);
 
-        // Stream each bit
-        code.split('').forEach((bit, bIdx) => {
-          const pos      = globalBitPos + bIdx;
-          const bitTime  = tStart + TOKEN_GAP + bIdx * BIT_DELAY;
+        allBits.split('').forEach((bit, bIdx) => {
+          const pos     = globalBitPos + bIdx;
+          const bitTime = tStart + TOKEN_GAP + bIdx * BIT_DELAY;
+          const isRaw   = bIdx >= huffLen;
 
           setTimeout(() => {
-            // Insert byte-boundary divider before the first bit of each new byte (except the very first)
             if (pos > 0 && pos % 8 === 0) {
               const div = document.createElement('div');
               div.className = 'sos-byte-boundary';
               buf.appendChild(div);
             }
-            // Bit cell
+            // Insert part separator between huff and raw within this token
+            if (bIdx === huffLen && huffLen > 0) {
+              const sep = document.createElement('div');
+              sep.className = 'sos-part-sep';
+              buf.appendChild(sep);
+            }
             const cell = document.createElement('div');
-            cell.className = 'sos-bit bit-new';
+            cell.className = 'sos-bit bit-new' + (isRaw ? ' bit-raw' : ' bit-huff');
             cell.textContent = bit;
             buf.appendChild(cell);
             setTimeout(() => cell.classList.remove('bit-new'), 350);
 
-            // If this bit completes a byte, emit the hex box
             if ((pos + 1) % 8 === 0) {
               const rByteIdx = Math.floor(pos / 8);
               if (rByteIdx === bytesDone && rByteIdx < rawBytes.length) {
@@ -10020,11 +11336,10 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           }, bitTime);
         });
 
-        msOffset += TOKEN_GAP + code.length * BIT_DELAY;
-        globalBitPos += code.length;
+        msOffset += TOKEN_GAP + allBits.length * BIT_DELAY;
+        globalBitPos += allBits.length;
       });
 
-      // After all bits: emit any remaining padded partial byte, show stats
       setTimeout(() => {
         if (bytesDone < rawBytes.length) {
           for (let i = bytesDone; i < rawBytes.length; i++) {
@@ -10058,8 +11373,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       if (btn) { btn.textContent = '▶ Animate packing'; btn.disabled = false; }
     }
 
-    // _codes comes from the SOS explorer's all-MCU Huffman table so symbols
-    // and bit patterns match what the structure explorer displays.
+    // _codes comes from the SOS explorer's all-MCU Huffman tables
     document.addEventListener('localCodesReady', e => {
       _codes = e.detail.codes || {};
     });
@@ -10074,7 +11388,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       var _sosBtn = document.getElementById('sosReplayBtn');
       if (_sosBtn) {
         _sosBtn.addEventListener('click', function () {
-          if (_tokens.length && Object.keys(_codes).length) runAnimation(_tokens, _codes);
+          if (_tokens.length && hasCodes()) runAnimation(_tokens, _codes);
         });
       }
 
@@ -10116,25 +11430,32 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         return idx;
       }
 
+      function hasCodes() {
+        return _codes && (_codes.dcLuma || _codes.acLuma) && Object.keys(_codes.dcLuma || {}).length + Object.keys(_codes.acLuma || {}).length > 0;
+      }
+
       function populateComplete() {
         var buf = document.getElementById('sosBitBuffer');
         var str = document.getElementById('sosByteStream');
-        if (!buf || !str || !_tokens.length || !Object.keys(_codes).length) return;
+        if (!buf || !str || !_tokens.length || !hasCodes()) return;
         buf.innerHTML = ''; str.innerHTML = '';
-        var allBits = '';
-        _tokens.forEach(function (t) {
-          var key = t.value === 'EOB' ? 'EOB' : '(' + t.skip + ',' + t.value + ')';
-          var c = _codes[key]; if (c) allBits += c;
-        });
-        for (var i = 0; i < allBits.length; i++) {
-          if (i > 0 && i % 8 === 0) {
-            var d = document.createElement('div');
-            d.className = 'sos-byte-boundary'; buf.appendChild(d);
-          }
-          var cell = document.createElement('div');
-          cell.className = 'sos-bit'; cell.textContent = allBits[i]; buf.appendChild(cell);
-        }
         var res = packBits(_tokens, _codes);
+        var gPos = 0;
+        res.tokenDetails.forEach(function (td) {
+          var allBits = td.fullBits;
+          var huffLen = td.huffCode.length;
+          for (var j = 0; j < allBits.length; j++) {
+            if (gPos > 0 && gPos % 8 === 0) {
+              var d = document.createElement('div');
+              d.className = 'sos-byte-boundary'; buf.appendChild(d);
+            }
+            var cell = document.createElement('div');
+            var isRaw = j >= huffLen;
+            cell.className = 'sos-bit' + (isRaw ? ' bit-raw' : ' bit-huff');
+            cell.textContent = allBits[j]; buf.appendChild(cell);
+            gPos++;
+          }
+        });
         res.rawBytes.forEach(function (b) {
           var bx = document.createElement('div');
           bx.className = 'sos-hex-byte' + (b === 0xFF ? ' byte-ff' : '');
@@ -10150,39 +11471,42 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       function animatePartial(maxT) {
         var buf = document.getElementById('sosBitBuffer');
         var str = document.getElementById('sosByteStream');
-        if (!buf || !_tokens.length || !Object.keys(_codes).length) return;
+        if (!buf || !_tokens.length || !hasCodes()) return;
         buf.innerHTML = ''; if (str) str.innerHTML = '';
         var lim = Math.min(maxT, _tokens.length);
         var msOff = 0, gBit = 0;
         for (var i = 0; i < lim; i++) {
           (function (idx, tStart, bitStart) {
             var t = _tokens[idx];
-            var key = t.value === 'EOB' ? 'EOB' : '(' + t.skip + ',' + t.value + ')';
-            var code = _codes[key] || ''; if (!code) return;
+            var td = tokenBits(t, _codes);
+            var allBits = td.fullBits;
+            var huffLen = td.huffCode.length;
+            if (!allBits) return;
             pending.push(setTimeout(function () {
               document.querySelectorAll('.sos-code-row').forEach(function (r) { r.classList.remove('sos-row-active'); });
               var row = document.querySelector('.sos-code-row[data-idx="' + idx + '"]');
               if (row) { row.classList.add('sos-row-active'); row.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
             }, tStart));
-            code.split('').forEach(function (bit, bIdx) {
+            allBits.split('').forEach(function (bit, bIdx) {
               var pos = bitStart + bIdx;
+              var isRaw = bIdx >= huffLen;
               pending.push(setTimeout(function () {
                 if (pos > 0 && pos % 8 === 0) {
                   var d = document.createElement('div');
                   d.className = 'sos-byte-boundary'; buf.appendChild(d);
                 }
                 var c = document.createElement('div');
-                c.className = 'sos-bit bit-new'; c.textContent = bit;
+                c.className = 'sos-bit bit-new' + (isRaw ? ' bit-raw' : ' bit-huff');
+                c.textContent = bit;
                 buf.appendChild(c);
                 pending.push(setTimeout(function () { c.classList.remove('bit-new'); }, 350));
               }, tStart + 120 + bIdx * 50));
             });
           })(i, msOff, gBit);
           var tk = _tokens[i];
-          var tkey = tk.value === 'EOB' ? 'EOB' : '(' + tk.skip + ',' + tk.value + ')';
-          var tcode = _codes[tkey] || '';
-          msOff += 120 + tcode.length * 50 + 120;
-          gBit += tcode.length;
+          var td2 = tokenBits(tk, _codes);
+          msOff += 120 + td2.fullBits.length * 50 + 120;
+          gBit += td2.fullBits.length;
         }
       }
 
@@ -10206,13 +11530,13 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       var STEPS = [
         {
           title: 'The Huffman Codebook',
-          text: 'Each symbol is mapped to a variable-length binary code. Frequent symbols get shorter codes, rare ones get longer. The codebook shown here covers all three channels of the selected MCU — <strong>Y</strong> (luma), <strong>Cb</strong> and <strong>Cr</strong> (chroma) — interleaved in that order.',
+          text: 'Each <strong>(run, category)</strong> symbol is mapped to a variable-length Huffman code (<span style="color:#2563eb">blue</span>). The actual coefficient value is then appended as <strong>raw bits</strong> (<span style="color:#d97706">amber</span>) — not Huffman coded. The codebook covers all three channels: <strong>Y</strong>, <strong>Cb</strong>, <strong>Cr</strong>, interleaved in that order.',
           lit: [0], dur: 12000,
           enter: function () { renderCodeList(_tokens, _codes); clearPanels(); setStats(false); }
         },
         {
           title: 'DC Tokens — One Per Channel',
-          text: 'Each of the three channels (<strong>Y</strong>, <strong>Cb</strong>, <strong>Cr</strong>) opens with its own <strong>DC token</strong>, encoding the average value of that 8\u00D78 block. DC values use DPCM: only the <em>difference</em> from the previous block\u2019s DC is stored, keeping numbers small. All three use the <strong>DC Huffman table</strong>.',
+          text: 'Each channel opens with a <strong>DC token</strong>. JPEG Huffman-encodes only the <strong>category</strong> (how many bits the DPCM difference needs), then appends the difference as raw bits. Y uses the <strong>DC-luma</strong> table, Cb/Cr use the <strong>DC-chroma</strong> table.',
           lit: [0], dur: 12000,
           enter: function () {
             renderCodeList(_tokens, _codes); clearPanels(); setStats(false);
@@ -10224,7 +11548,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         },
         {
           title: 'AC Tokens — Details & Texture',
-          text: 'After each DC token come the <strong>AC coefficients</strong> — the remaining 63 frequency components in zigzag order — encoded as <strong>(skip, value)</strong> run-length pairs. The sequence ends with <strong>EOB</strong> when all remaining coefficients are zero. This Y\u2009\u2192\u2009Cb\u2009\u2192\u2009Cr pattern repeats for every MCU.',
+          text: 'After each DC token come the <strong>AC coefficients</strong>. Each is encoded as <strong>(run, category)</strong> via the AC Huffman table (<span style="color:#2563eb">blue</span>), followed by the actual coefficient value in raw bits (<span style="color:#d97706">amber</span>). <strong>EOB</strong> marks the end of each channel\u2019s block. Y uses the <strong>AC-luma</strong> table, Cb/Cr use the <strong>AC-chroma</strong> table.',
           lit: [0], dur: 12000,
           enter: function () {
             renderCodeList(_tokens, _codes); clearPanels(); setStats(false);
@@ -10236,7 +11560,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         },
         {
           title: 'Packing Bits into the Buffer',
-          text: 'Each Huffman code is written <strong>bit-by-bit</strong> into a continuous buffer. Bits pack tightly — no gaps between symbols. The blue dividers mark byte boundaries (every 8 bits).',
+          text: 'Each token emits its <span style="color:#2563eb"><strong>Huffman code</strong></span> followed by <span style="color:#d97706"><strong>raw value bits</strong></span>, written into a continuous buffer. The thin dividers mark byte boundaries (every 8 bits). Notice how the two parts pack tightly together.',
           lit: [0, 1], dur: 14000,
           enter: function () { renderCodeList(_tokens, _codes); setStats(false); animatePartial(3); }
         },
@@ -10248,16 +11572,16 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         },
         {
           title: 'The Complete Bitstream',
-          text: 'This process repeats for every channel (<strong>Y, Cb, Cr</strong>) in each MCU across the entire image — producing the final JPEG scan data. Press <strong>\u25B6 Replay</strong> to watch the full animation.',
+          text: 'This two-part encoding (<span style="color:#2563eb">Huffman prefix</span> + <span style="color:#d97706">raw value</span>) repeats for every token across all channels (<strong>Y, Cb, Cr</strong>) in each MCU — producing the final JPEG scan data. Four separate Huffman tables are used: DC-luma, DC-chroma, AC-luma, AC-chroma. Press <strong>\u25B6 Replay</strong> to watch the full animation.',
           lit: [0, 1, 2, 'stats', 'controls'], dur: 14000,
           enter: function () {
             renderCodeList(_tokens, _codes); populateComplete();
-            if (_tokens.length && Object.keys(_codes).length) {
+            if (_tokens.length && hasCodes()) {
               var r = packBits(_tokens, _codes);
               setStats(true, r.bitstring.length, r.bytes.length, r.stuffCount);
             }
             var btn = document.getElementById('sosReplayBtn');
-            if (btn) { btn.disabled = !(_tokens.length && Object.keys(_codes).length); }
+            if (btn) { btn.disabled = !(_tokens.length && hasCodes()); }
           }
         }
       ];
