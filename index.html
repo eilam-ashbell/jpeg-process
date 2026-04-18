@@ -2738,160 +2738,297 @@
       box-shadow: 0 1px 4px rgba(37,99,235,.25);
     }
 
-    /* ── S12: Category split demo card ────────────────────────────────────── */
-    .cat-split-demo {
+    /* ── S12: Category legend card ────────────────────────────────────────── */
+    .catleg-wrap {
       display: flex; flex-direction: column;
-      gap: 0; padding: 12px 0;
+      gap: 20px; padding: 8px 0;
     }
 
-    /* Encoding pipeline container */
-    .cat-pipeline {
-      display: flex; flex-direction: column; gap: 0;
-      border: 1px solid var(--border); border-radius: 10px;
-      overflow: hidden;
+    /* Category legend grid */
+    .catleg-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+      gap: 6px;
     }
-    .cat-pipeline + .cat-pipeline { margin-top: 16px; }
-    .cat-pipe-header {
+    .catleg-cell {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 2px; padding: 8px 4px; border-radius: 8px;
+      border: 2px solid var(--bg-secondary);
+      cursor: pointer; transition: all 0.2s ease;
+      background: var(--bg-primary);
+    }
+    .catleg-cell:hover {
+      border-color: #93c5fd;
+      background: #eff6ff;
+    }
+    .catleg-cell.catleg-active {
+      border-color: #2563eb;
+      background: #dbeafe;
+      animation: catlegPop 350ms cubic-bezier(.22,1,.36,1);
+    }
+    .catleg-cat {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800; font-size: 0.82rem;
+      color: #2563eb;
+    }
+    .catleg-range {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem; color: var(--text-secondary);
+      white-space: nowrap;
+    }
+    .catleg-cell--zero .catleg-cat { color: var(--text-muted); }
+    .catleg-cell--zero .catleg-range { color: var(--text-muted); }
+    .catleg-cell--zero.catleg-active .catleg-cat { color: #2563eb; }
+
+    @keyframes catlegPop {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.12); }
+      100% { transform: scale(1); }
+    }
+
+    /* Try-it input row */
+    .catleg-input-row {
+      display: flex; align-items: center; gap: 12px;
+      flex-wrap: wrap;
+    }
+    .catleg-input-label {
+      font-size: 0.76rem; font-weight: 600; color: var(--text-secondary);
+    }
+    .catleg-input {
+      width: 90px; padding: 6px 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88rem; font-weight: 700;
+      border: 2px solid var(--border); border-radius: 8px;
+      background: var(--bg-primary); color: var(--text-primary);
+      outline: none; transition: border-color 0.2s;
+      text-align: center;
+    }
+    .catleg-input:focus { border-color: #2563eb; }
+    .catleg-result {
       display: flex; align-items: center; gap: 8px;
-      padding: 8px 14px;
-      background: var(--bg-secondary); border-bottom: 1px solid var(--border);
+      font-size: 0.78rem; color: var(--text-secondary);
+      min-height: 28px;
     }
-    .cat-pipe-badge {
-      font-size: 0.6rem; font-weight: 800; letter-spacing: 0.06em;
-      text-transform: uppercase; padding: 2px 8px; border-radius: 4px;
+    .catleg-result-cat {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 28px; height: 28px; padding: 0 8px;
+      border-radius: 6px; font-family: 'JetBrains Mono', monospace;
+      font-weight: 800; font-size: 0.82rem;
+      background: #dbeafe; color: #2563eb;
+      border: 2px solid #2563eb;
     }
-    .cat-pipe-badge--dc { background: #ede9fe; color: #5b21b6; }
-    .cat-pipe-badge--ac { background: #dbeafe; color: #1e40af; }
-    .cat-pipe-title {
-      font-size: 0.72rem; font-weight: 600; color: var(--text-primary);
+    .catleg-result-explain {
+      font-size: 0.72rem; color: var(--text-secondary);
+      animation: catlegFadeIn 250ms ease;
     }
-    .cat-pipe-subtitle {
-      font-size: 0.66rem; color: var(--text-secondary); margin-left: auto;
-      font-style: italic;
+    @keyframes catlegFadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
-    .cat-pipe-body { padding: 14px 16px; }
 
-    /* Steps inside a pipeline */
-    .cat-steps { display: flex; flex-direction: column; gap: 0; }
-    .cat-step {
-      display: flex; align-items: flex-start; gap: 12px;
-      padding: 10px 0;
+    /* Coefficient grid */
+    .catleg-coeff-section {
+      display: flex; flex-direction: column; gap: 8px;
     }
-    .cat-step + .cat-step { border-top: 1px dashed color-mix(in srgb, var(--border) 60%, transparent); }
-    .cat-step-num {
-      flex-shrink: 0; width: 22px; height: 22px;
+    .catleg-coeff-label {
+      font-size: 0.68rem; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .catleg-coeff-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 3px;
+    }
+    .catleg-coeff-cell {
       display: flex; align-items: center; justify-content: center;
-      border-radius: 50%; font-size: 0.62rem; font-weight: 800;
+      padding: 5px 2px; border-radius: 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem; font-weight: 600;
+      cursor: pointer; transition: all 0.15s ease;
+      border: 1.5px solid transparent;
+      min-height: 30px;
+    }
+    .catleg-coeff-cell:hover {
+      transform: scale(1.08);
+      box-shadow: 0 2px 8px rgba(0,0,0,.12);
+      z-index: 1;
+    }
+    .catleg-coeff-cell.catleg-coeff-selected {
+      border-color: #1e40af;
+      box-shadow: 0 0 0 2px rgba(37,99,235,.3);
+      transform: scale(1.08);
+      z-index: 1;
+    }
+    .catleg-coeff-hint {
+      font-size: 0.66rem; color: var(--text-muted); font-style: italic;
+    }
+
+    /* ── S12: Raw binary card ──────────────────────────────────────────────── */
+    .rawbin-wrap {
+      display: flex; flex-direction: column;
+      gap: 16px; padding: 8px 0;
+    }
+
+    /* Input row */
+    .rawbin-input-row {
+      display: flex; align-items: center; gap: 12px;
+      flex-wrap: wrap;
+    }
+    .rawbin-input-label {
+      font-size: 0.76rem; font-weight: 600; color: var(--text-secondary);
+    }
+    .rawbin-input {
+      width: 90px; padding: 6px 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88rem; font-weight: 700;
+      border: 2px solid var(--border); border-radius: 8px;
+      background: var(--bg-primary); color: var(--text-primary);
+      outline: none; transition: border-color 0.2s;
+      text-align: center;
+    }
+    .rawbin-input:focus { border-color: #d97706; }
+    .rawbin-sign-btn {
+      padding: 4px 10px; border-radius: 6px;
+      border: 2px solid var(--border); background: var(--bg-secondary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem; font-weight: 800;
+      cursor: pointer; color: var(--text-primary);
+      transition: all 0.15s;
+    }
+    .rawbin-sign-btn:hover {
+      border-color: #d97706; background: #fef3c7;
+    }
+    .rawbin-cat-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 6px;
+      font-size: 0.72rem; font-weight: 700;
+      background: #dbeafe; color: #2563eb;
+      border: 1.5px solid #93c5fd;
+    }
+
+    /* Steps */
+    .rawbin-steps {
+      display: flex; flex-direction: column; gap: 0;
+    }
+    .rawbin-step {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 0;
+    }
+    .rawbin-step + .rawbin-step {
+      border-top: 1px dashed color-mix(in srgb, var(--border) 60%, transparent);
+    }
+    .rawbin-step-num {
+      flex-shrink: 0; width: 24px; height: 24px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; font-size: 0.64rem; font-weight: 800;
       background: var(--bg-secondary); color: var(--text-muted);
       border: 1.5px solid var(--border); margin-top: 2px;
     }
-    .cat-step-content { flex: 1; display: flex; flex-direction: column; gap: 6px; }
-    .cat-step-label {
-      font-size: 0.66rem; font-weight: 600; color: var(--text-secondary);
+    .rawbin-step-content {
+      flex: 1; display: flex; flex-direction: column; gap: 8px;
     }
-    .cat-step-visual {
-      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    .rawbin-step-label {
+      font-size: 0.72rem; font-weight: 600; color: var(--text-secondary);
+    }
+    .rawbin-step-visual {
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
     }
 
-    /* Token pills */
-    .cat-token-pill {
+    /* Bit tiles */
+    .rawbin-bit-row {
+      display: inline-flex; gap: 4px;
+    }
+    .rawbin-bit-tile {
+      width: 32px; height: 38px;
+      perspective: 400px;
+      display: inline-block;
+    }
+    .rawbin-bit-inner {
+      width: 100%; height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.4s cubic-bezier(.22,1,.36,1);
+    }
+    .rawbin-bit-tile.rawbin-flipped .rawbin-bit-inner {
+      transform: rotateX(180deg);
+    }
+    .rawbin-bit-face {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 6px;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.9rem; font-weight: 700;
-      padding: 5px 12px; border-radius: 8px; border: 2px solid;
-      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 0.92rem; font-weight: 800;
+      backface-visibility: hidden;
     }
-    .cat-token-pill--rle { background: #fefce8; border-color: #fde047; color: #713f12; }
-    .cat-token-pill--dc  { background: #ede9fe; border-color: #8b5cf6; color: #3730a3; }
+    .rawbin-bit-front {
+      background: #fef3c7; color: #92400e;
+      border: 2px solid #fbbf24;
+    }
+    .rawbin-bit-back {
+      background: #fee2e2; color: #991b1b;
+      border: 2px solid #f87171;
+      transform: rotateX(180deg);
+    }
+    .rawbin-bit-tile.rawbin-appear {
+      animation: rawbinBitIn 300ms cubic-bezier(.22,1,.36,1) both;
+    }
+    @keyframes rawbinBitIn {
+      from { opacity: 0; transform: scale(0.3) translateY(8px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
 
-    /* Huff / raw part boxes */
-    .cat-huff-part, .cat-raw-part {
-      display: flex; flex-direction: column; align-items: center;
-      gap: 3px; padding: 7px 13px; border-radius: 8px; border: 2px solid;
+    /* Step explain text */
+    .rawbin-step-explain {
+      font-size: 0.68rem; color: var(--text-secondary);
+      line-height: 1.45;
     }
-    .cat-huff-part { background: #dbeafe; border-color: #2563eb; }
-    .cat-raw-part  { background: #fef3c7; border-color: #d97706; }
-    .cat-part-label {
-      font-size: 0.56rem; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.04em;
-    }
-    .cat-huff-part .cat-part-label { color: #1e40af; }
-    .cat-raw-part  .cat-part-label { color: #92400e; }
-    .cat-part-value {
+    .rawbin-step-explain code {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.92rem; font-weight: 700;
+      background: var(--bg-secondary); padding: 1px 4px; border-radius: 3px;
+      font-size: 0.66rem;
     }
-    .cat-huff-part .cat-part-value { color: #2563eb; }
-    .cat-raw-part  .cat-part-value { color: #d97706; }
 
-    /* Arrows & plus between visual elements */
-    .cat-step-arrow { font-size: 1.1rem; color: var(--text-muted); flex-shrink: 0; }
-    .cat-step-plus  { font-size: 1rem; color: var(--text-muted); font-weight: 700; }
-
-    /* Final combined bits row */
-    .cat-combined-row {
+    /* Final combined output */
+    .rawbin-final-row {
       display: inline-flex; align-items: center; gap: 0;
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.82rem; font-weight: 700;
-      padding: 5px 10px; border-radius: 6px;
+      padding: 6px 12px; border-radius: 8px;
       background: var(--bg-secondary); border: 1px solid var(--border);
     }
-    .cat-combined-huff { color: #2563eb; letter-spacing: 1px; }
-    .cat-combined-raw  { color: #d97706; letter-spacing: 1px; }
-    .cat-combined-sep {
-      width: 1.5px; height: 14px;
-      background: var(--border); margin: 0 5px;
+    .rawbin-final-huff { color: #2563eb; letter-spacing: 1px; }
+    .rawbin-final-raw  { color: #d97706; letter-spacing: 1px; }
+    .rawbin-final-sep {
+      width: 1.5px; height: 16px;
+      background: var(--border); margin: 0 6px;
     }
-    .cat-step-explain {
-      font-size: 0.66rem; color: var(--text-secondary);
-      line-height: 1.45;
-    }
-    .cat-step-explain code {
-      font-family: 'JetBrains Mono', monospace;
-      background: var(--bg-secondary); padding: 1px 4px; border-radius: 3px;
-      font-size: 0.64rem;
+    .rawbin-final-label {
+      font-size: 0.6rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.04em;
+      color: var(--text-muted); margin-top: 4px;
     }
 
-    /* ── S12: Category reference ─────────────────────────────────────────── */
-    .cat-ref-wrap {
-      margin-top: 16px;
+    /* Quick reference */
+    .rawbin-ref {
+      padding: 10px 14px; border-radius: 8px;
+      background: var(--bg-secondary);
+      border-left: 3px solid #d97706;
+      font-size: 0.72rem; color: var(--text-secondary);
+      line-height: 1.5;
     }
-    .cat-ref-label {
-      font-size: 0.66rem; font-weight: 700; color: var(--text-muted);
-      text-transform: uppercase; letter-spacing: 0.05em;
-      margin-bottom: 8px;
-    }
-    .cat-ref-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-      gap: 4px;
-    }
-    .cat-ref-cell {
-      display: flex; align-items: center; gap: 6px;
-      padding: 5px 8px; border-radius: 6px;
-      border: 1px solid var(--bg-secondary);
-      font-size: 0.72rem; color: var(--text-primary);
-      transition: background 0.15s, border-color 0.15s;
-    }
-    .cat-ref-cell:hover {
-      background: var(--accent-blue-tint);
-      border-color: var(--accent-blue);
-    }
-    .cat-ref-cell.cat-ref-active {
-      background: #dbeafe; border-color: #2563eb;
-    }
-    .cat-ref-cat {
+    .rawbin-ref strong { color: var(--text-primary); }
+    .rawbin-ref code {
       font-family: 'JetBrains Mono', monospace;
-      font-weight: 800; font-size: 0.72rem;
-      min-width: 18px; text-align: center;
-      color: #2563eb;
+      font-size: 0.68rem; background: #fff;
+      padding: 1px 4px; border-radius: 3px;
     }
-    .cat-ref-range {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.66rem; color: var(--text-secondary);
-    }
-    .cat-ref-cell--zero .cat-ref-cat { color: var(--text-muted); }
-    .cat-ref-cell--zero .cat-ref-range { color: var(--text-muted); }
 
+    /* Placeholder for no-value state */
+    .rawbin-placeholder {
+      text-align: center; padding: 20px;
+      font-size: 0.78rem; color: var(--text-muted);
+      font-style: italic;
+    }
     /* ── S12: Huffman table section dividers ───────────────────────────────── */
     .huffman-table .huff-section-row td {
       font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
@@ -4421,7 +4558,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         The last step is Huffman coding — a lossless technique that assigns variable-length binary codes to symbols. Frequent symbols get very short codes (maybe 2–3 bits), while rare ones get longer codes. It's the same principle that makes Morse code efficient — "E" is just a single dot.
       </p>
       <p class="section-body-text reveal">
-        But JPEG doesn't Huffman-encode the full <code>(skip, value)</code> token directly. Instead, it splits each token into <strong>two parts</strong>: a Huffman code for the symbol's <em>category</em> (how many bits the value needs), followed by the actual value in <strong>raw binary</strong> — not Huffman coded. This keeps the Huffman table small and fixed-size.
+        But JPEG doesn't Huffman-encode the full <code>(skip, value)</code> token directly. Instead, it splits each token into <strong>two parts</strong>. First, each value is assigned a <strong>category</strong> — a small number that says "how many bits does this value need?" The Huffman code encodes only the category. Then the exact value is appended as <strong>raw binary</strong> — not Huffman coded. Let's explore each part below.
       </p>
       <p class="section-body-text reveal">
         For <strong>DC coefficients</strong>, the Huffman table has just 12 entries — one per category (0–11). For <strong>AC coefficients</strong>, each (run-length, category) pair gets its own entry — about 162 possible symbols, though most images use far fewer. JPEG uses <strong>4 separate Huffman tables</strong>: DC-luma, DC-chroma, AC-luma, and AC-chroma. Cb and Cr <strong>share</strong> the same chroma tables, but each channel is encoded independently with its own DC coefficient, its own AC tokens, and its own EOB marker.
@@ -4429,14 +4566,19 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       <p class="section-body-text reveal">
         The result is a stream of bits that's as compact as possible without losing any information. Combined with all the previous steps, your original 36 MB of raw pixel data is now compressed to around 300 KB — over 100 times smaller. That's the magic of JPEG.
       </p>
-      <div class="demo-card reveal" id="catSplitCard" style="display:none">
-        <p class="matrix-panel-label">Two-part symbol encoding
-          <span class="sos-panel-sub">— category selects the Huffman code, raw bits encode the exact value</span>
-          <button class="sos-bits-info-btn" data-tip="JPEG never Huffman-encodes the exact coefficient value. It only encodes how many bits the value needs (the 'category'), then appends the value as raw bits. This keeps the Huffman alphabet small and fixed-size.">i</button>
+      <div class="demo-card reveal" id="categoryCard" style="display:none">
+        <p class="matrix-panel-label">What is a "category"?
+          <span class="sos-panel-sub">— how many bits does the value need?</span>
+          <button class="sos-bits-info-btn" data-tip="JPEG never Huffman-encodes the exact coefficient value. Instead it encodes the 'category' — how many bits the value needs. This keeps the Huffman alphabet small: only 12 possible DC symbols instead of thousands of values.">i</button>
         </p>
-        <div id="catSplitDemo" class="cat-split-demo">
-          <p class="section-placeholder" style="margin:0">Select a block above to see the encoding</p>
-        </div>
+        <div id="categoryDemo"></div>
+      </div>
+      <div class="demo-card reveal" id="rawBinaryCard" style="display:none">
+        <p class="matrix-panel-label">Raw binary encoding
+          <span class="sos-panel-sub">— how the exact value is packed into bits</span>
+          <button class="sos-bits-info-btn" data-tip="Once the decoder knows the category (number of bits), it reads that many raw bits to recover the exact value. Positive values use plain binary; negative values flip all bits (ones' complement).">i</button>
+        </p>
+        <div id="rawBinaryDemo"></div>
       </div>
       <div class="demo-card reveal">
         <div class="huffman-layout">
@@ -10284,221 +10426,377 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       return [{ skip: 0, value: diff }, ...rleSeq.slice(1)];
     }
 
-    // ── Category split demo ──────────────────────────────────────────────────
+    // ── Category card ────────────────────────────────────────────────────────
 
-    function renderCatSplitDemo(yTokens, cbTokens, crTokens) {
-      const card = document.getElementById('catSplitCard');
-      const el   = document.getElementById('catSplitDemo');
+    // Color hues per category (0–10): from gray through blue→teal→green→amber
+    const CAT_COLORS = [
+      { bg: '#f1f5f9', border: '#cbd5e1', text: '#64748b' }, // 0 — gray
+      { bg: '#dbeafe', border: '#60a5fa', text: '#1e40af' }, // 1
+      { bg: '#e0e7ff', border: '#818cf8', text: '#3730a3' }, // 2
+      { bg: '#ede9fe', border: '#a78bfa', text: '#5b21b6' }, // 3
+      { bg: '#fae8ff', border: '#c084fc', text: '#7e22ce' }, // 4
+      { bg: '#fce7f3', border: '#f472b6', text: '#9d174d' }, // 5
+      { bg: '#ffe4e6', border: '#fb7185', text: '#be123c' }, // 6
+      { bg: '#fff1f2', border: '#fda4af', text: '#9f1239' }, // 7
+      { bg: '#fef3c7', border: '#fbbf24', text: '#92400e' }, // 8
+      { bg: '#fef9c3', border: '#facc15', text: '#854d0e' }, // 9
+      { bg: '#ecfccb', border: '#a3e635', text: '#3f6212' }, // 10
+    ];
+
+    function renderCategoryCard() {
+      const card = document.getElementById('categoryCard');
+      const el   = document.getElementById('categoryDemo');
       if (!card || !el) return;
       card.style.display = '';
 
-      // Pick an interesting AC token (nonzero skip + nonzero value preferred)
-      const allAC = [...yTokens.slice(1), ...cbTokens.slice(1), ...crTokens.slice(1)]
-        .filter(t => t.value !== 'EOB' && !(t.skip === 15 && t.value === 0));
-      const acToken = allAC.find(t => t.skip > 0 && t.value !== 0)
-                   || allAC.find(t => t.value !== 0)
-                   || allAC[0];
+      // Get quantized coefficients from the zigzag sequence
+      const coeffs = S.quantC || [];
 
-      // DC token
-      const dcDiff = yTokens[0].value;
-      const dcCat  = jpegCategory(dcDiff);
-      const dcRaw  = jpegRawBits(dcDiff, dcCat);
+      let html = '<div class="catleg-wrap">';
 
-      // Lookup Huffman code from current table if available
-      const dcHuff = _tables.dcLuma ? (_tables.dcLuma[dcSymbolKey(dcDiff)] || '?') : '?';
-
-      let html = '';
-
-      // ── DC Pipeline ──────────────────────────────────────────────────────
-      html += `<div class="cat-pipeline">
-        <div class="cat-pipe-header">
-          <span class="cat-pipe-badge cat-pipe-badge--dc">DC</span>
-          <span class="cat-pipe-title">Encoding the DC difference</span>
-          <span class="cat-pipe-subtitle">value = ${dcDiff}</span>
-        </div>
-        <div class="cat-pipe-body"><div class="cat-steps">`;
-
-      // Step 1: start with DPCM diff
-      html += `<div class="cat-step">
-        <div class="cat-step-num">1</div>
-        <div class="cat-step-content">
-          <div class="cat-step-label">Start with the DPCM difference value</div>
-          <div class="cat-step-visual">
-            <div class="cat-token-pill cat-token-pill--dc">diff = ${dcDiff}</div>
-          </div>
-        </div>
-      </div>`;
-
-      // Step 2: find category
-      html += `<div class="cat-step">
-        <div class="cat-step-num">2</div>
-        <div class="cat-step-content">
-          <div class="cat-step-label">Find the category — how many bits does <code>|${dcDiff}|</code> need?</div>
-          <div class="cat-step-visual">
-            <div class="cat-token-pill cat-token-pill--dc">|${dcDiff}|</div>
-            <span class="cat-step-arrow">→</span>
-            <div class="cat-huff-part">
-              <div class="cat-part-label">Category</div>
-              <div class="cat-part-value">${dcCat}</div>
-            </div>
-          </div>
-          <div class="cat-step-explain">${dcCat === 0
-            ? 'Value is 0 — category 0, no extra bits needed'
-            : `<code>|${dcDiff}|</code> = ${Math.abs(dcDiff)} fits in ${dcCat} bit${dcCat !== 1 ? 's' : ''} (range: ${(1 << (dcCat - 1))}…${(1 << dcCat) - 1})`
-          }</div>
-        </div>
-      </div>`;
-
-      // Step 3: Huffman-encode the category
-      html += `<div class="cat-step">
-        <div class="cat-step-num">3</div>
-        <div class="cat-step-content">
-          <div class="cat-step-label">Look up Huffman code for category ${dcCat}</div>
-          <div class="cat-step-visual">
-            <div class="cat-huff-part">
-              <div class="cat-part-label">Huffman code</div>
-              <div class="cat-part-value">${dcHuff}</div>
-            </div>`;
-      if (dcCat > 0) {
-        html += `
-            <span class="cat-step-plus">+</span>
-            <div class="cat-raw-part">
-              <div class="cat-part-label">Raw bits</div>
-              <div class="cat-part-value">${dcRaw}</div>
-            </div>`;
-      }
-      html += `</div>
-          <div class="cat-step-explain">${dcCat > 0
-            ? `The Huffman code tells the decoder "the next ${dcCat} bits are the value". Raw bits use ones' complement: ${dcDiff >= 0 ? `${dcDiff} in binary` : `flip of ${Math.abs(dcDiff)}`} = <code>${dcRaw}</code>`
-            : 'Category 0 means the value is 0 — nothing more to send'
-          }</div>
-        </div>
-      </div>`;
-
-      // Step 4: final output
-      html += `<div class="cat-step">
-        <div class="cat-step-num">4</div>
-        <div class="cat-step-content">
-          <div class="cat-step-label">Final bitstream output</div>
-          <div class="cat-step-visual">
-            <div class="cat-combined-row">
-              <span class="cat-combined-huff">${dcHuff}</span>`;
-      if (dcCat > 0) {
-        html += `<span class="cat-combined-sep"></span><span class="cat-combined-raw">${dcRaw}</span>`;
-      }
-      html += `</div>
-            <span style="font-size:0.68rem;color:var(--text-muted)">${dcHuff.length}${dcCat > 0 ? ' + ' + dcCat : ''} = ${dcHuff.length + dcCat} bits total</span>
-          </div>
-        </div>
-      </div>`;
-
-      html += `</div></div></div>`; // close cat-steps, cat-pipe-body, cat-pipeline
-
-      // ── AC Pipeline ──────────────────────────────────────────────────────
-      if (acToken) {
-        const acCat = jpegCategory(acToken.value);
-        const acRawBits = jpegRawBits(acToken.value, acCat);
-        const acSymK = acSymbolKey(acToken.skip, acToken.value);
-        const acHuff = _tables.acLuma ? (_tables.acLuma[acSymK] || _tables.acChroma[acSymK] || '?') : '?';
-
-        html += `<div class="cat-pipeline">
-          <div class="cat-pipe-header">
-            <span class="cat-pipe-badge cat-pipe-badge--ac">AC</span>
-            <span class="cat-pipe-title">Encoding an AC coefficient</span>
-            <span class="cat-pipe-subtitle">token (${acToken.skip}, ${acToken.value})</span>
-          </div>
-          <div class="cat-pipe-body"><div class="cat-steps">`;
-
-        // Step 1: RLE token
-        html += `<div class="cat-step">
-          <div class="cat-step-num">1</div>
-          <div class="cat-step-content">
-            <div class="cat-step-label">Start with the RLE token</div>
-            <div class="cat-step-visual">
-              <div class="cat-token-pill cat-token-pill--rle">(${acToken.skip}, ${acToken.value})</div>
-            </div>
-            <div class="cat-step-explain">Skip ${acToken.skip} zero${acToken.skip !== 1 ? 's' : ''}, then coefficient = ${acToken.value}</div>
-          </div>
-        </div>`;
-
-        // Step 2: split into (run, category)
-        html += `<div class="cat-step">
-          <div class="cat-step-num">2</div>
-          <div class="cat-step-content">
-            <div class="cat-step-label">Replace the value with its category</div>
-            <div class="cat-step-visual">
-              <div class="cat-token-pill cat-token-pill--rle">(${acToken.skip}, ${acToken.value})</div>
-              <span class="cat-step-arrow">→</span>
-              <div class="cat-huff-part">
-                <div class="cat-part-label">Huffman symbol</div>
-                <div class="cat-part-value">(${acToken.skip}, ${acCat})</div>
-              </div>
-            </div>
-            <div class="cat-step-explain"><code>|${acToken.value}|</code> = ${Math.abs(acToken.value)} → needs ${acCat} bit${acCat !== 1 ? 's' : ''} → category ${acCat}. The run-length (${acToken.skip}) stays as-is.</div>
-          </div>
-        </div>`;
-
-        // Step 3: Huffman + raw
-        html += `<div class="cat-step">
-          <div class="cat-step-num">3</div>
-          <div class="cat-step-content">
-            <div class="cat-step-label">Look up Huffman code for (${acToken.skip}, ${acCat}), then append raw bits for the value</div>
-            <div class="cat-step-visual">
-              <div class="cat-huff-part">
-                <div class="cat-part-label">Huffman code</div>
-                <div class="cat-part-value">${acHuff}</div>
-              </div>
-              <span class="cat-step-plus">+</span>
-              <div class="cat-raw-part">
-                <div class="cat-part-label">Raw bits</div>
-                <div class="cat-part-value">${acRawBits}</div>
-              </div>
-            </div>
-            <div class="cat-step-explain">Raw bits: ${acToken.value >= 0 ? `${acToken.value} in ${acCat}-bit binary` : `ones' complement of ${Math.abs(acToken.value)}`} = <code>${acRawBits}</code></div>
-          </div>
-        </div>`;
-
-        // Step 4: final
-        html += `<div class="cat-step">
-          <div class="cat-step-num">4</div>
-          <div class="cat-step-content">
-            <div class="cat-step-label">Final bitstream output</div>
-            <div class="cat-step-visual">
-              <div class="cat-combined-row">
-                <span class="cat-combined-huff">${acHuff}</span>
-                <span class="cat-combined-sep"></span>
-                <span class="cat-combined-raw">${acRawBits}</span>
-              </div>
-              <span style="font-size:0.68rem;color:var(--text-muted)">${acHuff.length} + ${acCat} = ${acHuff.length + acCat} bits total</span>
-            </div>
-          </div>
-        </div>`;
-
-        html += `</div></div></div>`; // close cat-steps, cat-pipe-body, cat-pipeline
-      }
-
-      // ── Category reference grid ──────────────────────────────────────────
-      const activeCats = new Set();
-      activeCats.add(dcCat);
-      if (acToken) activeCats.add(jpegCategory(acToken.value));
-
-      html += `<div class="cat-ref-wrap">
-        <div class="cat-ref-label">Category reference — which category for which values?</div>
-        <div class="cat-ref-grid">`;
+      // ── Category legend grid ──────────────────────────────────────────
+      html += '<div class="catleg-grid">';
       for (let c = 0; c <= 10; c++) {
         const lo = c === 0 ? 0 : (1 << (c - 1));
         const hi = (1 << c) - 1;
         const range = c === 0 ? '0' : `\u00B1${lo}\u2026${hi}`;
-        const isActive = activeCats.has(c);
-        const isZero = c === 0;
-        html += `<div class="cat-ref-cell${isActive ? ' cat-ref-active' : ''}${isZero ? ' cat-ref-cell--zero' : ''}">
-          <span class="cat-ref-cat">${c}</span>
-          <span class="cat-ref-range">${range}</span>
+        html += `<div class="catleg-cell${c === 0 ? ' catleg-cell--zero' : ''}" data-cat="${c}">
+          <span class="catleg-cat">${c}</span>
+          <span class="catleg-range">${range}</span>
         </div>`;
       }
-      html += `</div></div>`;
+      html += '</div>';
 
+      // ── Try-it input ──────────────────────────────────────────────────
+      html += `<div class="catleg-input-row">
+        <span class="catleg-input-label">Try a value:</span>
+        <input type="number" class="catleg-input" id="catlegInput" value="" placeholder="e.g. -7" aria-label="Enter a coefficient value to see its category">
+        <div class="catleg-result" id="catlegResult"></div>
+      </div>`;
+
+      // ── Coefficient grid ──────────────────────────────────────────────
+      if (coeffs.length >= 64) {
+        html += `<div class="catleg-coeff-section">
+          <span class="catleg-coeff-label">Your block's quantized coefficients <span class="catleg-coeff-hint">— click any to explore</span></span>
+          <div class="catleg-coeff-grid" id="catlegCoeffGrid">`;
+        for (let i = 0; i < 64; i++) {
+          const v = coeffs[i];
+          const cat = jpegCategory(v);
+          const col = CAT_COLORS[Math.min(cat, 10)];
+          html += `<div class="catleg-coeff-cell" data-val="${v}" data-idx="${i}"
+            style="background:${col.bg};color:${col.text};border-color:${col.border}">${v}</div>`;
+        }
+        html += '</div></div>';
+      }
+
+      html += '</div>';
       el.innerHTML = html;
+
+      // ── Wire interactions ─────────────────────────────────────────────
+      const input = document.getElementById('catlegInput');
+      const resultEl = document.getElementById('catlegResult');
+      const grid = document.getElementById('catlegCoeffGrid');
+
+      function highlightCategory(value) {
+        const v = parseInt(value, 10);
+        // Clear all active cells
+        el.querySelectorAll('.catleg-cell').forEach(c => c.classList.remove('catleg-active'));
+
+        if (isNaN(v)) {
+          resultEl.innerHTML = '';
+          return;
+        }
+        const cat = jpegCategory(v);
+        const cell = el.querySelector(`.catleg-cell[data-cat="${cat}"]`);
+        if (cell) {
+          cell.classList.add('catleg-active');
+          // Re-trigger animation
+          cell.style.animation = 'none';
+          cell.offsetHeight; // force reflow
+          cell.style.animation = '';
+        }
+
+        const absV = Math.abs(v);
+        let explain;
+        if (cat === 0) {
+          explain = 'Value is 0 — no bits needed';
+        } else {
+          const lo = 1 << (cat - 1);
+          const hi = (1 << cat) - 1;
+          explain = `|${v}| = ${absV} fits in ${cat} bit${cat !== 1 ? 's' : ''} (${lo}…${hi})`;
+        }
+
+        resultEl.innerHTML = `<span class="catleg-result-cat">${cat}</span>
+          <span class="catleg-result-explain">${explain}</span>`;
+      }
+
+      if (input) {
+        input.addEventListener('input', () => highlightCategory(input.value));
+      }
+
+      if (grid) {
+        grid.addEventListener('click', (e) => {
+          const cell = e.target.closest('.catleg-coeff-cell');
+          if (!cell) return;
+          const val = cell.dataset.val;
+
+          // Highlight selected cell
+          grid.querySelectorAll('.catleg-coeff-cell').forEach(c => c.classList.remove('catleg-coeff-selected'));
+          cell.classList.add('catleg-coeff-selected');
+
+          // Update input and highlight
+          if (input) input.value = val;
+          highlightCategory(val);
+
+          // Dispatch to raw binary card
+          document.dispatchEvent(new CustomEvent('categoryExplore', { detail: { value: parseInt(val, 10) } }));
+        });
+      }
+    }
+
+    // ── Raw binary card ───────────────────────────────────────────────────────
+
+    let _rawBinAnimTimer = null;
+    let _catExploreHandler = null;
+
+    function renderRawBinaryCard() {
+      const card = document.getElementById('rawBinaryCard');
+      const el   = document.getElementById('rawBinaryDemo');
+      if (!card || !el) return;
+      card.style.display = '';
+
+      let html = '<div class="rawbin-wrap">';
+
+      // ── Input row ─────────────────────────────────────────────────────
+      html += `<div class="rawbin-input-row">
+        <span class="rawbin-input-label">Value:</span>
+        <input type="number" class="rawbin-input" id="rawbinInput" value="" placeholder="e.g. 5" aria-label="Enter a value to see its raw binary encoding">
+        <button class="rawbin-sign-btn" id="rawbinSignBtn" title="Toggle sign (+/-)">+/\u2212</button>
+        <span class="rawbin-cat-badge" id="rawbinCatBadge" style="display:none">Category <strong id="rawbinCatNum">—</strong></span>
+      </div>`;
+
+      // ── Steps container ───────────────────────────────────────────────
+      html += '<div class="rawbin-steps" id="rawbinSteps"></div>';
+
+      // ── Quick reference ───────────────────────────────────────────────
+      html += `<div class="rawbin-ref">
+        <strong>Quick rule:</strong> Positive values → plain binary, padded to category length.
+        Negative values → flip every bit (ones' complement).<br>
+        Examples: <code>5 → 0101</code> &nbsp; <code>-5 → 1010</code> &nbsp;
+        <code>3 → 11</code> &nbsp; <code>-3 → 00</code> &nbsp;
+        <code>1 → 1</code> &nbsp; <code>-1 → 0</code>
+      </div>`;
+
+      html += '</div>';
+      el.innerHTML = html;
+
+      // ── Wire interactions ─────────────────────────────────────────────
+      const input = document.getElementById('rawbinInput');
+      const signBtn = document.getElementById('rawbinSignBtn');
+      const stepsEl = document.getElementById('rawbinSteps');
+      const catBadge = document.getElementById('rawbinCatBadge');
+      const catNum = document.getElementById('rawbinCatNum');
+
+      function animateConversion(value) {
+        if (_rawBinAnimTimer) { clearTimeout(_rawBinAnimTimer); _rawBinAnimTimer = null; }
+
+        const v = parseInt(value, 10);
+        if (isNaN(v)) {
+          stepsEl.innerHTML = '<div class="rawbin-placeholder">Type a value above to see the encoding</div>';
+          catBadge.style.display = 'none';
+          return;
+        }
+
+        const cat = jpegCategory(v);
+        const rawBits = jpegRawBits(v, cat);
+        const absV = Math.abs(v);
+        const isNeg = v < 0;
+
+        // Show category badge
+        catBadge.style.display = '';
+        catNum.textContent = cat;
+
+        if (cat === 0) {
+          stepsEl.innerHTML = `<div class="rawbin-step">
+            <div class="rawbin-step-num">1</div>
+            <div class="rawbin-step-content">
+              <div class="rawbin-step-label">Value is 0 — category 0</div>
+              <div class="rawbin-step-explain">No raw bits are needed. The Huffman code for category 0 is sufficient — the decoder knows the value must be 0.</div>
+            </div>
+          </div>`;
+          return;
+        }
+
+        // Build the absolute binary string
+        const absBin = absV.toString(2).padStart(cat, '0');
+
+        let stepsHtml = '';
+
+        // Step 1: Category
+        stepsHtml += `<div class="rawbin-step">
+          <div class="rawbin-step-num">1</div>
+          <div class="rawbin-step-content">
+            <div class="rawbin-step-label">Category ${cat} → we need ${cat} bit${cat !== 1 ? 's' : ''}</div>
+            <div class="rawbin-step-explain">
+              <code>|${v}|</code> = ${absV} fits in the range ${1 << (cat - 1)}…${(1 << cat) - 1}, so category = ${cat}.
+              The decoder will read exactly ${cat} raw bit${cat !== 1 ? 's' : ''} after the Huffman code.
+            </div>
+          </div>
+        </div>`;
+
+        // Step 2: Absolute value in binary
+        let bitTilesHtml = '<div class="rawbin-bit-row">';
+        for (let i = 0; i < absBin.length; i++) {
+          const flippedBit = absBin[i] === '0' ? '1' : '0';
+          bitTilesHtml += `<div class="rawbin-bit-tile" data-idx="${i}" style="animation-delay:${i * 100}ms">
+            <div class="rawbin-bit-inner">
+              <div class="rawbin-bit-face rawbin-bit-front">${absBin[i]}</div>
+              <div class="rawbin-bit-face rawbin-bit-back">${flippedBit}</div>
+            </div>
+          </div>`;
+        }
+        bitTilesHtml += '</div>';
+
+        stepsHtml += `<div class="rawbin-step">
+          <div class="rawbin-step-num">2</div>
+          <div class="rawbin-step-content">
+            <div class="rawbin-step-label">Convert |${v}| = ${absV} to ${cat}-bit binary</div>
+            <div class="rawbin-step-visual" id="rawbinBitRow">
+              ${bitTilesHtml}
+            </div>
+            <div class="rawbin-step-explain"><code>${absV}</code> in binary = <code>${absBin}</code></div>
+          </div>
+        </div>`;
+
+        // Step 3: Flip bits (only for negative)
+        if (isNeg) {
+          stepsHtml += `<div class="rawbin-step" id="rawbinFlipStep" style="opacity:0">
+            <div class="rawbin-step-num">3</div>
+            <div class="rawbin-step-content">
+              <div class="rawbin-step-label">Negative value → flip every bit (ones' complement)</div>
+              <div class="rawbin-step-visual">
+                <div class="rawbin-bit-row">
+                  ${rawBits.split('').map(b =>
+                    `<div class="rawbin-bit-tile"><div class="rawbin-bit-inner">
+                      <div class="rawbin-bit-face rawbin-bit-front" style="background:#fee2e2;border-color:#f87171;color:#991b1b">${b}</div>
+                    </div></div>`
+                  ).join('')}
+                </div>
+              </div>
+              <div class="rawbin-step-explain">
+                Each <code>0</code> becomes <code>1</code>, each <code>1</code> becomes <code>0</code>.
+                Result: <code>${absBin}</code> → <code>${rawBits}</code>
+              </div>
+            </div>
+          </div>`;
+        }
+
+        // Final step: combined output
+        const finalStepNum = isNeg ? 4 : 3;
+        // Look up a Huffman code for illustration (DC luma category or first AC match)
+        const huffCode = _tables.dcLuma ? (_tables.dcLuma['DC:' + cat] || '') : '';
+        const huffDisplay = huffCode || '…';
+
+        stepsHtml += `<div class="rawbin-step" id="rawbinFinalStep" style="opacity:0">
+          <div class="rawbin-step-num">${finalStepNum}</div>
+          <div class="rawbin-step-content">
+            <div class="rawbin-step-label">Final: Huffman code + raw bits → bitstream</div>
+            <div class="rawbin-step-visual" style="flex-direction:column;gap:6px">
+              <div class="rawbin-final-row">
+                <span class="rawbin-final-huff">${esc(huffDisplay)}</span>
+                <span class="rawbin-final-sep"></span>
+                <span class="rawbin-final-raw">${rawBits}</span>
+              </div>
+              <div style="display:flex;gap:24px">
+                <span class="rawbin-final-label" style="color:#2563eb">Huffman code</span>
+                <span class="rawbin-final-label" style="color:#d97706">Raw bits (${cat})</span>
+              </div>
+            </div>
+            <div class="rawbin-step-explain">
+              The Huffman code tells the decoder "read ${cat} raw bits next."
+              Total: ${huffCode ? huffCode.length + ' + ' + cat + ' = ' + (huffCode.length + cat) + ' bits' : cat + ' raw bits + Huffman code length'}.
+            </div>
+          </div>
+        </div>`;
+
+        stepsEl.innerHTML = stepsHtml;
+
+        // ── Animate ─────────────────────────────────────────────────────
+        // Phase 1: Bit tiles appear (already handled by CSS animation-delay)
+        const tiles = stepsEl.querySelectorAll('#rawbinBitRow .rawbin-bit-tile');
+        tiles.forEach(t => t.classList.add('rawbin-appear'));
+
+        const totalAppearTime = tiles.length * 100 + 300;
+
+        if (isNeg) {
+          // Phase 2: Flip bits after they appear
+          _rawBinAnimTimer = setTimeout(() => {
+            tiles.forEach((t, i) => {
+              setTimeout(() => t.classList.add('rawbin-flipped'), i * 150);
+            });
+
+            // Phase 3: Show flip step
+            const flipDelay = tiles.length * 150 + 200;
+            _rawBinAnimTimer = setTimeout(() => {
+              const flipStep = document.getElementById('rawbinFlipStep');
+              if (flipStep) { flipStep.style.opacity = '1'; flipStep.style.transition = 'opacity 0.3s'; }
+
+              // Phase 4: Show final step
+              _rawBinAnimTimer = setTimeout(() => {
+                const finalStep = document.getElementById('rawbinFinalStep');
+                if (finalStep) { finalStep.style.opacity = '1'; finalStep.style.transition = 'opacity 0.3s'; }
+              }, 400);
+            }, flipDelay);
+          }, totalAppearTime);
+        } else {
+          // No flip needed — just show final step after bits appear
+          _rawBinAnimTimer = setTimeout(() => {
+            const finalStep = document.getElementById('rawbinFinalStep');
+            if (finalStep) { finalStep.style.opacity = '1'; finalStep.style.transition = 'opacity 0.3s'; }
+          }, totalAppearTime);
+        }
+      }
+
+      if (input) {
+        input.addEventListener('input', () => animateConversion(input.value));
+      }
+
+      if (signBtn && input) {
+        signBtn.addEventListener('click', () => {
+          const v = parseInt(input.value, 10);
+          if (!isNaN(v) && v !== 0) {
+            input.value = -v;
+            animateConversion(input.value);
+          }
+        });
+      }
+
+      // Listen for cross-card events (remove previous handler to avoid accumulation)
+      if (_catExploreHandler) document.removeEventListener('categoryExplore', _catExploreHandler);
+      _catExploreHandler = (e) => {
+        const val = e.detail.value;
+        if (input && !isNaN(val)) {
+          input.value = val;
+          animateConversion(val);
+          // Scroll into view if needed
+          const rect = card.getBoundingClientRect();
+          if (rect.top > window.innerHeight || rect.bottom < 0) {
+            card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        }
+      };
+      document.addEventListener('categoryExplore', _catExploreHandler);
+
+      // Start with an example if we have coefficients
+      const coeffs = S.quantC || [];
+      if (coeffs.length >= 64) {
+        // Pick a non-zero coefficient as initial demo
+        const interesting = coeffs.find(v => v !== 0 && Math.abs(v) < 100) || coeffs[0];
+        if (interesting !== 0) {
+          input.value = interesting;
+          animateConversion(interesting);
+        }
+      }
     }
 
     // ── Re-render current selector view ──────────────────────────────────────
@@ -10597,8 +10895,9 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       renderCurrentView();
       updateHuffStats(_mcuTokens, _tables);
 
-      // Render category split demo
-      renderCatSplitDemo(yTokens, cbToks, crToks);
+      // Render category + raw binary demo cards
+      renderCategoryCard();
+      renderRawBinaryCard();
 
       // Dispatch for downstream sections — include all 4 code tables
       document.dispatchEvent(new CustomEvent('huffmanChanged', {
