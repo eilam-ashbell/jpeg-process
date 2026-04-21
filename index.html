@@ -2331,7 +2331,7 @@
       font-family: 'JetBrains Mono', monospace;
     }
 
-    /* ── S12: Huffman Coding ────────────────────────────────────────────────── */
+    /* ── S12:  Coding ────────────────────────────────────────────────── */
     .huffman-layout {
       display: flex;
       flex-direction: column;
@@ -2421,6 +2421,103 @@
       font-size: 0.78rem;
       color: var(--text-secondary);
       line-height: 1.5;
+    }
+
+    /* ── S12: EOB/ZRL special symbols callout ──────────────────────────── */
+    .huff-special-note {
+      margin: 0 0 20px;
+      padding: 14px 18px;
+      background: var(--bg-secondary);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      max-width: 680px;
+    }
+    .huff-special-note-title {
+      font-size: 0.76rem; font-weight: 700;
+      color: var(--text-secondary); margin: 0 0 10px;
+    }
+    .huff-special-note-items { display: flex; flex-direction: column; gap: 8px; }
+    .huff-special-note-item {
+      display: flex; align-items: baseline; gap: 10px;
+      font-size: 0.78rem; color: var(--text-secondary); line-height: 1.5;
+    }
+    .huff-special-sym {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 40px; padding: 2px 8px; border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 0.72rem;
+      background: #dbeafe; color: #1e40af; border: 1.5px solid #93c5fd; flex-shrink: 0;
+    }
+    .huff-special-note-item code {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.68rem;
+      background: var(--bg-primary); padding: 1px 4px; border-radius: 3px;
+    }
+
+    /* ── S12: (R,C) legend for AC view ─────────────────────────────────── */
+    .huff-rc-legend {
+      margin: 0 0 8px;
+      padding: 6px 12px;
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      background: var(--bg-secondary);
+      border-radius: 6px;
+      border: 1px dashed var(--border);
+      line-height: 1.5;
+    }
+    .huff-rc-legend code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      background: var(--bg-primary);
+      padding: 1px 4px; border-radius: 3px;
+    }
+    .huff-rc-legend strong { color: var(--text-primary); }
+
+    /* ── S12: Compression payoff callout ───────────────────────────────── */
+    .huff-payoff {
+      margin-top: 18px; padding: 16px 20px;
+      background: #eff6ff; border: 1px solid #bfdbfe;
+      border-radius: 10px; text-align: center;
+    }
+    .huff-payoff-text { margin: 0; font-size: 0.92rem; color: var(--text-secondary); line-height: 1.65; }
+    .huff-payoff-text strong { color: var(--text-primary); }
+    .huff-payoff-highlight { color: #2563eb; font-size: 1.05rem; }
+
+    /* ── S12: Fixed label chip (replaces AC/DC selector) ───────────────────── */
+    .huff-fixed-label {
+      display: inline-flex; align-items: center;
+      padding: 4px 12px;
+      background: var(--accent-blue, #2563eb); color: #fff;
+      border-radius: 6px; font-size: 0.75rem; font-weight: 600;
+      letter-spacing: 0.04em; text-transform: uppercase;
+    }
+
+    /* ── S12: Full-image accordion ──────────────────────────────────────────── */
+    .huff-full-accordion { margin-top: 14px; }
+    .huff-accordion-toggle {
+      width: 100%; display: flex; align-items: center; gap: 8px;
+      padding: 11px 16px;
+      background: var(--bg-secondary, #f8fafc);
+      border: 1px solid var(--border, #e2e8f0);
+      border-radius: 8px; cursor: pointer;
+      font-size: 0.88rem; font-weight: 600; text-align: left;
+      color: var(--text-primary);
+      transition: background 0.15s;
+    }
+    .huff-accordion-toggle:hover { background: var(--bg-hover, #f1f5f9); }
+    .huff-accordion-toggle[aria-expanded="true"] {
+      border-bottom-left-radius: 0; border-bottom-right-radius: 0;
+    }
+    .huff-accordion-arrow {
+      display: inline-block; font-size: 0.65rem;
+      transition: transform 0.2s ease; color: var(--text-secondary);
+    }
+    .huff-accordion-sub {
+      font-size: 0.73rem; font-weight: 400;
+      color: var(--text-secondary); margin-left: auto;
+    }
+    .huff-accordion-body {
+      border: 1px solid var(--border, #e2e8f0); border-top: none;
+      border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;
+      padding: 20px; background: var(--bg-primary, #fff);
     }
 
     /* ── DPCM scrolling bitstream card ────────────────────────────────────── */
@@ -2738,297 +2835,430 @@
       box-shadow: 0 1px 4px rgba(37,99,235,.25);
     }
 
-    /* ── S12: Category legend card ────────────────────────────────────────── */
-    .catleg-wrap {
-      display: flex; flex-direction: column;
-      gap: 20px; padding: 8px 0;
+    /* ── S12: Category conversion card ─────────────────────────────────────── */
+    .catconv-wrap {
+      display: flex; flex-direction: column; gap: 12px; padding: 8px 0;
     }
-
-    /* Category legend grid */
-    .catleg-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
-      gap: 6px;
+    .catconv-tokens {
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start;
     }
-    .catleg-cell {
-      display: flex; flex-direction: column; align-items: center;
-      gap: 2px; padding: 8px 4px; border-radius: 8px;
-      border: 2px solid var(--bg-secondary);
-      cursor: pointer; transition: all 0.2s ease;
-      background: var(--bg-primary);
+    .catconv-token {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      opacity: 0; animation: catconvIn 0.25s ease forwards;
     }
-    .catleg-cell:hover {
-      border-color: #93c5fd;
-      background: #eff6ff;
-    }
-    .catleg-cell.catleg-active {
-      border-color: #2563eb;
-      background: #dbeafe;
-      animation: catlegPop 350ms cubic-bezier(.22,1,.36,1);
-    }
-    .catleg-cat {
-      font-family: 'JetBrains Mono', monospace;
-      font-weight: 800; font-size: 0.82rem;
-      color: #2563eb;
-    }
-    .catleg-range {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.62rem; color: var(--text-secondary);
-      white-space: nowrap;
-    }
-    .catleg-cell--zero .catleg-cat { color: var(--text-muted); }
-    .catleg-cell--zero .catleg-range { color: var(--text-muted); }
-    .catleg-cell--zero.catleg-active .catleg-cat { color: #2563eb; }
-
-    @keyframes catlegPop {
-      0%   { transform: scale(1); }
-      40%  { transform: scale(1.12); }
-      100% { transform: scale(1); }
-    }
-
-    /* Try-it input row */
-    .catleg-input-row {
-      display: flex; align-items: center; gap: 12px;
-      flex-wrap: wrap;
-    }
-    .catleg-input-label {
-      font-size: 0.76rem; font-weight: 600; color: var(--text-secondary);
-    }
-    .catleg-input {
-      width: 90px; padding: 6px 10px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.88rem; font-weight: 700;
-      border: 2px solid var(--border); border-radius: 8px;
-      background: var(--bg-primary); color: var(--text-primary);
-      outline: none; transition: border-color 0.2s;
-      text-align: center;
-    }
-    .catleg-input:focus { border-color: #2563eb; }
-    .catleg-result {
-      display: flex; align-items: center; gap: 8px;
-      font-size: 0.78rem; color: var(--text-secondary);
-      min-height: 28px;
-    }
-    .catleg-result-cat {
-      display: inline-flex; align-items: center; justify-content: center;
-      min-width: 28px; height: 28px; padding: 0 8px;
-      border-radius: 6px; font-family: 'JetBrains Mono', monospace;
-      font-weight: 800; font-size: 0.82rem;
-      background: #dbeafe; color: #2563eb;
-      border: 2px solid #2563eb;
-    }
-    .catleg-result-explain {
-      font-size: 0.72rem; color: var(--text-secondary);
-      animation: catlegFadeIn 250ms ease;
-    }
-    @keyframes catlegFadeIn {
-      from { opacity: 0; transform: translateY(4px); }
+    @keyframes catconvIn {
+      from { opacity: 0; transform: translateY(6px); }
       to   { opacity: 1; transform: translateY(0); }
     }
-
-    /* Coefficient grid */
-    .catleg-coeff-section {
-      display: flex; flex-direction: column; gap: 8px;
-    }
-    .catleg-coeff-label {
-      font-size: 0.68rem; font-weight: 700; color: var(--text-muted);
-      text-transform: uppercase; letter-spacing: 0.05em;
-    }
-    .catleg-coeff-grid {
-      display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      gap: 3px;
-    }
-    .catleg-coeff-cell {
-      display: flex; align-items: center; justify-content: center;
-      padding: 5px 2px; border-radius: 5px;
+    .catconv-before {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.68rem; font-weight: 600;
-      cursor: pointer; transition: all 0.15s ease;
-      border: 1.5px solid transparent;
-      min-height: 30px;
+      font-size: 0.72rem; font-weight: 700;
+      padding: 5px 9px; border-radius: 6px;
+      border: 1.5px solid #a78bfa; background: #ede9fe; color: #5b21b6;
     }
-    .catleg-coeff-cell:hover {
-      transform: scale(1.08);
-      box-shadow: 0 2px 8px rgba(0,0,0,.12);
-      z-index: 1;
+    .catconv-arrow {
+      font-size: 0.72rem; color: var(--text-muted); line-height: 1;
     }
-    .catleg-coeff-cell.catleg-coeff-selected {
-      border-color: #1e40af;
-      box-shadow: 0 0 0 2px rgba(37,99,235,.3);
-      transform: scale(1.08);
-      z-index: 1;
-    }
-    .catleg-coeff-hint {
-      font-size: 0.66rem; color: var(--text-muted); font-style: italic;
-    }
-
-    /* ── S12: Raw binary card ──────────────────────────────────────────────── */
-    .rawbin-wrap {
-      display: flex; flex-direction: column;
-      gap: 16px; padding: 8px 0;
-    }
-
-    /* Input row */
-    .rawbin-input-row {
-      display: flex; align-items: center; gap: 12px;
-      flex-wrap: wrap;
-    }
-    .rawbin-input-label {
-      font-size: 0.76rem; font-weight: 600; color: var(--text-secondary);
-    }
-    .rawbin-input {
-      width: 90px; padding: 6px 10px;
+    .catconv-after {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.88rem; font-weight: 700;
-      border: 2px solid var(--border); border-radius: 8px;
-      background: var(--bg-primary); color: var(--text-primary);
-      outline: none; transition: border-color 0.2s;
+      font-size: 0.72rem; font-weight: 700;
+      padding: 5px 9px; border-radius: 6px;
+      border: 1.5px solid #60a5fa; background: #dbeafe; color: #1e40af;
+    }
+    .catconv-after-eob {
+      border-color: #6b7280; background: #f1f5f9; color: #374151;
+    }
+    .catconv-note {
+      font-size: 0.64rem; color: var(--text-muted); text-align: center;
+      line-height: 1.3;
+    }
+    .catconv-legend {
+      display: flex; gap: 16px; flex-wrap: wrap; align-items: center;
+      padding: 8px 12px; border-radius: 8px;
+      background: var(--bg-secondary); font-size: 0.68rem; color: var(--text-secondary);
+    }
+    .catconv-legend-item { display: flex; align-items: center; gap: 6px; }
+    .catconv-swatch {
+      width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid;
+      flex-shrink: 0;
+    }
+
+    /* ── S12: Category explain card ─────────────────────────────────────────── */
+    .catexplain-wrap {
+      display: flex; flex-direction: column; gap: 14px; padding: 6px 0;
+    }
+    .catexplain-cols {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    }
+    @media (max-width: 640px) { .catexplain-cols { grid-template-columns: 1fr; } }
+    .catexplain-col {
+      display: flex; flex-direction: column; gap: 10px;
+      padding: 14px; border-radius: 10px;
+      background: var(--bg-secondary); border: 1.5px solid var(--border);
+    }
+    .catexplain-col-title {
+      font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--text-primary);
+    }
+    .catexplain-col-sub {
+      font-size: 0.68rem; color: var(--text-secondary); line-height: 1.45;
+      margin-top: -4px;
+    }
+    .catexplain-cat-table {
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .catexplain-cat-row {
+      display: grid; grid-template-columns: 28px 1fr 56px;
+      align-items: center; gap: 6px; padding: 4px 7px;
+      border-radius: 6px; border: 1.5px solid transparent;
+      font-size: 0.68rem;
+    }
+    .catexplain-cat-num {
+      font-family: 'JetBrains Mono', monospace; font-weight: 700;
       text-align: center;
     }
-    .rawbin-input:focus { border-color: #d97706; }
-    .rawbin-sign-btn {
-      padding: 4px 10px; border-radius: 6px;
-      border: 2px solid var(--border); background: var(--bg-secondary);
+    .catexplain-cat-range {
+      font-size: 0.65rem; opacity: 0.85;
+    }
+    .catexplain-cat-bits {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.63rem;
+      text-align: right; opacity: 0.7;
+    }
+    .catexplain-diagrams {
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .catexplain-diagram {
+      display: flex; flex-direction: column; gap: 6px;
+      padding: 12px; border-radius: 8px;
+      border: 1.5px solid var(--border); background: var(--bg-primary);
+    }
+    .catexplain-diagram-label {
+      font-size: 0.68rem; font-weight: 700; color: var(--text-secondary);
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .catexplain-diagram-flow {
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    }
+    .catexplain-flow-box {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 700;
+      padding: 4px 8px; border-radius: 6px; border: 1.5px solid;
+      white-space: nowrap;
+    }
+    .catexplain-flow-box.val  { background: #ede9fe; border-color: #a78bfa; color: #5b21b6; }
+    .catexplain-flow-box.cat  { background: #fef9c3; border-color: #facc15; color: #854d0e; }
+    .catexplain-flow-box.sym  { background: #dbeafe; border-color: #60a5fa; color: #1e40af; }
+    .catexplain-flow-arrow {
+      font-size: 0.75rem; color: var(--text-muted); flex-shrink: 0;
+    }
+    .catexplain-diagram-note {
+      font-size: 0.63rem; color: var(--text-muted); line-height: 1.4; margin-top: 2px;
+    }
+    .catexplain-numline-wrap { display: flex; flex-direction: column; gap: 4px; }
+    .catexplain-numline-label-row { display: flex; justify-content: space-between; padding: 0 2px; }
+    .catexplain-numline-label { font-size: 0.6rem; font-family: 'JetBrains Mono', monospace; color: var(--text-muted); }
+    .catexplain-scrubber-header { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-bottom: 4px; }
+    .catexplain-scrubber-val-input {
+      font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; font-weight: 800;
+      width: 90px; text-align: center; background: transparent; border: none; outline: none;
+      color: var(--text-primary); -moz-appearance: textfield;
+    }
+    .catexplain-scrubber-val-input::-webkit-outer-spin-button,
+    .catexplain-scrubber-val-input::-webkit-inner-spin-button { -webkit-appearance: none; appearance: none; }
+    .catexplain-scrubber-cat-badge { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 800; padding: 3px 12px; border-radius: 12px; border: 1.5px solid; white-space: nowrap; }
+    .catexplain-scrubber-row { display: flex; align-items: center; gap: 0; margin-top: 2px; }
+    .catexplain-enc-panel { display: flex; flex-direction: column; gap: 6px; }
+    .catexplain-enc-row { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 7px; background: var(--bg-primary); border: 1.5px solid var(--border); }
+    .catexplain-enc-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+    .catexplain-enc-value { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700; }
+    .catexplain-enc-explain { font-size: 0.63rem; color: var(--text-secondary); line-height: 1.4; margin-top: 2px; }
+    .catexplain-cat-row { cursor: pointer; transition: box-shadow 0.15s, transform 0.1s; }
+    .catexplain-cat-row.catexplain-active { box-shadow: 0 0 0 2.5px #60a5fa; transform: scaleX(1.01); }
+    @keyframes catexplainPop {
+      0%   { transform: scale(0.88); opacity: 0.6; }
+      60%  { transform: scale(1.08); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* ── S12: catConv horizontal strip ──────────────────────────────────────── */
+    .catconv-strip-wrap {
+      display: flex; flex-direction: column; gap: 8px; padding: 4px 0;
+    }
+    .catconv-strip-note {
+      font-size: 0.68rem; color: var(--text-secondary);
+    }
+    .catconv-strip {
+      display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px;
+      scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+      align-items: stretch;
+    }
+    .catconv-strip::-webkit-scrollbar { height: 5px; }
+    .catconv-strip::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    .catconv-chip {
+      display: flex; flex-direction: column; min-width: 88px; max-width: 110px;
+      border-radius: 10px; border: 1.5px solid var(--border);
+      overflow: hidden; flex-shrink: 0;
+      opacity: 0; animation: catconvIn 0.25s ease forwards;
+      background: var(--bg-primary);
+    }
+    .catconv-chip-top {
+      display: flex; align-items: center; gap: 5px;
+      padding: 7px 8px; border-bottom: 1.5px solid var(--border);
+    }
+    .catconv-chip-bot {
+      display: flex; align-items: center; gap: 5px;
+      padding: 6px 8px; background: var(--bg-secondary);
+    }
+    .catconv-type-badge {
+      font-size: 0.58rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.06em; padding: 2px 5px; border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .catconv-type-dc { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+    .catconv-type-ac { background: #fae8ff; color: #7e22ce; border: 1px solid #d8b4fe; }
+    .catconv-raw-val {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 700;
+      color: var(--text-primary); min-width: 0; overflow: hidden;
+      text-overflow: ellipsis; white-space: nowrap;
+    }
+    .catconv-cat-pill {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; font-weight: 700;
+      padding: 2px 6px; border-radius: 4px; border: 1.5px solid;
+      flex-shrink: 0; white-space: nowrap;
+    }
+    .catconv-sym-val {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; font-weight: 600;
+      color: #1e40af; min-width: 0; overflow: hidden;
+      text-overflow: ellipsis; white-space: nowrap;
+    }
+    .catconv-chip-eob .catconv-chip-top { background: #f8fafc; }
+    .catconv-chip-eob .catconv-chip-bot { background: #f1f5f9; }
+    .catconv-chip-eob .catconv-sym-val  { color: #374151; }
+
+    /* ── S12: Symbol alphabet card ─────────────────────────────────────────── */
+    .symcard-wrap {
+      display: flex; flex-direction: column; gap: 16px; padding: 8px 0;
+    }
+    .symcard-cols {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    }
+    @media (max-width: 640px) { .symcard-cols { grid-template-columns: 1fr; } }
+    .symcard-col {
+      display: flex; flex-direction: column; gap: 10px;
+      padding: 14px; border-radius: 10px;
+      background: var(--bg-secondary); border: 1.5px solid var(--border);
+    }
+    .symcard-col-title {
+      font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--text-primary);
+    }
+    .symcard-col-sub {
+      font-size: 0.68rem; color: var(--text-secondary); line-height: 1.45;
+      margin-top: -4px;
+    }
+    .symcard-dc-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+      gap: 5px;
+    }
+    .symcard-dc-chip {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 2px; padding: 7px 4px; border-radius: 8px;
+      border: 2px solid var(--bg-secondary);
+      cursor: pointer; transition: all 0.15s ease;
+      background: var(--bg-primary);
+    }
+    .symcard-dc-chip:hover { border-color: #93c5fd; background: #eff6ff; }
+    .symcard-dc-chip.symcard-active { border-color: #2563eb; background: #dbeafe; }
+    .symcard-dc-cat {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.82rem; font-weight: 800;
+      font-weight: 800; font-size: 0.82rem; color: #2563eb;
+    }
+    .symcard-dc-range {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.58rem; color: var(--text-secondary); white-space: nowrap;
+    }
+    .symcard-dc-bin {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.56rem; color: #6366f1; white-space: nowrap; opacity: 0.85;
+    }
+    .symcard-ac-grid {
+      display: flex; flex-wrap: wrap; gap: 4px;
+    }
+    .symcard-ac-chip {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 3px 7px; border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.66rem; font-weight: 700;
+      border: 1.5px solid transparent;
+      cursor: pointer; transition: all 0.12s ease;
+    }
+    .symcard-ac-chip:hover { filter: brightness(0.88); transform: scale(1.05); }
+    .symcard-ac-chip.symcard-active { outline: 2px solid #1e40af; outline-offset: 1px; }
+    .symcard-ac-special {
+      display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap;
+    }
+    .symcard-ac-eob {
+      padding: 3px 10px; border-radius: 6px; border: 1.5px solid #6b7280;
+      background: #f1f5f9; color: #374151;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem; font-weight: 700;
+      cursor: pointer; transition: all 0.12s ease;
+    }
+    .symcard-ac-eob:hover { background: #e2e8f0; }
+    .symcard-count {
+      font-size: 0.64rem; color: var(--text-muted); font-style: italic;
+    }
+    .symcard-dim {
+      opacity: 0.35; cursor: default;
+    }
+    .symcard-dim:hover { border-color: var(--bg-secondary) !important; background: var(--bg-primary) !important; }
+
+
+    /* ── S12: Bit encoding card ─────────────────────────────────────────────── */
+    .bitenc-wrap {
+      display: flex; flex-direction: column; gap: 16px; padding: 8px 0;
+    }
+    .bitenc-picker-row {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .bitenc-picker-label {
+      font-size: 0.76rem; font-weight: 600; color: var(--text-secondary);
+    }
+    .bitenc-picker {
+      display: inline-flex; gap: 4px; flex-wrap: wrap;
+    }
+    .bitenc-tok-btn {
+      min-width: 36px; padding: 4px 10px;
+      border-radius: 6px; border: 1.5px solid var(--border);
+      background: var(--bg-secondary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem; font-weight: 700;
       cursor: pointer; color: var(--text-primary);
       transition: all 0.15s;
     }
-    .rawbin-sign-btn:hover {
-      border-color: #d97706; background: #fef3c7;
+    .bitenc-tok-btn:hover { border-color: #93c5fd; background: #eff6ff; }
+    .bitenc-tok-btn.active { background: #dbeafe; border-color: #2563eb; color: #1e40af; }
+    .bitenc-steps {
+      display: flex; flex-direction: column; gap: 10px;
     }
-    .rawbin-cat-badge {
-      display: inline-flex; align-items: center; gap: 4px;
-      padding: 4px 10px; border-radius: 6px;
-      font-size: 0.72rem; font-weight: 700;
-      background: #dbeafe; color: #2563eb;
-      border: 1.5px solid #93c5fd;
+    .bitenc-step {
+      display: flex; align-items: flex-start; gap: 14px;
+      opacity: 0; animation: bitencStepIn 0.3s ease forwards;
     }
-
-    /* Steps */
-    .rawbin-steps {
-      display: flex; flex-direction: column; gap: 0;
+    .bitenc-step:nth-child(1) { animation-delay: 0ms; }
+    .bitenc-step:nth-child(2) { animation-delay: 100ms; }
+    .bitenc-step:nth-child(3) { animation-delay: 200ms; }
+    .bitenc-step:nth-child(4) { animation-delay: 300ms; }
+    .bitenc-step:nth-child(5) { animation-delay: 400ms; }
+    @keyframes bitencStepIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
-    .rawbin-step {
-      display: flex; align-items: flex-start; gap: 12px;
-      padding: 12px 0;
-    }
-    .rawbin-step + .rawbin-step {
-      border-top: 1px dashed color-mix(in srgb, var(--border) 60%, transparent);
-    }
-    .rawbin-step-num {
-      flex-shrink: 0; width: 24px; height: 24px;
+    .bitenc-step-num {
       display: flex; align-items: center; justify-content: center;
-      border-radius: 50%; font-size: 0.64rem; font-weight: 800;
-      background: var(--bg-secondary); color: var(--text-muted);
-      border: 1.5px solid var(--border); margin-top: 2px;
+      min-width: 24px; height: 24px;
+      border-radius: 50%; background: var(--bg-secondary);
+      border: 1.5px solid var(--border);
+      font-size: 0.7rem; font-weight: 800; color: var(--text-muted);
+      flex-shrink: 0; margin-top: 2px;
     }
-    .rawbin-step-content {
-      flex: 1; display: flex; flex-direction: column; gap: 8px;
+    .bitenc-step-content {
+      display: flex; flex-direction: column; gap: 4px; flex: 1;
     }
-    .rawbin-step-label {
-      font-size: 0.72rem; font-weight: 600; color: var(--text-secondary);
+    .bitenc-step-label {
+      font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.05em; color: var(--text-muted);
     }
-    .rawbin-step-visual {
-      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
-    }
-
-    /* Bit tiles */
-    .rawbin-bit-row {
-      display: inline-flex; gap: 4px;
-    }
-    .rawbin-bit-tile {
-      width: 32px; height: 38px;
-      perspective: 400px;
-      display: inline-block;
-    }
-    .rawbin-bit-inner {
-      width: 100%; height: 100%;
-      position: relative;
-      transform-style: preserve-3d;
-      transition: transform 0.4s cubic-bezier(.22,1,.36,1);
-    }
-    .rawbin-bit-tile.rawbin-flipped .rawbin-bit-inner {
-      transform: rotateX(180deg);
-    }
-    .rawbin-bit-face {
-      position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
-      border-radius: 6px;
+    .bitenc-step-value {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.92rem; font-weight: 800;
+      font-size: 0.88rem; font-weight: 800;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .bitenc-val-source  { color: #5b21b6; }
+    .bitenc-val-cat     { color: #1e40af; }
+    .bitenc-val-sym     { color: #0369a1; }
+    .bitenc-val-huff    { color: #2563eb; }
+    .bitenc-val-raw     { color: #92400e; }
+    .bitenc-step-explain {
+      font-size: 0.72rem; color: var(--text-secondary); line-height: 1.5;
+    }
+    /* Bit tiles for raw bits animation */
+    .bitenc-bit-row {
+      display: inline-flex; gap: 3px; align-items: center; flex-wrap: wrap;
+    }
+    .bitenc-bit-tile {
+      width: 28px; height: 28px;
+      perspective: 60px;
+      opacity: 0; animation: bitencTileIn 0.25s ease forwards;
+    }
+    @keyframes bitencTileIn {
+      from { opacity: 0; transform: scale(0.7); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .bitenc-bit-inner {
+      width: 100%; height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.4s ease;
+      position: relative;
+    }
+    .bitenc-bit-tile.bitenc-flipped .bitenc-bit-inner { transform: rotateY(180deg); }
+    .bitenc-bit-face {
+      position: absolute; width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 5px; border: 1.5px solid #d97706;
+      background: #fef3c7; color: #92400e;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem; font-weight: 800;
       backface-visibility: hidden;
     }
-    .rawbin-bit-front {
-      background: #fef3c7; color: #92400e;
-      border: 2px solid #fbbf24;
+    .bitenc-bit-face.bitenc-bit-back {
+      transform: rotateY(180deg);
+      background: #fee2e2; border-color: #f87171; color: #991b1b;
     }
-    .rawbin-bit-back {
-      background: #fee2e2; color: #991b1b;
-      border: 2px solid #f87171;
-      transform: rotateX(180deg);
-    }
-    .rawbin-bit-tile.rawbin-appear {
-      animation: rawbinBitIn 300ms cubic-bezier(.22,1,.36,1) both;
-    }
-    @keyframes rawbinBitIn {
-      from { opacity: 0; transform: scale(0.3) translateY(8px); }
-      to   { opacity: 1; transform: scale(1) translateY(0); }
-    }
-
-    /* Step explain text */
-    .rawbin-step-explain {
-      font-size: 0.68rem; color: var(--text-secondary);
-      line-height: 1.45;
-    }
-    .rawbin-step-explain code {
-      font-family: 'JetBrains Mono', monospace;
-      background: var(--bg-secondary); padding: 1px 4px; border-radius: 3px;
-      font-size: 0.66rem;
-    }
-
     /* Final combined output */
-    .rawbin-final-row {
+    .bitenc-final {
+      display: flex; flex-direction: column; gap: 8px; margin-top: 4px;
+      padding: 12px 14px; border-radius: 10px;
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      opacity: 0; animation: bitencStepIn 0.35s ease forwards;
+    }
+    .bitenc-final-label {
+      font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.05em; color: var(--text-muted);
+    }
+    .bitenc-final-bits {
       display: inline-flex; align-items: center; gap: 0;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.82rem; font-weight: 700;
-      padding: 6px 12px; border-radius: 8px;
-      background: var(--bg-secondary); border: 1px solid var(--border);
+      font-size: 0.92rem; font-weight: 700;
+      padding: 6px 14px; border-radius: 8px;
+      background: var(--bg-primary); border: 1px solid var(--border);
     }
-    .rawbin-final-huff { color: #2563eb; letter-spacing: 1px; }
-    .rawbin-final-raw  { color: #d97706; letter-spacing: 1px; }
-    .rawbin-final-sep {
-      width: 1.5px; height: 16px;
-      background: var(--border); margin: 0 6px;
+    .bitenc-final-bits .bf-huff { color: #2563eb; letter-spacing: 1px; }
+    .bitenc-final-bits .bf-raw  { color: #d97706; letter-spacing: 1px; }
+    .bitenc-final-bits .bf-sep  {
+      width: 1.5px; height: 16px; background: var(--border); margin: 0 6px;
     }
-    .rawbin-final-label {
-      font-size: 0.6rem; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.04em;
-      color: var(--text-muted); margin-top: 4px;
+    .bitenc-final-total {
+      font-size: 0.68rem; color: var(--text-secondary);
     }
-
-    /* Quick reference */
-    .rawbin-ref {
-      padding: 10px 14px; border-radius: 8px;
-      background: var(--bg-secondary);
-      border-left: 3px solid #d97706;
-      font-size: 0.72rem; color: var(--text-secondary);
-      line-height: 1.5;
+    /* Pair pill for AC (run, cat) */
+    .bitenc-pair {
+      display: inline-flex; align-items: center; gap: 0;
     }
-    .rawbin-ref strong { color: var(--text-primary); }
-    .rawbin-ref code {
+    .bitenc-pair-paren {
+      font-size: 0.95rem; font-weight: 700; color: var(--text-muted); padding: 0 2px;
+    }
+    .bitenc-pair-comma {
+      font-size: 0.85rem; font-weight: 700; color: var(--text-muted); padding: 0 4px;
+    }
+    .bitenc-chip {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 3px 10px; min-width: 26px; border-radius: 6px;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.68rem; background: #fff;
-      padding: 1px 4px; border-radius: 3px;
+      font-size: 0.82rem; font-weight: 800; border: 2px solid var(--border);
     }
+    .bitenc-chip-run  { background: #ede9fe; color: #5b21b6; border-color: #a78bfa; }
+    .bitenc-chip-cat  { background: #dbeafe; color: #1e40af; border-color: #60a5fa; }
 
-    /* Placeholder for no-value state */
-    .rawbin-placeholder {
-      text-align: center; padding: 20px;
-      font-size: 0.78rem; color: var(--text-muted);
-      font-style: italic;
-    }
     /* ── S12: Huffman table section dividers ───────────────────────────────── */
     .huffman-table .huff-section-row td {
       font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
@@ -4558,47 +4788,36 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         The last step is Huffman coding — a lossless technique that assigns variable-length binary codes to symbols. Frequent symbols get very short codes (maybe 2–3 bits), while rare ones get longer codes. It's the same principle that makes Morse code efficient — "E" is just a single dot.
       </p>
       <p class="section-body-text reveal">
-        But JPEG doesn't Huffman-encode the full <code>(skip, value)</code> token directly. Instead, it splits each token into <strong>two parts</strong>. First, each value is assigned a <strong>category</strong> — a small number that says "how many bits does this value need?" The Huffman code encodes only the category. Then the exact value is appended as <strong>raw binary</strong> — not Huffman coded. Let's explore each part below.
+        But JPEG doesn't encode values directly. First, each value is mapped to a <strong>category</strong> — a small number (0–11) that says how many bits are needed to represent it. DC tokens keep just their category; AC tokens keep their run-length and swap the value for its category. These <strong>symbols</strong> are what the Huffman tree is actually built on.
       </p>
-      <p class="section-body-text reveal">
-        For <strong>DC coefficients</strong>, the Huffman table has just 12 entries — one per category (0–11). For <strong>AC coefficients</strong>, each (run-length, category) pair gets its own entry — about 162 possible symbols, though most images use far fewer. JPEG uses <strong>4 separate Huffman tables</strong>: DC-luma, DC-chroma, AC-luma, and AC-chroma. Cb and Cr <strong>share</strong> the same chroma tables, but each channel is encoded independently with its own DC coefficient, its own AC tokens, and its own EOB marker.
-      </p>
-      <p class="section-body-text reveal">
-        The result is a stream of bits that's as compact as possible without losing any information. Combined with all the previous steps, your original 36 MB of raw pixel data is now compressed to around 300 KB — over 100 times smaller. That's the magic of JPEG.
-      </p>
-      <div class="demo-card reveal" id="categoryCard" style="display:none">
-        <p class="matrix-panel-label">What is a "category"?
-          <span class="sos-panel-sub">— how many bits does the value need?</span>
-          <button class="sos-bits-info-btn" data-tip="JPEG never Huffman-encodes the exact coefficient value. Instead it encodes the 'category' — how many bits the value needs. This keeps the Huffman alphabet small: only 12 possible DC symbols instead of thousands of values.">i</button>
+      <div class="demo-card reveal" id="categoryExplainCard" style="display:none">
+        <p class="matrix-panel-label">Categories &amp; Symbols
+          <span class="sos-panel-sub">— how values are mapped before Huffman coding</span>
         </p>
-        <div id="categoryDemo"></div>
+        <div id="categoryExplainDemo"></div>
       </div>
-      <div class="demo-card reveal" id="rawBinaryCard" style="display:none">
-        <p class="matrix-panel-label">Raw binary encoding
-          <span class="sos-panel-sub">— how the exact value is packed into bits</span>
-          <button class="sos-bits-info-btn" data-tip="Once the decoder knows the category (number of bits), it reads that many raw bits to recover the exact value. Positive values use plain binary; negative values flip all bits (ones' complement).">i</button>
+      <div class="demo-card reveal" id="catConvCard" style="display:none">
+        <p class="matrix-panel-label">How your block's tokens become Huffman symbols
+          <span class="sos-panel-sub">— value → category → symbol</span>
         </p>
-        <div id="rawBinaryDemo"></div>
+        <div id="catConvDemo"></div>
       </div>
+      <p class="section-body-text reveal">
+        Now that each token is a symbol, JPEG counts how often each symbol appears across the image, then builds a Huffman tree where the most frequent symbols get the shortest codes. The tree below is computed from your selected block.
+      </p>
       <div class="demo-card reveal">
         <div class="huffman-layout">
-          <div class="huff-table-selector" id="huffSelBar" style="display:none">
-            <div class="huff-sel-group">
-              <span class="huff-sel-group-label">Type</span>
-              <button class="huff-sel-btn active" data-sel-type="ac">AC</button>
-              <button class="huff-sel-btn" data-sel-type="dc">DC</button>
-            </div>
-            <div class="huff-sel-group">
-              <span class="huff-sel-group-label">Channel</span>
-              <button class="huff-sel-btn active" data-sel-ch="luma">Y (Luma)</button>
-              <button class="huff-sel-btn" data-sel-ch="chroma">Cb+Cr (Chroma)</button>
-            </div>
+          <div id="huffSelBar" style="display:none">
+            <div class="huff-fixed-label">AC &middot; Luma &middot; Selected MCU</div>
           </div>
           <div>
             <p class="matrix-panel-label">Huffman tree</p>
             <div class="huffman-tree-wrap">
               <svg id="huffmanTreeSvg"></svg>
             </div>
+          </div>
+          <div class="huff-rc-legend" id="huffRCLegend" style="display:none">
+            Symbols shown as <code>(R, C)</code> — <strong>R</strong> = run-length (zeros before the value), <strong>C</strong> = category of the value.
           </div>
           <div class="huffman-table-wrap">
             <table class="huffman-table">
@@ -4622,13 +4841,71 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         </div>
         <p class="section-placeholder" id="huffmanPlaceholder">Select a block above to see Huffman coding</p>
         <p class="huffman-scope-note" id="huffmanScopeNote" style="display:none">
-          This tree is built from the <strong>selected MCU only</strong> — to keep the visualization readable.
-          In a real JPEG encoder, the Huffman table is derived from <strong>every MCU in the image at once</strong>,
-          giving each symbol a code that reflects its true frequency across the whole scan.
-          Each code in the tree represents a <strong>(run, category)</strong> pair — the actual coefficient value
-          is appended as raw bits after the Huffman code.
-          <br><strong>Cb and Cr</strong> share the same chroma table but are encoded as <strong>separate token sequences</strong> — each with its own DC, AC tokens, and EOB.
+          This tree is built from the <strong>AC coefficients of the selected MCU's luma (Y) channel only</strong> — a simplified view to show how Huffman coding works.
+          Each symbol represents a <strong>(run, category)</strong> pair — the actual coefficient value is appended as raw bits after the Huffman code.
+          Expand the section below to see the full-image Huffman tables actually used in the bitstream.
         </p>
+        <div class="huff-payoff" id="huffPayoff" style="display:none">
+          <p class="huff-payoff-text">
+            The result is a stream of bits that's as compact as possible without losing any information. Combined with all the previous steps, your original <strong>36 MB</strong> of raw pixel data is now compressed to around <strong>300 KB</strong> — over <strong class="huff-payoff-highlight">100&times; smaller</strong>. That's the magic of JPEG.
+          </p>
+        </div>
+      </div>
+      <p class="section-body-text reveal">
+        Once the symbol is known, the encoder writes two things to the bitstream: the <strong>Huffman code</strong> for that symbol (variable length, from the tree above), followed by the <strong>raw bits</strong> of the exact value (fixed length = category). Pick any coefficient from your block below to see this in action.
+      </p>
+      <div class="demo-card reveal" id="bitEncodingCard" style="display:none">
+        <p class="matrix-panel-label">Bit encoding
+          <span class="sos-panel-sub">— symbol → Huffman code + raw bits</span>
+        </p>
+        <div id="bitEncodingDemo"></div>
+      </div>
+
+      <div class="huff-full-accordion" id="huffFullAccordion" style="display:none">
+        <button class="huff-accordion-toggle" id="huffAccordionToggle" aria-expanded="false">
+          <span class="huff-accordion-arrow">&#9654;</span>
+          Full-image Huffman tables
+          <span class="huff-accordion-sub">Built from all MCUs &mdash; these are the codes used in the actual bitstream</span>
+        </button>
+        <div class="huff-accordion-body" id="huffAccordionBody" hidden>
+          <div class="huff-table-selector" id="huffFullSelBar">
+            <div class="huff-sel-group">
+              <span class="huff-sel-group-label">Type</span>
+              <button class="huff-sel-btn active" data-full-type="dc">DC</button>
+              <button class="huff-sel-btn" data-full-type="ac">AC</button>
+            </div>
+            <div class="huff-sel-group">
+              <span class="huff-sel-group-label">Channel</span>
+              <button class="huff-sel-btn active" data-full-ch="luma">Y (Luma)</button>
+              <button class="huff-sel-btn" data-full-ch="chroma">Cb+Cr (Chroma)</button>
+            </div>
+          </div>
+          <div class="huffman-layout" style="margin-top:16px">
+            <div>
+              <p class="matrix-panel-label">Huffman tree</p>
+              <div class="huffman-tree-wrap">
+                <svg id="huffFullTreeSvg"></svg>
+              </div>
+            </div>
+            <div class="huff-rc-legend" id="huffFullRCLegend" style="display:none">
+              Symbols shown as <code>(R, C)</code> — <strong>R</strong> = run-length (zeros before the value), <strong>C</strong> = category of the value.
+            </div>
+            <div class="huffman-table-wrap">
+              <table class="huffman-table">
+                <thead>
+                  <tr>
+                    <th>Symbol</th>
+                    <th>Freq</th>
+                    <th>Huffman Code</th>
+                    <th>+ Raw Bits</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody id="huffFullTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   </div>
@@ -9638,6 +9915,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
   // Symbol key for DC Huffman table: just the category
   function dcSymbolKey(diff) { return 'DC:' + jpegCategory(diff); }
 
+
   // Symbol key for AC Huffman table: (run, category) pair
   function acSymbolKey(skip, value) {
     if (value === 'EOB') return 'AC:EOB';
@@ -9652,7 +9930,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     let _freqs  = { dcLuma: {}, dcChroma: {}, acLuma: {}, acChroma: {} };
     let _roots  = { dcLuma: null, dcChroma: null, acLuma: null, acChroma: null };
     let _steps  = { dcLuma: [], dcChroma: [], acLuma: [], acChroma: [] };
-    let _selType = 'ac', _selCh = 'luma';  // current selector state
+    let _selType = 'ac', _selCh = 'luma';  // fixed: top card always shows AC·Luma
     let _mcuTokens = [];  // full MCU tokens for downstream dispatch
 
     // ── Tree helpers ─────────────────────────────────────────────────────────
@@ -9707,8 +9985,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
     // ── Render Huffman tree SVG ──────────────────────────────────────────────
 
-    function renderTree(root, steps) {
-      const svg = document.getElementById('huffmanTreeSvg');
+    function renderTree(root, steps, svgEl) {
+      const svg = svgEl || document.getElementById('huffmanTreeSvg');
       if (!svg || !root) { if (svg) svg.innerHTML = ''; return; }
 
       const LEAF_W = 52, LH = 64, LEAF_R = 18, INT_R = 10, PAD = 24;
@@ -9830,13 +10108,15 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
       svg.querySelectorAll('.huff-leaf').forEach(g => {
         const sym = g.getAttribute('data-sym');
-        g.addEventListener('mouseenter', () => setHighlight(sym));
-        g.addEventListener('mouseleave', () => setHighlight(null));
+        g.addEventListener('mouseenter', () => setHighlight(sym, svg));
+        g.addEventListener('mouseleave', () => setHighlight(null, svg));
       });
     }
 
-    function setHighlight(sym) {
-      const svg = document.getElementById('huffmanTreeSvg');
+    function setHighlight(sym, svgEl) {
+      const svg = svgEl || document.getElementById('huffmanTreeSvg');
+      const isFull = svg && svg.id === 'huffFullTreeSvg';
+      const tbodyId = isFull ? 'huffFullTableBody' : 'huffmanTableBody';
       if (svg) {
         svg.querySelectorAll('.huff-leaf').forEach(g => {
           const active = !!(sym && g.getAttribute('data-sym') === sym);
@@ -9849,7 +10129,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           texts.forEach(t => t.setAttribute('fill', active ? '#fff' : '#1e40af'));
         });
       }
-      const tbody = document.getElementById('huffmanTableBody');
+      const tbody = document.getElementById(tbodyId);
       if (tbody) {
         tbody.querySelectorAll('tr').forEach(tr => {
           tr.classList.toggle('huff-highlight', !!(sym && tr.getAttribute('data-sym') === sym));
@@ -9877,9 +10157,11 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       return 0;
     }
 
-    function renderTable(codes, freq) {
-      const tbody = document.getElementById('huffmanTableBody');
+    function renderTable(codes, freq, tbodyEl) {
+      const tbody = tbodyEl || document.getElementById('huffmanTableBody');
       if (!tbody) return;
+      const isFull = tbody.id === 'huffFullTableBody';
+      const svgId = isFull ? 'huffFullTreeSvg' : 'huffmanTreeSvg';
       const entries = Object.entries(codes).sort((a, b) => (freq[b[0]] || 0) - (freq[a[0]] || 0));
       tbody.innerHTML = '';
       entries.forEach(([sym, code]) => {
@@ -9893,8 +10175,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
                        `<td class="code-cell"><span class="code-huff">${esc(code)}</span></td>` +
                        `<td>${rawBitsStr}</td>` +
                        `<td>${totalBits}</td>`;
-        tr.addEventListener('mouseenter', () => setHighlight(sym));
-        tr.addEventListener('mouseleave', () => setHighlight(null));
+        tr.addEventListener('mouseenter', () => setHighlight(sym, document.getElementById(svgId)));
+        tr.addEventListener('mouseleave', () => setHighlight(null, document.getElementById(svgId)));
         tbody.appendChild(tr);
       });
     }
@@ -9926,6 +10208,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       if (el4) el4.style.display = '';
       const note = document.getElementById('huffmanScopeNote');
       if (note) note.style.display = '';
+      const payoff = document.getElementById('huffPayoff');
+      if (payoff) payoff.style.display = '';
     }
 
     // ── DPCM scrolling bitstream animation card ────────────────────────
@@ -10426,7 +10710,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       return [{ skip: 0, value: diff }, ...rleSeq.slice(1)];
     }
 
-    // ── Category card ────────────────────────────────────────────────────────
+    // ── Card shared colors ────────────────────────────────────────────────────
 
     // Color hues per category (0–10): from gray through blue→teal→green→amber
     const CAT_COLORS = [
@@ -10443,368 +10727,598 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       { bg: '#ecfccb', border: '#a3e635', text: '#3f6212' }, // 10
     ];
 
-    function renderCategoryCard() {
-      const card = document.getElementById('categoryCard');
-      const el   = document.getElementById('categoryDemo');
+    // ── Category explain card ─────────────────────────────────────────────────
+
+    function renderCategoryExplainCard() {
+      const card = document.getElementById('categoryExplainCard');
+      const el   = document.getElementById('categoryExplainDemo');
       if (!card || !el) return;
-      card.style.display = '';
 
-      // Get quantized coefficients from the zigzag sequence
-      const coeffs = S.quantC || [];
+      const CAT_RANGES = [
+        { range: '0 only',        bits: '0 raw bits'  },
+        { range: '±1',            bits: '1 raw bit'   },
+        { range: '±2 … ±3',       bits: '2 raw bits'  },
+        { range: '±4 … ±7',       bits: '3 raw bits'  },
+        { range: '±8 … ±15',      bits: '4 raw bits'  },
+        { range: '±16 … ±31',     bits: '5 raw bits'  },
+        { range: '±32 … ±63',     bits: '6 raw bits'  },
+        { range: '±64 … ±127',    bits: '7 raw bits'  },
+        { range: '±128 … ±255',   bits: '8 raw bits'  },
+        { range: '±256 … ±511',   bits: '9 raw bits'  },
+        { range: '±512 … ±1023',  bits: '10 raw bits' },
+        { range: '±1024 … ±2047', bits: '11 raw bits' },
+      ];
 
-      let html = '<div class="catleg-wrap">';
+      const CAT_EXAMPLES = [0, 1, -3, 5, -11, 19, -37, 80, -200, 300, -700, 1500];
 
-      // ── Category legend grid ──────────────────────────────────────────
-      html += '<div class="catleg-grid">';
-      for (let c = 0; c <= 10; c++) {
-        const lo = c === 0 ? 0 : (1 << (c - 1));
-        const hi = (1 << c) - 1;
-        const range = c === 0 ? '0' : `\u00B1${lo}\u2026${hi}`;
-        html += `<div class="catleg-cell${c === 0 ? ' catleg-cell--zero' : ''}" data-cat="${c}">
-          <span class="catleg-cat">${c}</span>
-          <span class="catleg-range">${range}</span>
-        </div>`;
-      }
-      html += '</div>';
+      let _catExplainValue = -37;
 
-      // ── Try-it input ──────────────────────────────────────────────────
-      html += `<div class="catleg-input-row">
-        <span class="catleg-input-label">Try a value:</span>
-        <input type="number" class="catleg-input" id="catlegInput" value="" placeholder="e.g. -7" aria-label="Enter a coefficient value to see its category">
-        <div class="catleg-result" id="catlegResult"></div>
+      // ── Build HTML ────────────────────────────────────────────────────────────
+
+      let html = '<div class="catexplain-wrap">';
+
+      // Region A: number line canvas + scrubber
+      html += `<div class="catexplain-numline-wrap">
+        <div class="catexplain-scrubber-header">
+          <input type="number" id="catexplainValInput" class="catexplain-scrubber-val-input"
+            min="-2047" max="2047" value="-37" inputmode="numeric">
+          <span id="catexplainCatBadge" class="catexplain-scrubber-cat-badge">cat 6</span>
+        </div>
+        <div class="catexplain-scrubber-row">
+          <input type="range" id="catexplainSlider" min="-2047" max="2047" value="-37" style="width:100%">
+        </div>
+        <canvas id="catexplainCanvas" style="width:100%;height:52px;display:block;border-radius:6px;cursor:crosshair;margin-top:4px"></canvas>
+        <div class="catexplain-numline-label-row">
+          <span class="catexplain-numline-label">−2047</span>
+          <span class="catexplain-numline-label">−1</span>
+          <span class="catexplain-numline-label">0</span>
+          <span class="catexplain-numline-label">+1</span>
+          <span class="catexplain-numline-label">+2047</span>
+        </div>
       </div>`;
 
-      // ── Coefficient grid ──────────────────────────────────────────────
-      if (coeffs.length >= 64) {
-        html += `<div class="catleg-coeff-section">
-          <span class="catleg-coeff-label">Your block's quantized coefficients <span class="catleg-coeff-hint">— click any to explore</span></span>
-          <div class="catleg-coeff-grid" id="catlegCoeffGrid">`;
-        for (let i = 0; i < 64; i++) {
-          const v = coeffs[i];
-          const cat = jpegCategory(v);
-          const col = CAT_COLORS[Math.min(cat, 10)];
-          html += `<div class="catleg-coeff-cell" data-val="${v}" data-idx="${i}"
-            style="background:${col.bg};color:${col.text};border-color:${col.border}">${v}</div>`;
-        }
-        html += '</div></div>';
-      }
+      // Region B: 2-col
+      html += '<div class="catexplain-cols">';
 
+      // Shared palette — 12 steps from near-white to mid-slate, all light-theme friendly.
+      // bg: fill, border: stroke/accent, text: label color, accent: slider thumb & canvas pointer
+      const MONO_SHADES = [
+        { bg: '#f8fafc', border: '#e2e8f0', text: '#94a3b8', accent: '#cbd5e1' },
+        { bg: '#f1f5f9', border: '#cbd5e1', text: '#64748b', accent: '#94a3b8' },
+        { bg: '#e8edf4', border: '#b6c4d4', text: '#475569', accent: '#7f95aa' },
+        { bg: '#dde5ef', border: '#9fb3c8', text: '#334155', accent: '#6b8aa1' },
+        { bg: '#d1dcea', border: '#8aa2bc', text: '#1e293b', accent: '#5a7d9a' },
+        { bg: '#c4d3e4', border: '#7591af', text: '#1e293b', accent: '#4d6f90' },
+        { bg: '#b6c9dd', border: '#6080a2', text: '#1e293b', accent: '#406285' },
+        { bg: '#a8bfd6', border: '#4d7096', text: '#0f172a', accent: '#34567a' },
+        { bg: '#9ab4ce', border: '#3a5f89', text: '#0f172a', accent: '#284a6e' },
+        { bg: '#8ca9c6', border: '#2a4f7b', text: '#0f172a', accent: '#1e3e62' },
+        { bg: '#7e9dbe', border: '#1e406e', text: '#0f172a', accent: '#163256' },
+        { bg: '#7093b5', border: '#183660', text: '#f1f5f9', accent: '#0e2747' },
+      ];
+      html += '<div class="catexplain-col">';
+      html += '<div class="catexplain-col-title">Category = bits needed</div>';
+      html += '<div class="catexplain-col-sub">Darker = larger magnitude. Click any row to load an example.</div>';
+      html += '<div class="catexplain-cat-table" id="catexplainTable">';
+      CAT_RANGES.forEach((r, c) => {
+        const col = MONO_SHADES[c];
+        html += `<div class="catexplain-cat-row" data-cat="${c}" data-example="${CAT_EXAMPLES[c]}"
+          style="background:${col.bg};border-color:${col.border};color:${col.text}">
+          <span class="catexplain-cat-num">${c}</span>
+          <span class="catexplain-cat-range">${r.range}</span>
+          <span class="catexplain-cat-bits">${r.bits}</span>
+        </div>`;
+      });
+      html += '</div></div>';
+
+      // Right: encoding breakdown
+      html += '<div class="catexplain-col">';
+      html += '<div class="catexplain-col-title">Bitstream encoding</div>';
+      html += '<div class="catexplain-col-sub">How this value is written in the JPEG bitstream.</div>';
+      html += '<div class="catexplain-enc-panel" id="catexplainEncPanel"></div>';
       html += '</div>';
+      html += '</div></div>';
       el.innerHTML = html;
 
-      // ── Wire interactions ─────────────────────────────────────────────
-      const input = document.getElementById('catlegInput');
-      const resultEl = document.getElementById('catlegResult');
-      const grid = document.getElementById('catlegCoeffGrid');
+      // ── Canvas drawing ────────────────────────────────────────────────────────
 
-      function highlightCategory(value) {
-        const v = parseInt(value, 10);
-        // Clear all active cells
-        el.querySelectorAll('.catleg-cell').forEach(c => c.classList.remove('catleg-active'));
+      function drawCatNumberLine(canvas, activeValue) {
+        const dpr  = window.devicePixelRatio || 1;
+        const cssW = canvas.clientWidth;
+        const cssH = 52;
+        if (!cssW) return;
+        canvas.width  = cssW * dpr;
+        canvas.height = cssH * dpr;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(dpr, dpr);
 
-        if (isNaN(v)) {
-          resultEl.innerHTML = '';
-          return;
+        const MIN = -2047, MAX = 2047, RANGE = MAX - MIN;
+        const toX = v => ((v - MIN) / RANGE) * cssW;
+        const activeCat = jpegCategory(activeValue);
+
+        const BAR_Y = 6, BAR_H = 26;
+
+        for (let c = 0; c <= 11; c++) {
+          const shade = MONO_SHADES[c];
+          const isActive = activeCat === c;
+
+          ctx.strokeStyle = isActive ? shade.accent : shade.border;
+          ctx.lineWidth   = isActive ? 2 : 0.5;
+
+          if (c === 0) {
+            const x = toX(0);
+            ctx.fillStyle = isActive ? shade.accent : shade.bg;
+            ctx.beginPath();
+            ctx.rect(x - 3, BAR_Y, 6, BAR_H);
+            ctx.fill();
+            ctx.stroke();
+          } else {
+            const posLo = Math.pow(2, c - 1);
+            const posHi = Math.pow(2, c) - 1;
+            const negLo = -posHi;
+            const negHi = -posLo;
+
+            [[Math.max(MIN, negLo), Math.min(MAX, negHi)],
+             [Math.max(MIN, posLo), Math.min(MAX, posHi)]].forEach(([lo, hi]) => {
+              const x1 = toX(lo), x2 = toX(hi);
+              ctx.fillStyle = isActive ? shade.accent : shade.bg;
+              ctx.beginPath();
+              ctx.rect(x1, BAR_Y, x2 - x1, BAR_H);
+              ctx.fill();
+              ctx.stroke();
+            });
+          }
         }
-        const cat = jpegCategory(v);
-        const cell = el.querySelector(`.catleg-cell[data-cat="${cat}"]`);
-        if (cell) {
-          cell.classList.add('catleg-active');
-          // Re-trigger animation
-          cell.style.animation = 'none';
-          cell.offsetHeight; // force reflow
-          cell.style.animation = '';
-        }
 
-        const absV = Math.abs(v);
-        let explain;
-        if (cat === 0) {
-          explain = 'Value is 0 — no bits needed';
-        } else {
-          const lo = 1 << (cat - 1);
-          const hi = (1 << cat) - 1;
-          explain = `|${v}| = ${absV} fits in ${cat} bit${cat !== 1 ? 's' : ''} (${lo}…${hi})`;
-        }
+        // Zero line
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.moveTo(toX(0), BAR_Y - 2);
+        ctx.lineTo(toX(0), BAR_Y + BAR_H + 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
 
-        resultEl.innerHTML = `<span class="catleg-result-cat">${cat}</span>
-          <span class="catleg-result-explain">${explain}</span>`;
+        // Triangle pointer — same accent as the active band
+        const hx = toX(activeValue);
+        ctx.fillStyle = MONO_SHADES[activeCat].accent;
+        ctx.beginPath();
+        ctx.moveTo(hx,     BAR_Y + BAR_H + 4);
+        ctx.lineTo(hx - 6, BAR_Y + BAR_H + 14);
+        ctx.lineTo(hx + 6, BAR_Y + BAR_H + 14);
+        ctx.closePath();
+        ctx.fill();
       }
 
-      if (input) {
-        input.addEventListener('input', () => highlightCategory(input.value));
+      // ── Encoding panel update ─────────────────────────────────────────────────
+
+      function encRow(label, valueHtml, explain) {
+        return `<div class="catexplain-enc-row">
+          <div class="catexplain-enc-label">${label}</div>
+          <div style="display:inline-flex;align-items:center;gap:4px;">${valueHtml}</div>
+          ${explain ? `<div class="catexplain-enc-explain">${explain}</div>` : ''}
+        </div>`;
       }
 
-      if (grid) {
-        grid.addEventListener('click', (e) => {
-          const cell = e.target.closest('.catleg-coeff-cell');
-          if (!cell) return;
-          const val = cell.dataset.val;
+      let _prevCat = -1;
 
-          // Highlight selected cell
-          grid.querySelectorAll('.catleg-coeff-cell').forEach(c => c.classList.remove('catleg-coeff-selected'));
-          cell.classList.add('catleg-coeff-selected');
+      function updateCatExplainFor(value) {
+        value = Math.max(-2047, Math.min(2047, value));
+        _catExplainValue = value;
 
-          // Update input and highlight
-          if (input) input.value = val;
-          highlightCategory(val);
+        const cat      = jpegCategory(value);
+        const rawBits  = jpegRawBits(value, cat);
+        const absV     = Math.abs(value);
+        const isNeg    = value < 0;
+        const shade    = MONO_SHADES[cat];
+        const catChanged = cat !== _prevCat;
+        _prevCat = cat;
 
-          // Dispatch to raw binary card
-          document.dispatchEvent(new CustomEvent('categoryExplore', { detail: { value: parseInt(val, 10) } }));
+        // Slider + number input + badge
+        const sliderEl = el.querySelector('#catexplainSlider');
+        const inputEl  = el.querySelector('#catexplainValInput');
+        const badgeEl  = el.querySelector('#catexplainCatBadge');
+        if (sliderEl) { sliderEl.value = value; sliderEl.style.accentColor = shade.accent; }
+        if (inputEl) {
+          if (inputEl !== document.activeElement) inputEl.value = value;
+          inputEl.style.color = shade.accent;
+        }
+        if (badgeEl) {
+          badgeEl.textContent = `cat ${cat}`;
+          badgeEl.style.background   = shade.bg;
+          badgeEl.style.borderColor  = shade.accent;
+          badgeEl.style.color        = shade.text;
+          if (catChanged) {
+            badgeEl.style.animation = 'none';
+            badgeEl.offsetHeight;
+            badgeEl.style.animation = 'catexplainPop 0.25s ease';
+          }
+        }
+
+        // Highlight active table row
+        el.querySelectorAll('.catexplain-cat-row').forEach(r => {
+          r.classList.toggle('catexplain-active', parseInt(r.dataset.cat, 10) === cat);
         });
+        const activeRow = el.querySelector('.catexplain-cat-row.catexplain-active');
+        if (activeRow) activeRow.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+
+        // Redraw canvas
+        const canvas = el.querySelector('#catexplainCanvas');
+        if (canvas) drawCatNumberLine(canvas, value);
+
+        // Encoding panel
+        const panel = el.querySelector('#catexplainEncPanel');
+        if (panel) {
+          let phtml = '';
+
+          phtml += encRow('Value',
+            `<span class="catexplain-enc-value" style="color:var(--text-primary)">${value}</span>`,
+            value === 0 ? 'zero — category 0, no raw bits appended' :
+            isNeg ? 'negative — ones\' complement encoding for raw bits' : 'positive — standard binary encoding for raw bits');
+
+          if (value !== 0) {
+            phtml += encRow(`|value| = ${absV}`,
+              `<span class="catexplain-enc-value" style="color:var(--text-primary)">${absV}</span>`,
+              `needs ${cat} bit${cat !== 1 ? 's' : ''} to represent → Category ${cat}`);
+          }
+
+          phtml += encRow('Category',
+            `<span class="catexplain-enc-value" style="color:${shade.text};background:${shade.bg};border:1.5px solid ${shade.accent};padding:2px 10px;border-radius:6px;">${cat}</span>`,
+            cat === 0 ? 'Category 0: value is zero — Huffman symbol only, no bits appended' :
+            `All values ±${Math.pow(2, cat - 1)}…±${Math.pow(2, cat) - 1} share category ${cat}`);
+
+          if (cat > 0) {
+            let bitHtml = '<div style="display:inline-flex;gap:3px;">';
+            for (let i = 0; i < rawBits.length; i++) {
+              bitHtml += `<span style="display:inline-flex;align-items:center;justify-content:center;
+                width:22px;height:22px;border-radius:4px;
+                font-family:'JetBrains Mono',monospace;font-size:0.78rem;font-weight:800;
+                background:#fef3c7;border:1.5px solid #d97706;color:#92400e;">${rawBits[i]}</span>`;
+            }
+            bitHtml += '</div>';
+
+            const absBin = absV.toString(2).padStart(cat, '0');
+            const rawExplain = isNeg
+              ? `|${value}| = ${absV} → binary ${absBin} → ones' complement → ${rawBits}`
+              : `${value} in ${cat}-bit binary = ${rawBits}`;
+            phtml += encRow(`Raw bits (${cat})`, bitHtml, rawExplain);
+          }
+
+          phtml += encRow('DC coefficient',
+            `<span class="catexplain-enc-value" style="color:var(--text-primary)">Huffman(DC:${cat}) + ${cat > 0 ? `<span style="background:#fef3c7;border:1px solid #d97706;color:#92400e;padding:1px 6px;border-radius:4px;font-size:0.78rem;">${rawBits || '—'}</span>` : '<em style="font-size:0.78rem;opacity:0.6">no raw bits</em>'}</span>`,
+            `Symbol "DC:${cat}" is Huffman-coded; then ${cat} raw bit${cat !== 1 ? 's' : ''} pinpoint the exact value within the category`);
+
+          phtml += encRow('AC coefficient',
+            `<span class="catexplain-enc-value" style="color:var(--text-primary)">Huffman((run,${cat})) + ${cat > 0 ? `<span style="background:#fef3c7;border:1px solid #d97706;color:#92400e;padding:1px 6px;border-radius:4px;font-size:0.78rem;">${rawBits || '—'}</span>` : '<em style="font-size:0.78rem;opacity:0.6">no raw bits</em>'}</span>`,
+            `"run" = preceding zeros; category ${cat} replaces the actual value in the symbol. Same raw bits follow`);
+
+          panel.innerHTML = phtml;
+        }
       }
+
+      // ── Wire events ───────────────────────────────────────────────────────────
+
+      el.querySelector('#catexplainSlider').addEventListener('input', e => {
+        updateCatExplainFor(parseInt(e.target.value, 10));
+      });
+
+      const valInput = el.querySelector('#catexplainValInput');
+      valInput.addEventListener('input', e => {
+        const v = parseInt(e.target.value, 10);
+        if (!isNaN(v)) updateCatExplainFor(v);
+      });
+      valInput.addEventListener('blur', e => {
+        updateCatExplainFor(parseInt(e.target.value, 10) || 0);
+      });
+      valInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') valInput.blur();
+      });
+
+      el.querySelectorAll('.catexplain-cat-row[data-cat]').forEach(row => {
+        row.addEventListener('click', () => {
+          updateCatExplainFor(parseInt(row.dataset.example, 10));
+        });
+      });
+
+      const canvas = el.querySelector('#catexplainCanvas');
+      if (canvas && window.ResizeObserver) {
+        new ResizeObserver(() => drawCatNumberLine(canvas, _catExplainValue)).observe(canvas);
+      }
+
+      card.style.display = '';
+      updateCatExplainFor(-37);
     }
 
-    // ── Raw binary card ───────────────────────────────────────────────────────
+    // ── Category conversion card ──────────────────────────────────────────────
 
-    let _rawBinAnimTimer = null;
-    let _catExploreHandler = null;
-
-    function renderRawBinaryCard() {
-      const card = document.getElementById('rawBinaryCard');
-      const el   = document.getElementById('rawBinaryDemo');
+    function renderCatConvCard() {
+      const card = document.getElementById('catConvCard');
+      const el   = document.getElementById('catConvDemo');
       if (!card || !el) return;
+      const yTokens = _mcuTokens.filter(t => t._ch === 'y');
+      if (!yTokens.length) { card.style.display = 'none'; return; }
       card.style.display = '';
 
-      let html = '<div class="rawbin-wrap">';
+      let html = '<div class="catconv-strip-wrap">';
+      html += '<div class="catconv-strip-note">Scroll to see all tokens — each shows the raw value and its resulting Huffman symbol.</div>';
+      html += '<div class="catconv-strip">';
 
-      // ── Input row ─────────────────────────────────────────────────────
-      html += `<div class="rawbin-input-row">
-        <span class="rawbin-input-label">Value:</span>
-        <input type="number" class="rawbin-input" id="rawbinInput" value="" placeholder="e.g. 5" aria-label="Enter a value to see its raw binary encoding">
-        <button class="rawbin-sign-btn" id="rawbinSignBtn" title="Toggle sign (+/-)">+/\u2212</button>
-        <span class="rawbin-cat-badge" id="rawbinCatBadge" style="display:none">Category <strong id="rawbinCatNum">—</strong></span>
-      </div>`;
+      yTokens.forEach((t, i) => {
+        const isDC  = t._isDC;
+        const isEOB = t.value === 'EOB';
+        const isZRL = t.skip === 15 && t.value === 0;
+        const isSpecial = isEOB || isZRL;
+        const cat   = isSpecial ? 0 : jpegCategory(t.value);
+        const delay = i * 50;
 
-      // ── Steps container ───────────────────────────────────────────────
-      html += '<div class="rawbin-steps" id="rawbinSteps"></div>';
+        const typeBadge = isDC
+          ? '<span class="catconv-type-badge catconv-type-dc">DC</span>'
+          : '<span class="catconv-type-badge catconv-type-ac">AC</span>';
 
-      // ── Quick reference ───────────────────────────────────────────────
-      html += `<div class="rawbin-ref">
-        <strong>Quick rule:</strong> Positive values → plain binary, padded to category length.
-        Negative values → flip every bit (ones' complement).<br>
-        Examples: <code>5 → 0101</code> &nbsp; <code>-5 → 1010</code> &nbsp;
-        <code>3 → 11</code> &nbsp; <code>-3 → 00</code> &nbsp;
-        <code>1 → 1</code> &nbsp; <code>-1 → 0</code>
-      </div>`;
+        let rawVal, symVal, catPill;
+        if (isDC) {
+          rawVal = `${t.value}`;
+          symVal = `DC:${cat}`;
+        } else if (isEOB) {
+          rawVal = `EOB`;
+          symVal = `EOB`;
+        } else if (isZRL) {
+          rawVal = `(15,0)`;
+          symVal = `ZRL`;
+        } else {
+          rawVal = `(${t.skip},${t.value})`;
+          symVal = `(${t.skip},${cat})`;
+        }
 
+        if (isSpecial) {
+          catPill = `<span class="catconv-cat-pill" style="background:#f1f5f9;border-color:#cbd5e1;color:#64748b">special</span>`;
+        } else {
+          const col = CAT_COLORS[Math.min(cat, 10)];
+          catPill = `<span class="catconv-cat-pill" style="background:${col.bg};border-color:${col.border};color:${col.text}">cat ${cat}</span>`;
+        }
+
+        const chipExtra = isSpecial ? ' catconv-chip-eob' : '';
+        html += `<div class="catconv-chip${chipExtra}" style="animation-delay:${delay}ms">
+          <div class="catconv-chip-top">
+            ${typeBadge}
+            <span class="catconv-raw-val" title="${rawVal}">${rawVal}</span>
+          </div>
+          <div class="catconv-chip-bot">
+            ${catPill}
+            <span class="catconv-sym-val" title="${symVal}">${symVal}</span>
+          </div>
+        </div>`;
+      });
+
+      html += '</div></div>';
+      el.innerHTML = html;
+    }
+
+    // ── Bit encoding card ─────────────────────────────────────────────────────
+
+    let _bitEncAnimTimer = null;
+
+    function renderBitEncodingCard() {
+      const card = document.getElementById('bitEncodingCard');
+      const el   = document.getElementById('bitEncodingDemo');
+      if (!card || !el) return;
+
+      // Use the Y tokens already computed and tagged in refreshHuffman — guarantees
+      // exact consistency with the tree and Huffman table lookup.
+      const yTokens = _mcuTokens.filter(t => t._ch === 'y');
+      if (!yTokens.length) { card.style.display = 'none'; return; }
+      card.style.display = '';
+
+      const candidates = [];
+      yTokens.forEach((t, i) => {
+        candidates.push({ token: t, idx: i, isDC: t._isDC });
+      });
+
+      if (candidates.length === 0) { card.style.display = 'none'; return; }
+
+      let html = '<div class="bitenc-wrap">';
+      html += '<div class="bitenc-picker-row">';
+      html += '<span class="bitenc-picker-label">Pick a token from your Y block:</span>';
+      html += '<div class="bitenc-picker">';
+      candidates.forEach((c, ci) => {
+        const label = c.isDC
+          ? ('DC: ' + c.token.value)
+          : (c.token.value === 'EOB' ? 'EOB' : '(' + (c.token.skip || 0) + ', ' + c.token.value + ')');
+        html += `<button class="bitenc-tok-btn${ci === 0 ? ' active' : ''}" data-bidx="${ci}">${label}</button>`;
+      });
+      html += '</div></div>';
+      html += '<div class="bitenc-steps" id="bitencSteps"></div>';
       html += '</div>';
       el.innerHTML = html;
 
-      // ── Wire interactions ─────────────────────────────────────────────
-      const input = document.getElementById('rawbinInput');
-      const signBtn = document.getElementById('rawbinSignBtn');
-      const stepsEl = document.getElementById('rawbinSteps');
-      const catBadge = document.getElementById('rawbinCatBadge');
-      const catNum = document.getElementById('rawbinCatNum');
+      function pairHtml(run, catOrVal, chipClassRight) {
+        return `<span class="bitenc-pair">
+          <span class="bitenc-pair-paren">(</span>
+          <span class="bitenc-chip bitenc-chip-run">${run}</span>
+          <span class="bitenc-pair-comma">,</span>
+          <span class="bitenc-chip ${chipClassRight}">${catOrVal}</span>
+          <span class="bitenc-pair-paren">)</span>
+        </span>`;
+      }
 
-      function animateConversion(value) {
-        if (_rawBinAnimTimer) { clearTimeout(_rawBinAnimTimer); _rawBinAnimTimer = null; }
+      function showEncoding(ci) {
+        if (_bitEncAnimTimer) { clearTimeout(_bitEncAnimTimer); _bitEncAnimTimer = null; }
+        const stepsEl = document.getElementById('bitencSteps');
+        if (!stepsEl) return;
 
-        const v = parseInt(value, 10);
-        if (isNaN(v)) {
-          stepsEl.innerHTML = '<div class="rawbin-placeholder">Type a value above to see the encoding</div>';
-          catBadge.style.display = 'none';
-          return;
-        }
+        const c = candidates[ci];
+        const t = c.token;
+        const isDC = c.isDC;
+        const value = t.value;
+        const skip  = t.skip || 0;
+        const isEOB = value === 'EOB';
+        const cat   = isEOB ? 0 : jpegCategory(value);
+        const rawBits = isEOB ? '' : jpegRawBits(value, cat);
+        const isNeg = !isEOB && value < 0;
+        const absV  = isEOB ? 0 : Math.abs(value);
+        const absBin = (cat > 0) ? absV.toString(2).padStart(cat, '0') : '';
 
-        const cat = jpegCategory(v);
-        const rawBits = jpegRawBits(v, cat);
-        const absV = Math.abs(v);
-        const isNeg = v < 0;
+        const symKey  = isDC ? dcSymbolKey(value) : acSymbolKey(skip, value);
+        const tblKey  = isDC ? 'dcLuma' : 'acLuma';
+        const huffCode = (_tables[tblKey] && _tables[tblKey][symKey]) || '';
 
-        // Show category badge
-        catBadge.style.display = '';
-        catNum.textContent = cat;
+        let html = '';
 
-        if (cat === 0) {
-          stepsEl.innerHTML = `<div class="rawbin-step">
-            <div class="rawbin-step-num">1</div>
-            <div class="rawbin-step-content">
-              <div class="rawbin-step-label">Value is 0 — category 0</div>
-              <div class="rawbin-step-explain">No raw bits are needed. The Huffman code for category 0 is sufficient — the decoder knows the value must be 0.</div>
+        if (isDC) {
+          // Step 1: value
+          html += `<div class="bitenc-step">
+            <div class="bitenc-step-num">1</div>
+            <div class="bitenc-step-content">
+              <div class="bitenc-step-label">DC diff value</div>
+              <div class="bitenc-step-value bitenc-val-source">${value}</div>
             </div>
           </div>`;
-          return;
-        }
-
-        // Build the absolute binary string
-        const absBin = absV.toString(2).padStart(cat, '0');
-
-        let stepsHtml = '';
-
-        // Step 1: Category
-        stepsHtml += `<div class="rawbin-step">
-          <div class="rawbin-step-num">1</div>
-          <div class="rawbin-step-content">
-            <div class="rawbin-step-label">Category ${cat} → we need ${cat} bit${cat !== 1 ? 's' : ''}</div>
-            <div class="rawbin-step-explain">
-              <code>|${v}|</code> = ${absV} fits in the range ${1 << (cat - 1)}…${(1 << cat) - 1}, so category = ${cat}.
-              The decoder will read exactly ${cat} raw bit${cat !== 1 ? 's' : ''} after the Huffman code.
-            </div>
-          </div>
-        </div>`;
-
-        // Step 2: Absolute value in binary
-        let bitTilesHtml = '<div class="rawbin-bit-row">';
-        for (let i = 0; i < absBin.length; i++) {
-          const flippedBit = absBin[i] === '0' ? '1' : '0';
-          bitTilesHtml += `<div class="rawbin-bit-tile" data-idx="${i}" style="animation-delay:${i * 100}ms">
-            <div class="rawbin-bit-inner">
-              <div class="rawbin-bit-face rawbin-bit-front">${absBin[i]}</div>
-              <div class="rawbin-bit-face rawbin-bit-back">${flippedBit}</div>
+          // Step 2: category
+          html += `<div class="bitenc-step">
+            <div class="bitenc-step-num">2</div>
+            <div class="bitenc-step-content">
+              <div class="bitenc-step-label">Category (how many bits?)</div>
+              <div class="bitenc-step-value bitenc-val-cat">${cat}</div>
+              <div class="bitenc-step-explain">|${value}| = ${absV} needs ${cat} bit${cat !== 1 ? 's' : ''}</div>
             </div>
           </div>`;
-        }
-        bitTilesHtml += '</div>';
-
-        stepsHtml += `<div class="rawbin-step">
-          <div class="rawbin-step-num">2</div>
-          <div class="rawbin-step-content">
-            <div class="rawbin-step-label">Convert |${v}| = ${absV} to ${cat}-bit binary</div>
-            <div class="rawbin-step-visual" id="rawbinBitRow">
-              ${bitTilesHtml}
-            </div>
-            <div class="rawbin-step-explain"><code>${absV}</code> in binary = <code>${absBin}</code></div>
-          </div>
-        </div>`;
-
-        // Step 3: Flip bits (only for negative)
-        if (isNeg) {
-          stepsHtml += `<div class="rawbin-step" id="rawbinFlipStep" style="opacity:0">
-            <div class="rawbin-step-num">3</div>
-            <div class="rawbin-step-content">
-              <div class="rawbin-step-label">Negative value → flip every bit (ones' complement)</div>
-              <div class="rawbin-step-visual">
-                <div class="rawbin-bit-row">
-                  ${rawBits.split('').map(b =>
-                    `<div class="rawbin-bit-tile"><div class="rawbin-bit-inner">
-                      <div class="rawbin-bit-face rawbin-bit-front" style="background:#fee2e2;border-color:#f87171;color:#991b1b">${b}</div>
-                    </div></div>`
-                  ).join('')}
-                </div>
+          // Step 3: symbol = DC:cat → Huffman code
+          html += `<div class="bitenc-step">
+            <div class="bitenc-step-num">3</div>
+            <div class="bitenc-step-content">
+              <div class="bitenc-step-label">Symbol → Huffman code (from tree)</div>
+              <div class="bitenc-step-value">
+                <span class="bitenc-val-sym">DC:${cat}</span>
+                <span style="color:var(--text-muted);font-size:0.8rem">→</span>
+                <span class="bitenc-val-huff">${esc(huffCode || '—')}</span>
               </div>
-              <div class="rawbin-step-explain">
-                Each <code>0</code> becomes <code>1</code>, each <code>1</code> becomes <code>0</code>.
-                Result: <code>${absBin}</code> → <code>${rawBits}</code>
-              </div>
+              <div class="bitenc-step-explain">The tree assigns code <code>${esc(huffCode || '—')}</code> to the symbol "DC category ${cat}"</div>
             </div>
           </div>`;
-        }
-
-        // Final step: combined output
-        const finalStepNum = isNeg ? 4 : 3;
-        // Look up a Huffman code for illustration (DC luma category or first AC match)
-        const huffCode = _tables.dcLuma ? (_tables.dcLuma['DC:' + cat] || '') : '';
-        const huffDisplay = huffCode || '…';
-
-        stepsHtml += `<div class="rawbin-step" id="rawbinFinalStep" style="opacity:0">
-          <div class="rawbin-step-num">${finalStepNum}</div>
-          <div class="rawbin-step-content">
-            <div class="rawbin-step-label">Final: Huffman code + raw bits → bitstream</div>
-            <div class="rawbin-step-visual" style="flex-direction:column;gap:6px">
-              <div class="rawbin-final-row">
-                <span class="rawbin-final-huff">${esc(huffDisplay)}</span>
-                <span class="rawbin-final-sep"></span>
-                <span class="rawbin-final-raw">${rawBits}</span>
-              </div>
-              <div style="display:flex;gap:24px">
-                <span class="rawbin-final-label" style="color:#2563eb">Huffman code</span>
-                <span class="rawbin-final-label" style="color:#d97706">Raw bits (${cat})</span>
-              </div>
+        } else if (isEOB) {
+          // EOB: just symbol → code, no raw bits
+          html += `<div class="bitenc-step">
+            <div class="bitenc-step-num">1</div>
+            <div class="bitenc-step-content">
+              <div class="bitenc-step-label">Special symbol: End of Block</div>
+              <div class="bitenc-step-value bitenc-val-sym">EOB</div>
+              <div class="bitenc-step-explain">Signals all remaining AC coefficients in this block are zero</div>
             </div>
-            <div class="rawbin-step-explain">
-              The Huffman code tells the decoder "read ${cat} raw bits next."
-              Total: ${huffCode ? huffCode.length + ' + ' + cat + ' = ' + (huffCode.length + cat) + ' bits' : cat + ' raw bits + Huffman code length'}.
+          </div>`;
+          html += `<div class="bitenc-step">
+            <div class="bitenc-step-num">2</div>
+            <div class="bitenc-step-content">
+              <div class="bitenc-step-label">Huffman code (from tree)</div>
+              <div class="bitenc-step-value bitenc-val-huff">${esc(huffCode || '—')}</div>
+              <div class="bitenc-step-explain">No raw bits — EOB has category 0</div>
             </div>
-          </div>
-        </div>`;
-
-        stepsEl.innerHTML = stepsHtml;
-
-        // ── Animate ─────────────────────────────────────────────────────
-        // Phase 1: Bit tiles appear (already handled by CSS animation-delay)
-        const tiles = stepsEl.querySelectorAll('#rawbinBitRow .rawbin-bit-tile');
-        tiles.forEach(t => t.classList.add('rawbin-appear'));
-
-        const totalAppearTime = tiles.length * 100 + 300;
-
-        if (isNeg) {
-          // Phase 2: Flip bits after they appear
-          _rawBinAnimTimer = setTimeout(() => {
-            tiles.forEach((t, i) => {
-              setTimeout(() => t.classList.add('rawbin-flipped'), i * 150);
-            });
-
-            // Phase 3: Show flip step
-            const flipDelay = tiles.length * 150 + 200;
-            _rawBinAnimTimer = setTimeout(() => {
-              const flipStep = document.getElementById('rawbinFlipStep');
-              if (flipStep) { flipStep.style.opacity = '1'; flipStep.style.transition = 'opacity 0.3s'; }
-
-              // Phase 4: Show final step
-              _rawBinAnimTimer = setTimeout(() => {
-                const finalStep = document.getElementById('rawbinFinalStep');
-                if (finalStep) { finalStep.style.opacity = '1'; finalStep.style.transition = 'opacity 0.3s'; }
-              }, 400);
-            }, flipDelay);
-          }, totalAppearTime);
+          </div>`;
         } else {
-          // No flip needed — just show final step after bits appear
-          _rawBinAnimTimer = setTimeout(() => {
-            const finalStep = document.getElementById('rawbinFinalStep');
-            if (finalStep) { finalStep.style.opacity = '1'; finalStep.style.transition = 'opacity 0.3s'; }
-          }, totalAppearTime);
+          // AC: (run, value) → category → (run, cat) symbol → Huffman + raw bits
+          html += `<div class="bitenc-step">
+            <div class="bitenc-step-num">1</div>
+            <div class="bitenc-step-content">
+              <div class="bitenc-step-label">RLE token (run, value)</div>
+              <div class="bitenc-step-value">${pairHtml(skip, value, 'bitenc-chip-run')}</div>
+              <div class="bitenc-step-explain">${skip} zero${skip !== 1 ? 's' : ''} before this value</div>
+            </div>
+          </div>`;
+          html += `<div class="bitenc-step">
+            <div class="bitenc-step-num">2</div>
+            <div class="bitenc-step-content">
+              <div class="bitenc-step-label">Category of value</div>
+              <div class="bitenc-step-value bitenc-val-cat">${cat}</div>
+              <div class="bitenc-step-explain">|${value}| = ${absV} needs ${cat} bit${cat !== 1 ? 's' : ''}</div>
+            </div>
+          </div>`;
+          html += `<div class="bitenc-step">
+            <div class="bitenc-step-num">3</div>
+            <div class="bitenc-step-content">
+              <div class="bitenc-step-label">AC symbol (run, category) → Huffman code</div>
+              <div class="bitenc-step-value">
+                ${pairHtml(skip, cat, 'bitenc-chip-cat')}
+                <span style="color:var(--text-muted);font-size:0.8rem">→</span>
+                <span class="bitenc-val-huff">${esc(huffCode || '—')}</span>
+              </div>
+              <div class="bitenc-step-explain">Run-length passes through unchanged; value is replaced by its category. The tree assigns code <code>${esc(huffCode || '—')}</code> to symbol (${skip},${cat}).</div>
+            </div>
+          </div>`;
+        }
+
+        // Raw bits step (DC and non-EOB AC)
+        if (!isEOB && cat > 0) {
+          let bitTiles = '<div class="bitenc-bit-row" id="bitencBitRow">';
+          for (let i = 0; i < absBin.length; i++) {
+            const flipped = absBin[i] === '0' ? '1' : '0';
+            bitTiles += `<div class="bitenc-bit-tile" style="animation-delay:${i*80}ms">
+              <div class="bitenc-bit-inner">
+                <div class="bitenc-bit-face">${absBin[i]}</div>
+                <div class="bitenc-bit-face bitenc-bit-back">${flipped}</div>
+              </div>
+            </div>`;
+          }
+          bitTiles += '</div>';
+
+          const stepNum = isDC ? 4 : 4;
+          html += `<div class="bitenc-step">
+            <div class="bitenc-step-num">${stepNum}</div>
+            <div class="bitenc-step-content">
+              <div class="bitenc-step-label">${isNeg ? 'Raw bits: ones\u2019 complement of |value|' : 'Raw bits: exact value in binary'}</div>
+              <div class="bitenc-step-value">${bitTiles}</div>
+              <div class="bitenc-step-explain">${isNeg ? `|${value}| = ${absV} → binary <code>${absBin}</code> → flip bits → <code>${rawBits}</code>` : `${value} → binary <code>${rawBits}</code>`}</div>
+            </div>
+          </div>`;
+        }
+
+        stepsEl.innerHTML = html;
+
+        // Animate bit tiles
+        const tiles = stepsEl.querySelectorAll('#bitencBitRow .bitenc-bit-tile');
+        tiles.forEach(t => t.style.animationPlayState = 'running');
+
+        // Flip negative bits after tiles appear
+        if (isNeg && tiles.length > 0) {
+          _bitEncAnimTimer = setTimeout(() => {
+            tiles.forEach((t, i) => {
+              setTimeout(() => t.classList.add('bitenc-flipped'), i * 120);
+            });
+          }, tiles.length * 80 + 200);
+        }
+
+        // Final combined output
+        if (huffCode) {
+          const totalBits = huffCode.length + cat;
+          const finalHtml = `<div class="bitenc-final" style="animation-delay:${isNeg ? tiles.length * 120 + 600 : 100}ms">
+            <div class="bitenc-final-label">Written to bitstream</div>
+            <div class="bitenc-final-bits">
+              <span class="bf-huff">${esc(huffCode)}</span>
+              ${cat > 0 ? '<span class="bf-sep"></span><span class="bf-raw">' + rawBits + '</span>' : ''}
+            </div>
+            <div class="bitenc-final-total">${huffCode.length} + ${cat} = ${totalBits} bits total</div>
+          </div>`;
+          stepsEl.insertAdjacentHTML('beforeend', finalHtml);
         }
       }
 
-      if (input) {
-        input.addEventListener('input', () => animateConversion(input.value));
-      }
-
-      if (signBtn && input) {
-        signBtn.addEventListener('click', () => {
-          const v = parseInt(input.value, 10);
-          if (!isNaN(v) && v !== 0) {
-            input.value = -v;
-            animateConversion(input.value);
-          }
+      el.querySelectorAll('.bitenc-tok-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          el.querySelectorAll('.bitenc-tok-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          showEncoding(parseInt(btn.dataset.bidx, 10));
         });
-      }
+      });
 
-      // Listen for cross-card events (remove previous handler to avoid accumulation)
-      if (_catExploreHandler) document.removeEventListener('categoryExplore', _catExploreHandler);
-      _catExploreHandler = (e) => {
-        const val = e.detail.value;
-        if (input && !isNaN(val)) {
-          input.value = val;
-          animateConversion(val);
-          // Scroll into view if needed
-          const rect = card.getBoundingClientRect();
-          if (rect.top > window.innerHeight || rect.bottom < 0) {
-            card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          }
-        }
-      };
-      document.addEventListener('categoryExplore', _catExploreHandler);
-
-      // Start with an example if we have coefficients
-      const coeffs = S.quantC || [];
-      if (coeffs.length >= 64) {
-        // Pick a non-zero coefficient as initial demo
-        const interesting = coeffs.find(v => v !== 0 && Math.abs(v) < 100) || coeffs[0];
-        if (interesting !== 0) {
-          input.value = interesting;
-          animateConversion(interesting);
-        }
-      }
+      showEncoding(0);
     }
 
     // ── Re-render current selector view ──────────────────────────────────────
 
     function renderCurrentView() {
-      const key = tableKey();
-      renderTree(_roots[key], _steps[key]);
-      renderTable(_tables[key], _freqs[key]);
+      renderTree(_roots['acLuma'], _steps['acLuma'], document.getElementById('huffmanTreeSvg'));
+      renderTable(_tables['acLuma'], _freqs['acLuma'], document.getElementById('huffmanTableBody'));
+      const legend = document.getElementById('huffRCLegend');
+      if (legend) legend.style.display = '';
     }
 
     // ── Main refresh ─────────────────────────────────────────────────────────
@@ -10895,9 +11409,10 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       renderCurrentView();
       updateHuffStats(_mcuTokens, _tables);
 
-      // Render category + raw binary demo cards
-      renderCategoryCard();
-      renderRawBinaryCard();
+      // Render all detail cards
+      renderCategoryExplainCard();
+      renderCatConvCard();
+      renderBitEncodingCard();
 
       // Dispatch for downstream sections — include all 4 code tables
       document.dispatchEvent(new CustomEvent('huffmanChanged', {
@@ -10905,24 +11420,83 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       }));
     }
 
-    // ── Selector button wiring ───────────────────────────────────────────────
+    // ── Full-image accordion ──────────────────────────────────────────────────
+
+    let _fullSelType = 'dc';
+    let _fullSelCh   = 'luma';
+    let _fullFreqs   = null;
+    let _fullRoots   = null;
+    let _fullSteps   = null;
+    let _fullCodes   = null;
+    let _fullReady   = false;
+
+    function fullTableKey() {
+      return (_fullSelType === 'dc' ? 'dc' : 'ac') + (_fullSelCh === 'luma' ? 'Luma' : 'Chroma');
+    }
+
+    function renderFullView() {
+      if (!_fullReady) return;
+      const key = fullTableKey();
+      const svgEl   = document.getElementById('huffFullTreeSvg');
+      const tbodyEl = document.getElementById('huffFullTableBody');
+      renderTree(_fullRoots[key], _fullSteps[key], svgEl);
+      renderTable(_fullCodes[key] || {}, _fullFreqs[key] || {}, tbodyEl);
+      const legend = document.getElementById('huffFullRCLegend');
+      if (legend) legend.style.display = (_fullSelType === 'ac') ? '' : 'none';
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll('[data-sel-type]').forEach(btn => {
+      const toggle = document.getElementById('huffAccordionToggle');
+      const body   = document.getElementById('huffAccordionBody');
+      const arrow  = toggle && toggle.querySelector('.huff-accordion-arrow');
+
+      if (toggle && body) {
+        toggle.addEventListener('click', () => {
+          const isOpen = !body.hidden;
+          body.hidden = isOpen;
+          toggle.setAttribute('aria-expanded', String(!isOpen));
+          if (arrow) arrow.style.transform = isOpen ? '' : 'rotate(90deg)';
+          if (!isOpen && _fullReady) renderFullView();
+        });
+      }
+
+      document.querySelectorAll('[data-full-type]').forEach(btn => {
         btn.addEventListener('click', () => {
-          _selType = btn.dataset.selType;
-          document.querySelectorAll('[data-sel-type]').forEach(b => b.classList.toggle('active', b === btn));
-          renderCurrentView();
+          _fullSelType = btn.dataset.fullType;
+          document.querySelectorAll('[data-full-type]').forEach(b =>
+            b.classList.toggle('active', b === btn));
+          const accordionBody = document.getElementById('huffAccordionBody');
+          if (accordionBody && !accordionBody.hidden) renderFullView();
         });
       });
-      document.querySelectorAll('[data-sel-ch]').forEach(btn => {
+
+      document.querySelectorAll('[data-full-ch]').forEach(btn => {
         btn.addEventListener('click', () => {
-          _selCh = btn.dataset.selCh;
-          document.querySelectorAll('[data-sel-ch]').forEach(b => b.classList.toggle('active', b === btn));
-          renderCurrentView();
+          _fullSelCh = btn.dataset.fullCh;
+          document.querySelectorAll('[data-full-ch]').forEach(b =>
+            b.classList.toggle('active', b === btn));
+          const accordionBody = document.getElementById('huffAccordionBody');
+          if (accordionBody && !accordionBody.hidden) renderFullView();
         });
       });
     });
+
+    document.addEventListener('huffFullDataReady', e => {
+      _fullFreqs  = e.detail.freqs;
+      _fullRoots  = e.detail.roots;
+      _fullSteps  = e.detail.steps;
+      _fullCodes  = e.detail.codes;
+      _fullReady  = true;
+      // Show accordion trigger now that we have data
+      const acc = document.getElementById('huffFullAccordion');
+      if (acc) acc.style.display = '';
+      // Re-render if accordion is already open
+      const body = document.getElementById('huffAccordionBody');
+      if (body && !body.hidden) renderFullView();
+    });
+
+    // ── Show selector bar label on load ──────────────────────────────────────
+    // (Top card is fixed to AC·Luma; no interactive selectors needed here)
 
     document.addEventListener('rleChanged', refreshHuffman);
   }());
@@ -11014,7 +11588,10 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     // _localCodes = { dcLuma: {}, dcChroma: {}, acLuma: {}, acChroma: {} }
     function buildLocalCodes() {
       const total = totalMcus();
-      if (!total || !S.yChannel) { _localCodes = { dcLuma: {}, dcChroma: {}, acLuma: {}, acChroma: {} }; return; }
+      if (!total || !S.yChannel) {
+        _localCodes = { dcLuma: {}, dcChroma: {}, acLuma: {}, acChroma: {} };
+        return;
+      }
       const freqs = { dcLuma: {}, dcChroma: {}, acLuma: {}, acChroma: {} };
       for (let i = 0; i < total; i++) {
         ['y', 'cb', 'cr'].forEach(ch => {
@@ -11032,16 +11609,27 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         });
       }
       _localCodes = {};
+      const roots = {}, steps = {};
       ['dcLuma', 'dcChroma', 'acLuma', 'acChroma'].forEach(k => {
         const entries = Object.entries(freqs[k]);
-        if (!entries.length) { _localCodes[k] = {}; return; }
+        if (!entries.length) { _localCodes[k] = {}; roots[k] = null; steps[k] = []; return; }
         let nodes = entries.map(([s, c]) => ({ s, c, l: null, r: null }));
-        if (nodes.length === 1) { _localCodes[k] = { [nodes[0].s]: '0' }; return; }
+        if (nodes.length === 1) {
+          _localCodes[k] = { [nodes[0].s]: '0' };
+          roots[k] = { s: null, c: nodes[0].c, l: nodes[0], r: null };
+          steps[k] = [];
+          return;
+        }
+        const mergeSteps = [];
         while (nodes.length > 1) {
           nodes.sort((a, b) => a.c - b.c);
           const l = nodes.shift(), r = nodes.shift();
-          nodes.push({ s: null, c: l.c + r.c, l, r });
+          const parent = { s: null, c: l.c + r.c, l, r };
+          mergeSteps.push({ left: l, right: r, parent });
+          nodes.push(parent);
         }
+        roots[k] = nodes[0];
+        steps[k] = mergeSteps;
         _localCodes[k] = {};
         (function gen(node, prefix) {
           if (!node) return;
@@ -11050,6 +11638,9 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           gen(node.r, prefix + '1');
         })(nodes[0], '');
       });
+      document.dispatchEvent(new CustomEvent('huffFullDataReady', {
+        detail: { freqs, roots, steps, codes: _localCodes }
+      }));
     }
 
     // Build annotated bit array for a single MCU using _localCodes (all-MCU tables).
