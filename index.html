@@ -2339,12 +2339,16 @@
     }
 
     .huffman-tree-wrap {
-      width: 100%;
-      overflow-x: auto;
+      overflow: auto;
+      height: 320px;
       background: var(--bg-secondary);
       border-radius: 8px;
       padding: 8px 0;
       -webkit-overflow-scrolling: touch;
+    }
+
+    #huffTreeInner {
+      display: inline-block;
     }
 
     #huffmanTreeSvg {
@@ -2354,6 +2358,23 @@
 
     .huffman-table-wrap {
       overflow-x: auto;
+    }
+
+    .huffman-table-wrap.huff-table-scroll {
+      max-height: 240px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+
+    .huffman-table-wrap.huff-table-scroll::-webkit-scrollbar { width: 5px; }
+    .huffman-table-wrap.huff-table-scroll::-webkit-scrollbar-thumb {
+      background: var(--border); border-radius: 3px;
+    }
+
+    .huffman-table thead th {
+      position: sticky; top: 0; z-index: 1;
+      background: var(--bg-primary);
     }
 
     .huffman-table {
@@ -2387,6 +2408,37 @@
     .huffman-table tbody tr.huff-highlight td {
       background: var(--accent-blue-tint) !important;
       cursor: default;
+    }
+
+    .huffman-table tbody tr.huff-in-block td {
+      box-shadow: inset 3px 0 0 #2563eb;
+    }
+    .huffman-table tbody tr.huff-in-block td:first-child {
+      font-weight: 700;
+    }
+    .huffman-table tbody tr.huff-in-block td:first-child::before {
+      content: '';
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #2563eb;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    .huff-in-block-legend {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 0;
+    }
+    .huff-in-block-legend::before {
+      content: '';
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #2563eb;
     }
 
     .huffman-table td.code-cell {
@@ -2835,6 +2887,64 @@
       box-shadow: 0 1px 4px rgba(37,99,235,.25);
     }
 
+    /* ── S12: Unified tree card ─────────────────────────────────────────────── */
+    .huff-tree-header {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 8px; margin-bottom: 10px;
+    }
+    .huff-view-toggle {
+      display: inline-flex; gap: 3px; padding: 3px;
+      background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border);
+    }
+    .huff-toggle-btn {
+      padding: 5px 13px; border-radius: 6px; border: none;
+      font-size: 0.74rem; font-weight: 600; cursor: pointer;
+      background: transparent; color: var(--text-secondary);
+      transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+      font-family: 'Inter', sans-serif;
+    }
+    .huff-toggle-btn.active {
+      background: var(--bg-primary); color: var(--text-primary);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+    .huff-full-selectors {
+      display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .huff-coverage {
+      font-size: 0.68rem; color: var(--text-muted); font-style: italic;
+      margin-left: 4px;
+    }
+    .huff-tree-body {
+      transition: opacity 0.18s ease;
+    }
+    .huff-tree-body.fading { opacity: 0; }
+
+    /* ── S12: Zoom controls ──────────────────────────────────────────────────── */
+    .huff-tree-zoom-wrap { position: relative; }
+    .huff-zoom-controls {
+      display: flex; align-items: center; gap: 4px; margin-bottom: 6px;
+    }
+    .huff-zoom-btn {
+      width: 28px; height: 28px; border-radius: 6px;
+      border: 1.5px solid var(--border); background: var(--bg-secondary);
+      font-size: 0.9rem; font-weight: 700; cursor: pointer; color: var(--text-primary);
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.12s;
+    }
+    .huff-zoom-btn:hover { background: var(--bg-hover, #f1f5f9); }
+    .huff-zoom-level {
+      font-size: 0.7rem; color: var(--text-muted);
+      min-width: 38px; text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ── S12: In-block leaf highlight (full-image mode) ─────────────────────── */
+    .huff-leaf.in-block circle {
+      fill: #fef3c7; stroke: #f59e0b; stroke-width: 2.5;
+    }
+    .huff-leaf.in-block text { fill: #92400e; }
+
     /* ── S12: Category conversion card ─────────────────────────────────────── */
     .catconv-wrap {
       display: flex; flex-direction: column; gap: 12px; padding: 8px 0;
@@ -2894,11 +3004,11 @@
     .catexplain-col {
       display: flex; flex-direction: column; gap: 10px;
       padding: 14px; border-radius: 10px;
-      background: var(--bg-secondary); border: 1.5px solid var(--border);
+      background: var(--bg-accent); border: 1.5px solid var(--accent-blue-tint);
     }
     .catexplain-col-title {
       font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
-      letter-spacing: 0.06em; color: var(--text-primary);
+      letter-spacing: 0.06em; color: var(--accent-blue);
     }
     .catexplain-col-sub {
       font-size: 0.68rem; color: var(--text-secondary); line-height: 1.45;
@@ -2967,12 +3077,12 @@
     .catexplain-scrubber-cat-badge { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 800; padding: 3px 12px; border-radius: 12px; border: 1.5px solid; white-space: nowrap; }
     .catexplain-scrubber-row { display: flex; align-items: center; gap: 0; margin-top: 2px; }
     .catexplain-enc-panel { display: flex; flex-direction: column; gap: 6px; }
-    .catexplain-enc-row { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 7px; background: var(--bg-primary); border: 1.5px solid var(--border); }
+    .catexplain-enc-row { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 7px; background: var(--bg-primary); border: 1.5px solid var(--accent-blue-tint); }
     .catexplain-enc-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
     .catexplain-enc-value { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700; }
     .catexplain-enc-explain { font-size: 0.63rem; color: var(--text-secondary); line-height: 1.4; margin-top: 2px; }
     .catexplain-cat-row { cursor: pointer; transition: box-shadow 0.15s, transform 0.1s; }
-    .catexplain-cat-row.catexplain-active { box-shadow: 0 0 0 2.5px #60a5fa; transform: scaleX(1.01); }
+    .catexplain-cat-row.catexplain-active { box-shadow: 0 0 0 2.5px var(--accent-blue); transform: scaleX(1.01); }
     @keyframes catexplainPop {
       0%   { transform: scale(0.88); opacity: 0.6; }
       60%  { transform: scale(1.08); }
@@ -2983,9 +3093,14 @@
     .catconv-strip-wrap {
       display: flex; flex-direction: column; gap: 8px; padding: 4px 0;
     }
-    .catconv-strip-note {
-      font-size: 0.68rem; color: var(--text-secondary);
+    .catconv-strip-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 10px; flex-wrap: wrap;
     }
+    .catconv-strip-note {
+      font-size: 0.68rem; color: var(--text-secondary); flex: 1; min-width: 0;
+    }
+    .token-ch-sel { flex-shrink: 0; }
     .catconv-strip {
       display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px;
       scrollbar-width: thin; scrollbar-color: var(--border) transparent;
@@ -3033,6 +3148,20 @@
     .catconv-chip-eob .catconv-chip-top { background: #f8fafc; }
     .catconv-chip-eob .catconv-chip-bot { background: #f1f5f9; }
     .catconv-chip-eob .catconv-sym-val  { color: #374151; }
+    .catconv-chip.clickable {
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+    }
+    .catconv-chip.clickable:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+      border-color: #93c5fd;
+    }
+    .catconv-chip.active {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    }
+    .catconv-chip.active .catconv-chip-bot { background: #dbeafe; }
 
     /* ── S12: Symbol alphabet card ─────────────────────────────────────────── */
     .symcard-wrap {
@@ -3331,6 +3460,11 @@
       color: var(--text-muted, #94a3b8);
       margin: 6px 0 0;
     }
+    .sos-card-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 16px 0 12px;
+    }
 
     /* SOS header dissection */
     .sos-header-dissect {
@@ -3395,7 +3529,7 @@
     }
     .sos-code-row {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-start;
       align-items: center;
       padding: 4px 8px;
       border-radius: 6px;
@@ -3416,7 +3550,7 @@
       font-weight: 600;
       letter-spacing: 0.04em;
       word-break: break-all;
-      text-align: right;
+      text-align: left;
     }
     .sos-code-row.sos-row-active {
       background: #eff6ff;
@@ -3507,6 +3641,21 @@
       color: #78350f;
     }
 
+    /* Packer card footer — button + stats on one line */
+    .sos-packer-footer {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    .sos-packer-footer .sos-stats-row {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: none;
+      justify-content: flex-start;
+    }
+
     /* Stats footer */
     .sos-stats-row {
       display: flex;
@@ -3523,6 +3672,42 @@
       color: var(--text-primary);
       font-family: 'JetBrains Mono', monospace;
     }
+
+    /* Packer column labels */
+    .sos-col-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted, #94a3b8);
+      margin: 0 0 6px;
+    }
+    .sos-col-placeholder {
+      color: var(--text-muted, #94a3b8);
+      font-size: 0.78rem;
+      padding: 8px 2px;
+      margin: 0;
+    }
+
+    /* Channel badge in token list */
+    .sos-ch-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 4px;
+      border: 1px solid;
+      flex-shrink: 0;
+    }
+    .sos-ch-badge[data-ch="y"]  { background: #ede9fe; border-color: #8b5cf6; color: #5b21b6; }
+    .sos-ch-badge[data-ch="cb"] { background: #dbeafe; border-color: #3b82f6; color: #1e40af; }
+    .sos-ch-badge[data-ch="cr"] { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+
+    /* Hover cross-column linking */
+    .sos-bit.sos-hl       { outline: 2px solid #2563eb; outline-offset: 1px; z-index: 1; position: relative; }
+    .sos-hex-byte.sos-hl  { outline: 2px solid #2563eb; outline-offset: 2px; z-index: 1; position: relative; }
+    .sos-code-row.sos-hl  { background: #eff6ff !important; border-color: #2563eb !important; }
+    .sos-bit, .sos-hex-byte, .sos-code-row { transition: outline 0.08s; }
 
     /* Keyframes */
     @keyframes sosBitPop {
@@ -4796,30 +4981,57 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         </p>
         <div id="categoryExplainDemo"></div>
       </div>
-      <div class="demo-card reveal" id="catConvCard" style="display:none">
-        <p class="matrix-panel-label">How your block's tokens become Huffman symbols
-          <span class="sos-panel-sub">— value → category → symbol</span>
-        </p>
-        <div id="catConvDemo"></div>
-      </div>
       <p class="section-body-text reveal">
-        Now that each token is a symbol, JPEG counts how often each symbol appears across the image, then builds a Huffman tree where the most frequent symbols get the shortest codes. The tree below is computed from your selected block.
+        Now JPEG counts how often each symbol appears across the image, then builds a Huffman tree where the most frequent symbols get the shortest codes.
       </p>
-      <div class="demo-card reveal">
-        <div class="huffman-layout">
-          <div id="huffSelBar" style="display:none">
-            <div class="huff-fixed-label">AC &middot; Luma &middot; Selected MCU</div>
+      <div class="demo-card reveal" id="huffTreeCard" style="display:none">
+        <!-- Header: label + Block / Full Image toggle -->
+        <div class="huff-tree-header">
+          <p class="matrix-panel-label" style="margin:0">Huffman Tree</p>
+          <div class="huff-view-toggle" id="huffViewToggle">
+            <button class="huff-toggle-btn active" data-view="block">This block &middot; AC Luma</button>
+            <button class="huff-toggle-btn" data-view="full">Full image</button>
           </div>
-          <div>
-            <p class="matrix-panel-label">Huffman tree</p>
-            <div class="huffman-tree-wrap">
-              <svg id="huffmanTreeSvg"></svg>
+        </div>
+
+        <!-- Full-image selectors (hidden in block mode) -->
+        <div class="huff-full-selectors" id="huffFullSelectors" style="display:none">
+          <div class="huff-sel-group">
+            <button class="huff-sel-btn active" data-full-type="dc">DC</button>
+            <button class="huff-sel-btn" data-full-type="ac">AC</button>
+          </div>
+          <div class="huff-sel-group">
+            <button class="huff-sel-btn active" data-full-ch="luma">Y (Luma)</button>
+            <button class="huff-sel-btn" data-full-ch="chroma">Cb+Cr (Chroma)</button>
+          </div>
+          <span class="huff-in-block-legend" id="huffInBlockLegend">&#9679; in your selected block</span>
+          <span class="huff-coverage" id="huffCoverage"></span>
+        </div>
+
+        <!-- RC legend (AC mode only) -->
+        <div class="huff-rc-legend" id="huffRCLegend" style="display:none">
+          Symbols shown as <code>(R, C)</code> — <strong>R</strong> = run-length (zeros before the value), <strong>C</strong> = category of the value.
+        </div>
+
+        <!-- Animated body: tree + table -->
+        <div class="huff-tree-body" id="huffTreeBody">
+          <!-- Zoom controls + scrollable tree canvas -->
+          <div class="huff-tree-zoom-wrap">
+            <div class="huff-zoom-controls">
+              <button class="huff-zoom-btn" id="huffZoomIn" title="Zoom in">+</button>
+              <span class="huff-zoom-level" id="huffZoomLevel">100%</span>
+              <button class="huff-zoom-btn" id="huffZoomOut" title="Zoom out">−</button>
+              <button class="huff-zoom-btn" id="huffZoomReset" title="Reset zoom">&#8634;</button>
+            </div>
+            <div class="huffman-tree-wrap" id="huffTreeWrap">
+              <div id="huffTreeInner">
+                <svg id="huffmanTreeSvg"></svg>
+              </div>
             </div>
           </div>
-          <div class="huff-rc-legend" id="huffRCLegend" style="display:none">
-            Symbols shown as <code>(R, C)</code> — <strong>R</strong> = run-length (zeros before the value), <strong>C</strong> = category of the value.
-          </div>
-          <div class="huffman-table-wrap">
+
+          <!-- Scrollable table -->
+          <div class="huffman-table-wrap huff-table-scroll">
             <table class="huffman-table">
               <thead>
                 <tr>
@@ -4833,79 +5045,35 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
               <tbody id="huffmanTableBody"></tbody>
             </table>
           </div>
+
+          <!-- Block-mode stats -->
           <div class="huffman-stats" id="huffmanStats" style="display:none">
             <span>Total bits: <strong id="huffTotalBits">—</strong></span>
             <span>Avg bits/symbol: <strong id="huffAvgBits">—</strong></span>
             <span>vs. fixed 8-bit: <strong id="huffSavings">—</strong> savings</span>
           </div>
         </div>
+
         <p class="section-placeholder" id="huffmanPlaceholder">Select a block above to see Huffman coding</p>
         <p class="huffman-scope-note" id="huffmanScopeNote" style="display:none">
-          This tree is built from the <strong>AC coefficients of the selected MCU's luma (Y) channel only</strong> — a simplified view to show how Huffman coding works.
-          Each symbol represents a <strong>(run, category)</strong> pair — the actual coefficient value is appended as raw bits after the Huffman code.
-          Expand the section below to see the full-image Huffman tables actually used in the bitstream.
+          <strong>Block view:</strong> AC coefficients of the selected MCU's luma (Y) channel only — a simplified tree for this block. Toggle to <em>Full image</em> to see the actual Huffman tables written to the JPEG bitstream.
         </p>
+
         <div class="huff-payoff" id="huffPayoff" style="display:none">
           <p class="huff-payoff-text">
             The result is a stream of bits that's as compact as possible without losing any information. Combined with all the previous steps, your original <strong>36 MB</strong> of raw pixel data is now compressed to around <strong>300 KB</strong> — over <strong class="huff-payoff-highlight">100&times; smaller</strong>. That's the magic of JPEG.
           </p>
         </div>
       </div>
-      <p class="section-body-text reveal">
-        Once the symbol is known, the encoder writes two things to the bitstream: the <strong>Huffman code</strong> for that symbol (variable length, from the tree above), followed by the <strong>raw bits</strong> of the exact value (fixed length = category). Pick any coefficient from your block below to see this in action.
-      </p>
-      <div class="demo-card reveal" id="bitEncodingCard" style="display:none">
-        <p class="matrix-panel-label">Bit encoding
-          <span class="sos-panel-sub">— symbol → Huffman code + raw bits</span>
-        </p>
-        <div id="bitEncodingDemo"></div>
-      </div>
 
-      <div class="huff-full-accordion" id="huffFullAccordion" style="display:none">
-        <button class="huff-accordion-toggle" id="huffAccordionToggle" aria-expanded="false">
-          <span class="huff-accordion-arrow">&#9654;</span>
-          Full-image Huffman tables
-          <span class="huff-accordion-sub">Built from all MCUs &mdash; these are the codes used in the actual bitstream</span>
-        </button>
-        <div class="huff-accordion-body" id="huffAccordionBody" hidden>
-          <div class="huff-table-selector" id="huffFullSelBar">
-            <div class="huff-sel-group">
-              <span class="huff-sel-group-label">Type</span>
-              <button class="huff-sel-btn active" data-full-type="dc">DC</button>
-              <button class="huff-sel-btn" data-full-type="ac">AC</button>
-            </div>
-            <div class="huff-sel-group">
-              <span class="huff-sel-group-label">Channel</span>
-              <button class="huff-sel-btn active" data-full-ch="luma">Y (Luma)</button>
-              <button class="huff-sel-btn" data-full-ch="chroma">Cb+Cr (Chroma)</button>
-            </div>
-          </div>
-          <div class="huffman-layout" style="margin-top:16px">
-            <div>
-              <p class="matrix-panel-label">Huffman tree</p>
-              <div class="huffman-tree-wrap">
-                <svg id="huffFullTreeSvg"></svg>
-              </div>
-            </div>
-            <div class="huff-rc-legend" id="huffFullRCLegend" style="display:none">
-              Symbols shown as <code>(R, C)</code> — <strong>R</strong> = run-length (zeros before the value), <strong>C</strong> = category of the value.
-            </div>
-            <div class="huffman-table-wrap">
-              <table class="huffman-table">
-                <thead>
-                  <tr>
-                    <th>Symbol</th>
-                    <th>Freq</th>
-                    <th>Huffman Code</th>
-                    <th>+ Raw Bits</th>
-                    <th>Total</th>
-                  </tr>
-                </thead>
-                <tbody id="huffFullTableBody"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+      <p class="section-body-text reveal">
+        Now follow any token from your block all the way through the encoder — value to category to symbol, then Huffman code from the tree plus raw bits of the value. Click any chip to expand its full encoding pipeline.
+      </p>
+      <div class="demo-card reveal" id="tokenPipelineCard" style="display:none">
+        <p class="matrix-panel-label">Token → Bitstream
+          <span class="sos-panel-sub">— pick a token to see it encoded</span>
+        </p>
+        <div id="tokenPipelineDemo"></div>
       </div>
     </section>
   </div>
@@ -4917,18 +5085,18 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         <h2 class="section-title">Building the Bitstream</h2>
       </div>
       <p class="section-body-text reveal">
-        The Huffman codes are just strings of 0s and 1s — but a JPEG file is a sequence of bytes. The scan data lives in the SOS (Start of Scan) segment, which has a fixed 12-byte header followed by the raw packed bitstream. A JPEG file is structured as a series of marker segments, each beginning with 0xFF — and SOS is where all the compressed image data lives.
+        Each token you just traced — symbol, Huffman code, raw bits — now needs to land somewhere in the actual file. Huffman codes are variable-length bit strings, but a JPEG is a stream of bytes. The scan data lives in the SOS (Start of Scan) segment: a fixed 12-byte header followed by the raw packed bitstream. A JPEG file is a series of marker segments each beginning with 0xFF — and SOS is where all the compressed image data lives.
       </p>
       <p class="section-body-text reveal">
-        The scan data is not a flat, unstructured stream. Each 8×8 block is encoded with a strict two-part layout: the <strong>DC coefficient</strong> comes first — that's the top-left value from the quantized DCT block, representing the block's average brightness. Then the <strong>AC coefficients</strong> follow in zigzag frequency order, using run-length (skip, value) pairs ending in EOB. DC and AC use entirely separate Huffman tables, which is why the SOS header explicitly lists both a DC table ID and an AC table ID for each channel.
+        The scan data has a strict per-block layout. Each block opens with one <strong>DC token</strong> — the DPCM difference from the previous block's average brightness, encoded using the DC Huffman table. That small delta is why the differencing step pays off: it earns a shorter code. Then come the <strong>AC tokens</strong>: up to 63 frequency coefficients in zigzag order, each a run-length (skip, value) pair using the AC table, ending with EOB when the remaining coefficients are all zero.
       </p>
       <p class="section-body-text reveal">
-        Remember: the DC value here is not the raw coefficient — it's the <strong>DPCM difference</strong> we computed earlier. That small delta gets a short Huffman code, which is exactly why the differencing step pays off.
+        DC and AC use entirely separate Huffman tables because their symbol distributions are completely different — DC differences cluster near zero, while AC symbols span a wide range of (run, category) pairs. The SOS header encodes which table to use per channel: one nibble for DC, one for AC.
       </p>
 
-      <!-- Component 1: JPEG File Anatomy Bar -->
+      <!-- Component 1+2: JPEG File Anatomy + SOS Header (merged) -->
       <div class="demo-card reveal">
-        <p class="matrix-panel-label">JPEG file structure</p>
+        <p class="matrix-panel-label">JPEG file structure &amp; SOS header</p>
         <div class="jpeg-anatomy-bar">
           <div class="anatomy-seg" title="Start of Image — marks the beginning of every JPEG file">
             <span class="seg-hex">FF D8</span>
@@ -4960,11 +5128,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           </div>
         </div>
         <p class="sos-anatomy-note">The SOS segment contains a short fixed header then the packed Huffman bitstream — everything we've built so far flows into those bytes.</p>
-      </div>
-
-      <!-- Component 2: SOS Header Dissection -->
-      <div class="demo-card reveal">
-        <p class="matrix-panel-label">SOS segment header bytes</p>
+        <hr class="sos-card-divider">
+        <p class="matrix-panel-label" style="margin-top:4px">SOS segment header bytes</p>
         <div class="sos-header-dissect">
           <div class="sos-byte-group">
             <div class="sos-bytes">FF DA</div>
@@ -5026,30 +5191,51 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         </div>
       </div>
 
-      <!-- Component 4: SOS Structure Tree Explorer -->
-      <div class="demo-card reveal">
-        <p class="matrix-panel-label">SOS structure explorer <span class="sos-panel-sub">— click to expand · hover to highlight bits</span></p>
-        <div class="sos-explorer-split">
-          <div id="sosTreeWrap" class="sos-tree-wrap">
-            <p class="section-placeholder" id="sosTreePh" style="margin:0">Select a block above</p>
+      <!-- Component 4+5: Bit Packing (full-width, no split) -->
+      <div class="demo-card reveal" id="sosPackerCard">
+        <p class="matrix-panel-label">Bit packing — tokens → bytes
+          <span class="sos-panel-sub">— select a block above, then animate</span>
+        </p>
+        <p class="sos-anatomy-note" style="margin:4px 0 12px">
+          <span class="code-huff">&#9632;</span> Huffman prefix &nbsp;·&nbsp;
+          <span class="code-raw">&#9632;</span> raw value &nbsp;·&nbsp; dividers = byte boundaries &nbsp;·&nbsp; <span style="color:#2563eb;font-weight:600">hover</span> to link columns
+        </p>
+
+        <div class="sos-packer-layout">
+          <!-- Left: Huffman-coded tokens -->
+          <div class="sos-panel">
+            <p class="sos-col-label">Huffman tokens</p>
+            <div class="sos-code-list" id="sosCodeList">
+              <p id="sosPlaceholder" class="sos-col-placeholder">Select a block above</p>
+            </div>
           </div>
-          <div class="sos-bits-panel" id="sosBitsPanel">
-            <div class="sos-bits-header">
-              <span class="sos-bits-title">Binary stream — selected MCU</span>
-              <button class="sos-bits-info-btn" id="sosBitsInfoBtn" data-tip="Click for more information about bitstream building">i</button>
-              <span class="sos-bits-legend" id="sosBitsLegend" style="display:none">
-                <span class="sbk sbk-y">Y</span><span class="sbk sbk-cb">Cb</span><span class="sbk sbk-cr">Cr</span>
-                <span style="color:var(--text-muted,#94a3b8);padding:0 2px">·</span>
-                <span class="sbk sbk-dc">DC</span><span class="sbk sbk-ac">AC</span>
-                <span style="color:var(--text-muted,#94a3b8);padding:0 2px">·</span>
-                <span class="sbk sbk-huff">Huff</span><span class="sbk sbk-raw">Raw</span>
-              </span>
+
+          <!-- Middle: Bit buffer -->
+          <div class="sos-panel">
+            <p class="sos-col-label">Bit stream</p>
+            <div class="sos-bit-buffer" id="sosBitBuffer"></div>
+            <div class="sos-stuffing-note" id="sosStuffNote" style="display:none">
+              <strong>Byte stuffing:</strong> 0xFF in scan data must be followed by 0x00 to avoid confusion with JPEG markers.
             </div>
-            <div class="sos-bits-grid" id="sosBitsGrid">
-              <p class="section-placeholder" style="margin:0">Select a block above</p>
-            </div>
+          </div>
+
+          <!-- Right: Hex bytes -->
+          <div class="sos-panel">
+            <p class="sos-col-label">Hex bytes</p>
+            <div class="sos-byte-stream" id="sosByteStream"></div>
           </div>
         </div>
+
+        <div class="sos-packer-footer">
+          <button class="btn-animate" id="sosReplayBtn" disabled>&#9654; Animate packing</button>
+          <div class="sos-stats-row" id="sosStats" style="display:none">
+            <span>Total bits: <strong id="sosTotalBits">—</strong></span>
+            <span>Packed bytes: <strong id="sosPackedBytes">—</strong></span>
+            <span>Stuffed 0x00s: <strong id="sosStuffCount">—</strong></span>
+          </div>
+        </div>
+        <!-- tree kept hidden so JS event pipeline (localCodesReady) still fires -->
+        <div id="sosTreeWrap" style="display:none"><p id="sosTreePh"></p></div>
       </div>
 
 
@@ -10009,8 +10195,10 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       assign(root, 0, leafCount, 0);
 
       const svgH = (maxD + 1) * LH + PAD * 2;
-      svg.setAttribute('width',   svgW);
-      svg.setAttribute('height',  svgH);
+      svg.setAttribute('data-base-w', svgW);
+      svg.setAttribute('data-base-h', svgH);
+      svg.setAttribute('width',   svgW * _huffZoom);
+      svg.setAttribute('height',  svgH * _huffZoom);
       svg.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`);
 
       const pxOf = n => +(PAD + pos.get(n).x * (svgW - PAD * 2) / leafCount).toFixed(1);
@@ -10115,8 +10303,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
     function setHighlight(sym, svgEl) {
       const svg = svgEl || document.getElementById('huffmanTreeSvg');
-      const isFull = svg && svg.id === 'huffFullTreeSvg';
-      const tbodyId = isFull ? 'huffFullTableBody' : 'huffmanTableBody';
+      const tbodyId = 'huffmanTableBody';
       if (svg) {
         svg.querySelectorAll('.huff-leaf').forEach(g => {
           const active = !!(sym && g.getAttribute('data-sym') === sym);
@@ -10157,11 +10344,10 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       return 0;
     }
 
-    function renderTable(codes, freq, tbodyEl) {
+    function renderTable(codes, freq, tbodyEl, inBlockSet) {
       const tbody = tbodyEl || document.getElementById('huffmanTableBody');
       if (!tbody) return;
-      const isFull = tbody.id === 'huffFullTableBody';
-      const svgId = isFull ? 'huffFullTreeSvg' : 'huffmanTreeSvg';
+      const svgId = 'huffmanTreeSvg';
       const entries = Object.entries(codes).sort((a, b) => (freq[b[0]] || 0) - (freq[a[0]] || 0));
       tbody.innerHTML = '';
       entries.forEach(([sym, code]) => {
@@ -10170,6 +10356,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         const totalBits = code.length + cat;
         const tr = document.createElement('tr');
         tr.setAttribute('data-sym', sym);
+        if (inBlockSet && inBlockSet.has(sym)) tr.classList.add('huff-in-block');
         tr.innerHTML = `<td class="text-code">${esc(symbolDisplayName(sym))}</td>` +
                        `<td>${freq[sym] || 0}</td>` +
                        `<td class="code-cell"><span class="code-huff">${esc(code)}</span></td>` +
@@ -10205,7 +10392,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       if (el1) el1.textContent = totalBits.toLocaleString();
       if (el2) el2.textContent = avg;
       if (el3) el3.textContent = savings + '%';
-      if (el4) el4.style.display = '';
+      if (el4) el4.style.display = _huffView === 'block' ? '' : 'none';
       const note = document.getElementById('huffmanScopeNote');
       if (note) note.style.display = '';
       const payoff = document.getElementById('huffPayoff');
@@ -10780,21 +10967,21 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       // Region B: 2-col
       html += '<div class="catexplain-cols">';
 
-      // Shared palette — 12 steps from near-white to mid-slate, all light-theme friendly.
+      // Shared palette — 12 whisper-light steps from near-white to blue-200, all airy pastels.
       // bg: fill, border: stroke/accent, text: label color, accent: slider thumb & canvas pointer
       const MONO_SHADES = [
-        { bg: '#f8fafc', border: '#e2e8f0', text: '#94a3b8', accent: '#cbd5e1' },
-        { bg: '#f1f5f9', border: '#cbd5e1', text: '#64748b', accent: '#94a3b8' },
-        { bg: '#e8edf4', border: '#b6c4d4', text: '#475569', accent: '#7f95aa' },
-        { bg: '#dde5ef', border: '#9fb3c8', text: '#334155', accent: '#6b8aa1' },
-        { bg: '#d1dcea', border: '#8aa2bc', text: '#1e293b', accent: '#5a7d9a' },
-        { bg: '#c4d3e4', border: '#7591af', text: '#1e293b', accent: '#4d6f90' },
-        { bg: '#b6c9dd', border: '#6080a2', text: '#1e293b', accent: '#406285' },
-        { bg: '#a8bfd6', border: '#4d7096', text: '#0f172a', accent: '#34567a' },
-        { bg: '#9ab4ce', border: '#3a5f89', text: '#0f172a', accent: '#284a6e' },
-        { bg: '#8ca9c6', border: '#2a4f7b', text: '#0f172a', accent: '#1e3e62' },
-        { bg: '#7e9dbe', border: '#1e406e', text: '#0f172a', accent: '#163256' },
-        { bg: '#7093b5', border: '#183660', text: '#f1f5f9', accent: '#0e2747' },
+        { bg: '#fafcff', border: '#eff6ff', text: '#bfdbfe', accent: '#dbeafe' },
+        { bg: '#f5f9ff', border: '#eff6ff', text: '#93c5fd', accent: '#dbeafe' },
+        { bg: '#eff6ff', border: '#dbeafe', text: '#60a5fa', accent: '#bfdbfe' },
+        { bg: '#eaf3ff', border: '#dbeafe', text: '#3b82f6', accent: '#bfdbfe' },
+        { bg: '#e5f0ff', border: '#dbeafe', text: '#2563eb', accent: '#93c5fd' },
+        { bg: '#dfedfe', border: '#bfdbfe', text: '#2563eb', accent: '#93c5fd' },
+        { bg: '#dbeafe', border: '#bfdbfe', text: '#1d4ed8', accent: '#60a5fa' },
+        { bg: '#d5e7fd', border: '#bfdbfe', text: '#1d4ed8', accent: '#60a5fa' },
+        { bg: '#cfe3fd', border: '#93c5fd', text: '#1e40af', accent: '#3b82f6' },
+        { bg: '#cadffc', border: '#93c5fd', text: '#1e40af', accent: '#3b82f6' },
+        { bg: '#c4dcfc', border: '#93c5fd', text: '#1e3a8a', accent: '#2563eb' },
+        { bg: '#bfdbfe', border: '#60a5fa', text: '#1e3a8a', accent: '#2563eb' },
       ];
       html += '<div class="catexplain-col">';
       html += '<div class="catexplain-col-title">Category = bits needed</div>';
@@ -11030,21 +11217,30 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       updateCatExplainFor(-37);
     }
 
-    // ── Category conversion card ──────────────────────────────────────────────
+    // ── Token pipeline card (merged: classification + bit encoding) ──────────
 
-    function renderCatConvCard() {
-      const card = document.getElementById('catConvCard');
-      const el   = document.getElementById('catConvDemo');
+    function renderTokenPipelineCard() {
+      const card = document.getElementById('tokenPipelineCard');
+      const el   = document.getElementById('tokenPipelineDemo');
       if (!card || !el) return;
-      const yTokens = _mcuTokens.filter(t => t._ch === 'y');
-      if (!yTokens.length) { card.style.display = 'none'; return; }
+      const chTokens = _mcuTokens.filter(t => t._ch === _tokenPipelineCh);
+      if (!chTokens.length) { card.style.display = 'none'; return; }
       card.style.display = '';
 
-      let html = '<div class="catconv-strip-wrap">';
-      html += '<div class="catconv-strip-note">Scroll to see all tokens — each shows the raw value and its resulting Huffman symbol.</div>';
-      html += '<div class="catconv-strip">';
+      const chLabel = _tokenPipelineCh === 'y' ? 'Y · Luma' : (_tokenPipelineCh === 'cb' ? 'Cb · Blue chroma' : 'Cr · Red chroma');
 
-      yTokens.forEach((t, i) => {
+      let html = '<div class="catconv-strip-wrap">';
+      html += `<div class="catconv-strip-header">
+        <div class="catconv-strip-note">Click any token to expand its encoding pipeline below — symbol lookup in the tree, raw bits, and the final bits written to the bitstream.</div>
+        <div class="huff-sel-group token-ch-sel">
+          <button class="huff-sel-btn${_tokenPipelineCh === 'y'  ? ' active' : ''}" data-tch="y">Y</button>
+          <button class="huff-sel-btn${_tokenPipelineCh === 'cb' ? ' active' : ''}" data-tch="cb">Cb</button>
+          <button class="huff-sel-btn${_tokenPipelineCh === 'cr' ? ' active' : ''}" data-tch="cr">Cr</button>
+        </div>
+      </div>`;
+      html += '<div class="catconv-strip" id="tokenPipelineStrip">';
+
+      chTokens.forEach((t, i) => {
         const isDC  = t._isDC;
         const isEOB = t.value === 'EOB';
         const isZRL = t.skip === 15 && t.value === 0;
@@ -11078,8 +11274,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
           catPill = `<span class="catconv-cat-pill" style="background:${col.bg};border-color:${col.border};color:${col.text}">cat ${cat}</span>`;
         }
 
-        const chipExtra = isSpecial ? ' catconv-chip-eob' : '';
-        html += `<div class="catconv-chip${chipExtra}" style="animation-delay:${delay}ms">
+        const chipExtra = (isSpecial ? ' catconv-chip-eob' : '') + ' clickable' + (i === 0 ? ' active' : '');
+        html += `<div class="catconv-chip${chipExtra}" data-tidx="${i}" style="animation-delay:${delay}ms">
           <div class="catconv-chip-top">
             ${typeBadge}
             <span class="catconv-raw-val" title="${rawVal}">${rawVal}</span>
@@ -11091,163 +11287,77 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         </div>`;
       });
 
-      html += '</div></div>';
-      el.innerHTML = html;
-    }
-
-    // ── Bit encoding card ─────────────────────────────────────────────────────
-
-    let _bitEncAnimTimer = null;
-
-    function renderBitEncodingCard() {
-      const card = document.getElementById('bitEncodingCard');
-      const el   = document.getElementById('bitEncodingDemo');
-      if (!card || !el) return;
-
-      // Use the Y tokens already computed and tagged in refreshHuffman — guarantees
-      // exact consistency with the tree and Huffman table lookup.
-      const yTokens = _mcuTokens.filter(t => t._ch === 'y');
-      if (!yTokens.length) { card.style.display = 'none'; return; }
-      card.style.display = '';
-
-      const candidates = [];
-      yTokens.forEach((t, i) => {
-        candidates.push({ token: t, idx: i, isDC: t._isDC });
-      });
-
-      if (candidates.length === 0) { card.style.display = 'none'; return; }
-
-      let html = '<div class="bitenc-wrap">';
-      html += '<div class="bitenc-picker-row">';
-      html += '<span class="bitenc-picker-label">Pick a token from your Y block:</span>';
-      html += '<div class="bitenc-picker">';
-      candidates.forEach((c, ci) => {
-        const label = c.isDC
-          ? ('DC: ' + c.token.value)
-          : (c.token.value === 'EOB' ? 'EOB' : '(' + (c.token.skip || 0) + ', ' + c.token.value + ')');
-        html += `<button class="bitenc-tok-btn${ci === 0 ? ' active' : ''}" data-bidx="${ci}">${label}</button>`;
-      });
-      html += '</div></div>';
-      html += '<div class="bitenc-steps" id="bitencSteps"></div>';
+      html += '</div>';
+      html += `<div class="bitenc-steps" id="bitencSteps" style="margin-top:8px">
+        <div class="bitenc-step" id="bitencStep1">
+          <div class="bitenc-step-num">1</div>
+          <div class="bitenc-step-content">
+            <div class="bitenc-step-label">Symbol → Huffman code (look up in tree)</div>
+            <div class="bitenc-step-value" id="bitencStep1Value"></div>
+            <div class="bitenc-step-explain" id="bitencStep1Explain"></div>
+          </div>
+        </div>
+        <div class="bitenc-step" id="bitencStep2">
+          <div class="bitenc-step-num">2</div>
+          <div class="bitenc-step-content">
+            <div class="bitenc-step-label" id="bitencStep2Label">Raw bits: exact value in binary</div>
+            <div class="bitenc-step-value" id="bitencStep2Value"></div>
+            <div class="bitenc-step-explain" id="bitencStep2Explain"></div>
+          </div>
+        </div>
+        <div class="bitenc-final" id="bitencFinal">
+          <div class="bitenc-final-label">Written to bitstream</div>
+          <div class="bitenc-final-bits" id="bitencFinalBits"></div>
+          <div class="bitenc-final-total" id="bitencFinalTotal"></div>
+        </div>
+      </div>`;
       html += '</div>';
       el.innerHTML = html;
 
-      function pairHtml(run, catOrVal, chipClassRight) {
-        return `<span class="bitenc-pair">
-          <span class="bitenc-pair-paren">(</span>
-          <span class="bitenc-chip bitenc-chip-run">${run}</span>
-          <span class="bitenc-pair-comma">,</span>
-          <span class="bitenc-chip ${chipClassRight}">${catOrVal}</span>
-          <span class="bitenc-pair-paren">)</span>
-        </span>`;
-      }
-
       function showEncoding(ci) {
         if (_bitEncAnimTimer) { clearTimeout(_bitEncAnimTimer); _bitEncAnimTimer = null; }
-        const stepsEl = document.getElementById('bitencSteps');
-        if (!stepsEl) return;
 
-        const c = candidates[ci];
-        const t = c.token;
-        const isDC = c.isDC;
+        const t = chTokens[ci];
+        const isDC = t._isDC;
         const value = t.value;
         const skip  = t.skip || 0;
         const isEOB = value === 'EOB';
-        const cat   = isEOB ? 0 : jpegCategory(value);
-        const rawBits = isEOB ? '' : jpegRawBits(value, cat);
-        const isNeg = !isEOB && value < 0;
-        const absV  = isEOB ? 0 : Math.abs(value);
+        const isZRL = skip === 15 && value === 0;
+        const cat   = (isEOB || isZRL) ? 0 : jpegCategory(value);
+        const rawBits = (isEOB || isZRL) ? '' : jpegRawBits(value, cat);
+        const isNeg = !isEOB && !isZRL && value < 0;
+        const absV  = (isEOB || isZRL) ? 0 : Math.abs(value);
         const absBin = (cat > 0) ? absV.toString(2).padStart(cat, '0') : '';
 
         const symKey  = isDC ? dcSymbolKey(value) : acSymbolKey(skip, value);
-        const tblKey  = isDC ? 'dcLuma' : 'acLuma';
-        const huffCode = (_tables[tblKey] && _tables[tblKey][symKey]) || '';
+        const symLabel = isDC
+          ? `DC:${cat}`
+          : (isEOB ? 'EOB' : (isZRL ? 'ZRL' : `(${skip},${cat})`));
+        const isLuma  = _tokenPipelineCh === 'y';
+        const tblKey  = isDC ? (isLuma ? 'dcLuma' : 'dcChroma') : (isLuma ? 'acLuma' : 'acChroma');
+        const codesSource = (_fullReady && _fullCodes) ? _fullCodes : _tables;
+        const huffCode = (codesSource[tblKey] && codesSource[tblKey][symKey]) || '';
 
-        let html = '';
+        const explainText = isEOB
+          ? 'EOB signals all remaining AC coefficients are zero — no raw bits follow.'
+          : (isZRL
+              ? 'ZRL means 16 consecutive zero coefficients — encoded as a single symbol.'
+              : (isDC
+                  ? `${chLabel} Huffman code for DC category ${cat}.`
+                  : `${chLabel} Huffman code for symbol (${skip},${cat}).`));
 
-        if (isDC) {
-          // Step 1: value
-          html += `<div class="bitenc-step">
-            <div class="bitenc-step-num">1</div>
-            <div class="bitenc-step-content">
-              <div class="bitenc-step-label">DC diff value</div>
-              <div class="bitenc-step-value bitenc-val-source">${value}</div>
-            </div>
-          </div>`;
-          // Step 2: category
-          html += `<div class="bitenc-step">
-            <div class="bitenc-step-num">2</div>
-            <div class="bitenc-step-content">
-              <div class="bitenc-step-label">Category (how many bits?)</div>
-              <div class="bitenc-step-value bitenc-val-cat">${cat}</div>
-              <div class="bitenc-step-explain">|${value}| = ${absV} needs ${cat} bit${cat !== 1 ? 's' : ''}</div>
-            </div>
-          </div>`;
-          // Step 3: symbol = DC:cat → Huffman code
-          html += `<div class="bitenc-step">
-            <div class="bitenc-step-num">3</div>
-            <div class="bitenc-step-content">
-              <div class="bitenc-step-label">Symbol → Huffman code (from tree)</div>
-              <div class="bitenc-step-value">
-                <span class="bitenc-val-sym">DC:${cat}</span>
-                <span style="color:var(--text-muted);font-size:0.8rem">→</span>
-                <span class="bitenc-val-huff">${esc(huffCode || '—')}</span>
-              </div>
-              <div class="bitenc-step-explain">The tree assigns code <code>${esc(huffCode || '—')}</code> to the symbol "DC category ${cat}"</div>
-            </div>
-          </div>`;
-        } else if (isEOB) {
-          // EOB: just symbol → code, no raw bits
-          html += `<div class="bitenc-step">
-            <div class="bitenc-step-num">1</div>
-            <div class="bitenc-step-content">
-              <div class="bitenc-step-label">Special symbol: End of Block</div>
-              <div class="bitenc-step-value bitenc-val-sym">EOB</div>
-              <div class="bitenc-step-explain">Signals all remaining AC coefficients in this block are zero</div>
-            </div>
-          </div>`;
-          html += `<div class="bitenc-step">
-            <div class="bitenc-step-num">2</div>
-            <div class="bitenc-step-content">
-              <div class="bitenc-step-label">Huffman code (from tree)</div>
-              <div class="bitenc-step-value bitenc-val-huff">${esc(huffCode || '—')}</div>
-              <div class="bitenc-step-explain">No raw bits — EOB has category 0</div>
-            </div>
-          </div>`;
-        } else {
-          // AC: (run, value) → category → (run, cat) symbol → Huffman + raw bits
-          html += `<div class="bitenc-step">
-            <div class="bitenc-step-num">1</div>
-            <div class="bitenc-step-content">
-              <div class="bitenc-step-label">RLE token (run, value)</div>
-              <div class="bitenc-step-value">${pairHtml(skip, value, 'bitenc-chip-run')}</div>
-              <div class="bitenc-step-explain">${skip} zero${skip !== 1 ? 's' : ''} before this value</div>
-            </div>
-          </div>`;
-          html += `<div class="bitenc-step">
-            <div class="bitenc-step-num">2</div>
-            <div class="bitenc-step-content">
-              <div class="bitenc-step-label">Category of value</div>
-              <div class="bitenc-step-value bitenc-val-cat">${cat}</div>
-              <div class="bitenc-step-explain">|${value}| = ${absV} needs ${cat} bit${cat !== 1 ? 's' : ''}</div>
-            </div>
-          </div>`;
-          html += `<div class="bitenc-step">
-            <div class="bitenc-step-num">3</div>
-            <div class="bitenc-step-content">
-              <div class="bitenc-step-label">AC symbol (run, category) → Huffman code</div>
-              <div class="bitenc-step-value">
-                ${pairHtml(skip, cat, 'bitenc-chip-cat')}
-                <span style="color:var(--text-muted);font-size:0.8rem">→</span>
-                <span class="bitenc-val-huff">${esc(huffCode || '—')}</span>
-              </div>
-              <div class="bitenc-step-explain">Run-length passes through unchanged; value is replaced by its category. The tree assigns code <code>${esc(huffCode || '—')}</code> to symbol (${skip},${cat}).</div>
-            </div>
-          </div>`;
-        }
+        // Step 1: update in-place
+        document.getElementById('bitencStep1Value').innerHTML =
+          `<span class="bitenc-val-sym">${esc(symLabel)}</span>` +
+          `<span style="color:var(--text-muted);font-size:0.8rem">→</span>` +
+          `<span class="bitenc-val-huff">${esc(huffCode || '—')}</span>`;
+        document.getElementById('bitencStep1Explain').textContent = explainText;
 
-        // Raw bits step (DC and non-EOB AC)
-        if (!isEOB && cat > 0) {
+        // Step 2: always visible, update content
+        document.getElementById('bitencStep2Label').textContent =
+          isNeg ? 'Raw bits: ones\' complement of |value|' : 'Raw bits: exact value in binary';
+
+        if (cat > 0) {
           let bitTiles = '<div class="bitenc-bit-row" id="bitencBitRow">';
           for (let i = 0; i < absBin.length; i++) {
             const flipped = absBin[i] === '0' ? '1' : '0';
@@ -11259,25 +11369,36 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
             </div>`;
           }
           bitTiles += '</div>';
-
-          const stepNum = isDC ? 4 : 4;
-          html += `<div class="bitenc-step">
-            <div class="bitenc-step-num">${stepNum}</div>
-            <div class="bitenc-step-content">
-              <div class="bitenc-step-label">${isNeg ? 'Raw bits: ones\u2019 complement of |value|' : 'Raw bits: exact value in binary'}</div>
-              <div class="bitenc-step-value">${bitTiles}</div>
-              <div class="bitenc-step-explain">${isNeg ? `|${value}| = ${absV} → binary <code>${absBin}</code> → flip bits → <code>${rawBits}</code>` : `${value} → binary <code>${rawBits}</code>`}</div>
-            </div>
-          </div>`;
+          document.getElementById('bitencStep2Value').innerHTML = bitTiles;
+          document.getElementById('bitencStep2Explain').innerHTML = isNeg
+            ? `|${value}| = ${absV} → binary <code>${absBin}</code> → flip bits → <code>${rawBits}</code>`
+            : `${value} → binary <code>${rawBits}</code> (${cat} bit${cat !== 1 ? 's' : ''})`;
+        } else {
+          document.getElementById('bitencStep2Value').innerHTML =
+            '<span style="opacity:0.4;font-size:0.8rem;font-style:italic">no raw bits for this symbol</span>';
+          document.getElementById('bitencStep2Explain').textContent = isEOB
+            ? 'EOB has no value to append.'
+            : isZRL ? 'ZRL has no value to append.' : 'Category 0 — value is 0, no bits appended.';
         }
 
-        stepsEl.innerHTML = html;
+        // Written to bitstream: always visible, update content
+        if (huffCode) {
+          const totalBits = huffCode.length + cat;
+          document.getElementById('bitencFinalBits').innerHTML =
+            `<span class="bf-huff">${esc(huffCode)}</span>` +
+            (cat > 0 ? `<span class="bf-sep"></span><span class="bf-raw">${rawBits}</span>` : '');
+          document.getElementById('bitencFinalTotal').textContent =
+            `${huffCode.length}${cat > 0 ? ' + ' + cat : ''} = ${totalBits} bits total`;
+        } else {
+          document.getElementById('bitencFinalBits').innerHTML =
+            '<span style="opacity:0.4;font-size:0.8rem;font-style:italic">—</span>';
+          document.getElementById('bitencFinalTotal').textContent = '';
+        }
 
         // Animate bit tiles
-        const tiles = stepsEl.querySelectorAll('#bitencBitRow .bitenc-bit-tile');
+        const tiles = document.querySelectorAll('#bitencBitRow .bitenc-bit-tile');
         tiles.forEach(t => t.style.animationPlayState = 'running');
 
-        // Flip negative bits after tiles appear
         if (isNeg && tiles.length > 0) {
           _bitEncAnimTimer = setTimeout(() => {
             tiles.forEach((t, i) => {
@@ -11285,40 +11406,120 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
             });
           }, tiles.length * 80 + 200);
         }
-
-        // Final combined output
-        if (huffCode) {
-          const totalBits = huffCode.length + cat;
-          const finalHtml = `<div class="bitenc-final" style="animation-delay:${isNeg ? tiles.length * 120 + 600 : 100}ms">
-            <div class="bitenc-final-label">Written to bitstream</div>
-            <div class="bitenc-final-bits">
-              <span class="bf-huff">${esc(huffCode)}</span>
-              ${cat > 0 ? '<span class="bf-sep"></span><span class="bf-raw">' + rawBits + '</span>' : ''}
-            </div>
-            <div class="bitenc-final-total">${huffCode.length} + ${cat} = ${totalBits} bits total</div>
-          </div>`;
-          stepsEl.insertAdjacentHTML('beforeend', finalHtml);
-        }
       }
 
-      el.querySelectorAll('.bitenc-tok-btn').forEach(btn => {
+      const strip = document.getElementById('tokenPipelineStrip');
+      strip.querySelectorAll('.catconv-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          strip.querySelectorAll('.catconv-chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          showEncoding(parseInt(chip.dataset.tidx, 10));
+        });
+      });
+
+      el.querySelectorAll('[data-tch]').forEach(btn => {
         btn.addEventListener('click', () => {
-          el.querySelectorAll('.bitenc-tok-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          showEncoding(parseInt(btn.dataset.bidx, 10));
+          _tokenPipelineCh = btn.dataset.tch;
+          renderTokenPipelineCard();
         });
       });
 
       showEncoding(0);
     }
 
-    // ── Re-render current selector view ──────────────────────────────────────
+    let _bitEncAnimTimer = null;
+    let _tokenPipelineCh = 'y';   // 'y' | 'cb' | 'cr'
 
-    function renderCurrentView() {
-      renderTree(_roots['acLuma'], _steps['acLuma'], document.getElementById('huffmanTreeSvg'));
-      renderTable(_tables['acLuma'], _freqs['acLuma'], document.getElementById('huffmanTableBody'));
-      const legend = document.getElementById('huffRCLegend');
-      if (legend) legend.style.display = '';
+    // ── Unified tree state ───────────────────────────────────────────────────
+
+    let _huffView = 'block';   // 'block' | 'full'
+    let _huffZoom = 1;
+
+    function applyZoom(lockWrapHeight) {
+      const inner = document.getElementById('huffTreeInner');
+      if (!inner) return;
+      const svg  = inner.querySelector('svg');
+      const wrap = document.getElementById('huffTreeWrap');
+      if (svg) {
+        const baseW = parseFloat(svg.getAttribute('data-base-w')) || parseFloat(svg.getAttribute('width'))  || 400;
+        const baseH = parseFloat(svg.getAttribute('data-base-h')) || parseFloat(svg.getAttribute('height')) || 200;
+        svg.setAttribute('width',  baseW * _huffZoom);
+        svg.setAttribute('height', baseH * _huffZoom);
+        // Pin the container to the natural (1×) tree height so zooming never resizes the wrap
+        if (lockWrapHeight && wrap) {
+          wrap.style.height = Math.min(320, baseH + 16) + 'px';
+        }
+      }
+      const lbl = document.getElementById('huffZoomLevel');
+      if (lbl) lbl.textContent = Math.round(_huffZoom * 100) + '%';
+    }
+
+    function applyInBlockLeafStyles(svgEl, inBlockSet) {
+      if (!svgEl) return;
+      svgEl.querySelectorAll('.huff-leaf').forEach(g => {
+        g.classList.toggle('in-block', !!(inBlockSet && inBlockSet.has(g.getAttribute('data-sym'))));
+      });
+    }
+
+    function updateCoverageLabel(inBlockSet, codes) {
+      const el = document.getElementById('huffCoverage');
+      if (!el) return;
+      const total = codes ? Object.keys(codes).length : 0;
+      const used  = inBlockSet ? inBlockSet.size : 0;
+      el.textContent = total > 0 ? `(your block: ${used} of ${total} symbols)` : '';
+    }
+
+    function renderUnifiedHuffman() {
+      const svgEl   = document.getElementById('huffmanTreeSvg');
+      const tbodyEl = document.getElementById('huffmanTableBody');
+      if (!svgEl || !tbodyEl) return;
+
+      if (_huffView === 'block') {
+        renderTree(_roots['acLuma'], _steps['acLuma'], svgEl);
+        renderTable(_tables['acLuma'], _freqs['acLuma'], tbodyEl);
+        const fs = document.getElementById('huffFullSelectors');
+        if (fs) fs.style.display = 'none';
+        const st = document.getElementById('huffmanStats');
+        if (st) st.style.display = '';
+        const lg = document.getElementById('huffRCLegend');
+        if (lg) lg.style.display = '';
+      } else {
+        if (!_fullReady) return;
+        const key = fullTableKey();
+        const inBlockSet = new Set(Object.keys(_freqs[key] || {}));
+        renderTree(_fullRoots[key], _fullSteps[key], svgEl);
+        applyInBlockLeafStyles(svgEl, inBlockSet);
+        renderTable(_fullCodes[key] || {}, _fullFreqs[key] || {}, tbodyEl, inBlockSet);
+        updateCoverageLabel(inBlockSet, _fullCodes[key]);
+        const fs = document.getElementById('huffFullSelectors');
+        if (fs) fs.style.display = '';
+        const st = document.getElementById('huffmanStats');
+        if (st) st.style.display = 'none';
+        const lg = document.getElementById('huffRCLegend');
+        if (lg) lg.style.display = (_fullSelType === 'ac') ? '' : 'none';
+      }
+
+      applyZoom(true);
+    }
+
+    function switchHuffView(newView) {
+      _huffView = newView;
+      _huffZoom = 1;
+      document.querySelectorAll('[data-view]').forEach(b =>
+        b.classList.toggle('active', b.dataset.view === newView));
+
+      const body = document.getElementById('huffTreeBody');
+      if (body) {
+        body.classList.add('fading');
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            renderUnifiedHuffman();
+            body.classList.remove('fading');
+          });
+        });
+      } else {
+        renderUnifiedHuffman();
+      }
     }
 
     // ── Main refresh ─────────────────────────────────────────────────────────
@@ -11401,18 +11602,17 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
         _tables[k] = root ? genCodes(root, '', {}) : {};
       });
 
-      // Show selector bar
-      const selBar = document.getElementById('huffSelBar');
-      if (selBar) selBar.style.display = '';
+      // Show unified tree card
+      const treeCard = document.getElementById('huffTreeCard');
+      if (treeCard) treeCard.style.display = '';
 
-      // Render current view
-      renderCurrentView();
+      // Render unified tree (block or full, whichever is active)
+      renderUnifiedHuffman();
       updateHuffStats(_mcuTokens, _tables);
 
       // Render all detail cards
       renderCategoryExplainCard();
-      renderCatConvCard();
-      renderBitEncodingCard();
+      renderTokenPipelineCard();
 
       // Dispatch for downstream sections — include all 4 code tables
       document.dispatchEvent(new CustomEvent('huffmanChanged', {
@@ -11420,7 +11620,7 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       }));
     }
 
-    // ── Full-image accordion ──────────────────────────────────────────────────
+    // ── Full-image data ───────────────────────────────────────────────────────
 
     let _fullSelType = 'dc';
     let _fullSelCh   = 'luma';
@@ -11434,51 +11634,51 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       return (_fullSelType === 'dc' ? 'dc' : 'ac') + (_fullSelCh === 'luma' ? 'Luma' : 'Chroma');
     }
 
-    function renderFullView() {
-      if (!_fullReady) return;
-      const key = fullTableKey();
-      const svgEl   = document.getElementById('huffFullTreeSvg');
-      const tbodyEl = document.getElementById('huffFullTableBody');
-      renderTree(_fullRoots[key], _fullSteps[key], svgEl);
-      renderTable(_fullCodes[key] || {}, _fullFreqs[key] || {}, tbodyEl);
-      const legend = document.getElementById('huffFullRCLegend');
-      if (legend) legend.style.display = (_fullSelType === 'ac') ? '' : 'none';
-    }
-
     document.addEventListener('DOMContentLoaded', () => {
-      const toggle = document.getElementById('huffAccordionToggle');
-      const body   = document.getElementById('huffAccordionBody');
-      const arrow  = toggle && toggle.querySelector('.huff-accordion-arrow');
+      // View toggle
+      document.querySelectorAll('[data-view]').forEach(btn => {
+        btn.addEventListener('click', () => switchHuffView(btn.dataset.view));
+      });
 
-      if (toggle && body) {
-        toggle.addEventListener('click', () => {
-          const isOpen = !body.hidden;
-          body.hidden = isOpen;
-          toggle.setAttribute('aria-expanded', String(!isOpen));
-          if (arrow) arrow.style.transform = isOpen ? '' : 'rotate(90deg)';
-          if (!isOpen && _fullReady) renderFullView();
-        });
-      }
-
+      // Full-image type selector
       document.querySelectorAll('[data-full-type]').forEach(btn => {
         btn.addEventListener('click', () => {
           _fullSelType = btn.dataset.fullType;
           document.querySelectorAll('[data-full-type]').forEach(b =>
             b.classList.toggle('active', b === btn));
-          const accordionBody = document.getElementById('huffAccordionBody');
-          if (accordionBody && !accordionBody.hidden) renderFullView();
+          if (_huffView === 'full') renderUnifiedHuffman();
         });
       });
 
+      // Full-image channel selector
       document.querySelectorAll('[data-full-ch]').forEach(btn => {
         btn.addEventListener('click', () => {
           _fullSelCh = btn.dataset.fullCh;
           document.querySelectorAll('[data-full-ch]').forEach(b =>
             b.classList.toggle('active', b === btn));
-          const accordionBody = document.getElementById('huffAccordionBody');
-          if (accordionBody && !accordionBody.hidden) renderFullView();
+          if (_huffView === 'full') renderUnifiedHuffman();
         });
       });
+
+      // Zoom buttons
+      const zoomIn  = document.getElementById('huffZoomIn');
+      const zoomOut = document.getElementById('huffZoomOut');
+      const zoomRst = document.getElementById('huffZoomReset');
+      if (zoomIn)  zoomIn.addEventListener('click',  () => { _huffZoom = Math.min(3, _huffZoom * 1.25); applyZoom(); });
+      if (zoomOut) zoomOut.addEventListener('click', () => { _huffZoom = Math.max(0.25, _huffZoom / 1.25); applyZoom(); });
+      if (zoomRst) zoomRst.addEventListener('click', () => { _huffZoom = 1; applyZoom(); });
+
+      // Wheel zoom on the tree wrap
+      const wrap = document.getElementById('huffTreeWrap');
+      if (wrap) {
+        wrap.addEventListener('wheel', e => {
+          if (!e.ctrlKey && !e.metaKey && Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+          e.preventDefault();
+          const factor = e.deltaY < 0 ? 1.1 : 0.9;
+          _huffZoom = Math.min(3, Math.max(0.25, _huffZoom * factor));
+          applyZoom();
+        }, { passive: false });
+      }
     });
 
     document.addEventListener('huffFullDataReady', e => {
@@ -11487,16 +11687,10 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       _fullSteps  = e.detail.steps;
       _fullCodes  = e.detail.codes;
       _fullReady  = true;
-      // Show accordion trigger now that we have data
-      const acc = document.getElementById('huffFullAccordion');
-      if (acc) acc.style.display = '';
-      // Re-render if accordion is already open
-      const body = document.getElementById('huffAccordionBody');
-      if (body && !body.hidden) renderFullView();
+      // If user is already in full view, re-render with the real data
+      if (_huffView === 'full') renderUnifiedHuffman();
+      renderTokenPipelineCard();   // re-render chips with correct full-image codes
     });
-
-    // ── Show selector bar label on load ──────────────────────────────────────
-    // (Top card is fixed to AC·Luma; no interactive selectors needed here)
 
     document.addEventListener('rleChanged', refreshHuffman);
   }());
@@ -11696,7 +11890,6 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       }
 
       grid.innerHTML = '';
-      if (legend) legend.style.display = 'flex';
 
       segs.forEach((seg, si) => {
         // MCU section label
@@ -12099,6 +12292,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
     // ── DOM helpers ────────────────────────────────────────────────────────────
 
+    const CH_LABEL = { y: 'Y', cb: 'Cb', cr: 'Cr' };
+
     function renderCodeList(tokens, codes) {
       const el = document.getElementById('sosCodeList');
       const ph = document.getElementById('sosPlaceholder');
@@ -12107,10 +12302,12 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       el.innerHTML = '';
       tokens.forEach((t, i) => {
         const td  = tokenBits(t, codes);
+        const ch  = t._ch || 'y';
         const row = document.createElement('div');
         row.className = 'sos-code-row';
         row.dataset.idx = i;
         row.innerHTML =
+          `<span class="sos-ch-badge" data-ch="${ch}">${CH_LABEL[ch]}</span>` +
           `<span class="code-sym">${td.symKey}</span>` +
           `<span class="code-bits">` +
             `<span class="code-huff">${td.huffCode}</span>` +
@@ -12161,6 +12358,16 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
       const { bytes, stuffCount, bitstring, rawBytes, tokenDetails } = packBits(tokens, codes);
 
+      // Pre-compute global bit range for each token (for hover linking)
+      const tokenBitRanges = [];
+      { let gp = 0; tokenDetails.forEach((td, i) => { tokenBitRanges.push({ start: gp, end: gp + td.fullBits.length - 1, idx: i }); gp += td.fullBits.length; }); }
+
+      // Map each raw byte index → which token indices contributed bits to it
+      const byteToTokens = rawBytes.map((_, j) => {
+        const bs = j * 8, be = j * 8 + 7;
+        return tokenBitRanges.filter(r => r.start <= be && r.end >= bs).map(r => r.idx);
+      });
+
       let msOffset = 0, globalBitPos = 0, bytesDone = 0;
 
       tokens.forEach((t, tIdx) => {
@@ -12198,6 +12405,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
             const cell = document.createElement('div');
             cell.className = 'sos-bit bit-new' + (isRaw ? ' bit-raw' : ' bit-huff');
             cell.textContent = bit;
+            cell.dataset.token = tIdx;
+            cell.dataset.pos   = pos;
             buf.appendChild(cell);
             setTimeout(() => cell.classList.remove('bit-new'), 350);
 
@@ -12205,11 +12414,14 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
               const rByteIdx = Math.floor(pos / 8);
               if (rByteIdx === bytesDone && rByteIdx < rawBytes.length) {
                 const rawByte = rawBytes[bytesDone];
+                const capturedByteIdx = bytesDone;
                 bytesDone++;
                 setTimeout(() => {
                   const box = document.createElement('div');
                   box.className = 'sos-hex-byte' + (rawByte === 0xFF ? ' byte-ff' : '');
                   box.textContent = toHex(rawByte);
+                  box.dataset.byteIdx = capturedByteIdx;
+                  box.dataset.tokens  = (byteToTokens[capturedByteIdx] || []).join(',');
                   stream.appendChild(box);
                   if (rawByte === 0xFF) {
                     setTimeout(() => {
@@ -12217,6 +12429,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
                       stuffBox.className = 'sos-hex-byte byte-stuff';
                       stuffBox.textContent = '00';
                       stuffBox.title = 'Byte-stuffed 0x00 — prevents confusion with JPEG marker bytes';
+                      stuffBox.dataset.byteIdx = capturedByteIdx;
+                      stuffBox.dataset.tokens  = box.dataset.tokens;
                       stream.appendChild(stuffBox);
                     }, BYTE_OFFSET * 2);
                   }
@@ -12236,6 +12450,8 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
             const box = document.createElement('div');
             box.className = 'sos-hex-byte' + (rawBytes[i] === 0xFF ? ' byte-ff' : '');
             box.textContent = toHex(rawBytes[i]);
+            box.dataset.byteIdx = i;
+            box.dataset.tokens  = (byteToTokens[i] || []).join(',');
             stream.appendChild(box);
           }
         }
@@ -12250,17 +12466,13 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
     function refresh(tokens) {
       _tokens = tokens || [];
       const btn = document.getElementById('sosReplayBtn');
-      const ph  = document.getElementById('sosPlaceholder');
       clearPanels();
       setStats(false);
-      if (!_tokens.length) {
-        if (ph) ph.style.display = '';
-        if (btn) { btn.textContent = '▶ Animate packing'; btn.disabled = true; }
-        return;
-      }
-      if (ph) ph.style.display = 'none';
       renderCodeList(_tokens, _codes);
-      if (btn) { btn.textContent = '▶ Animate packing'; btn.disabled = false; }
+      if (btn) {
+        btn.textContent = '▶ Animate packing';
+        btn.disabled = !_tokens.length;
+      }
     }
 
     // _codes comes from the SOS explorer's all-MCU Huffman tables
@@ -12272,322 +12484,90 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
       refresh(e.detail.tokens);
     });
 
-    // ── Wizard (deferred: modal HTML lives after this <script>) ─────────────
+    function hasCodes() {
+      return _codes && (_codes.dcLuma || _codes.acLuma) &&
+             Object.keys(_codes.dcLuma || {}).length + Object.keys(_codes.acLuma || {}).length > 0;
+    }
+
+    // ── Hover cross-column linking ────────────────────────────────────────────
+
+    function clearHoverHL() {
+      document.querySelectorAll('#sosPackerCard .sos-hl').forEach(el => el.classList.remove('sos-hl'));
+    }
+
+    function applyHoverForToken(tIdx) {
+      const card = document.getElementById('sosPackerCard');
+      if (!card) return;
+      const row = card.querySelector(`.sos-code-row[data-idx="${tIdx}"]`);
+      if (row) {
+        row.classList.add('sos-hl');
+        row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+      card.querySelectorAll('.sos-bit[data-token]').forEach(b => {
+        if (Number(b.dataset.token) === tIdx) b.classList.add('sos-hl');
+      });
+      card.querySelectorAll('.sos-hex-byte[data-tokens]').forEach(b => {
+        if (b.dataset.tokens.split(',').map(Number).includes(tIdx)) b.classList.add('sos-hl');
+      });
+    }
+
+    function applyHoverForByte(byteIdx) {
+      const card = document.getElementById('sosPackerCard');
+      if (!card) return;
+      const bs = byteIdx * 8, be = byteIdx * 8 + 7;
+      const hexByte = card.querySelector(`.sos-hex-byte[data-byte-idx="${byteIdx}"]`);
+      const involvedTokens = new Set();
+      if (hexByte && hexByte.dataset.tokens) {
+        hexByte.dataset.tokens.split(',').map(Number).forEach(t => involvedTokens.add(t));
+      }
+      card.querySelectorAll('.sos-hex-byte[data-byte-idx]').forEach(b => {
+        if (Number(b.dataset.byteIdx) === byteIdx) b.classList.add('sos-hl');
+      });
+      card.querySelectorAll('.sos-bit[data-pos]').forEach(b => {
+        const p = Number(b.dataset.pos);
+        if (p >= bs && p <= be) b.classList.add('sos-hl');
+      });
+      card.querySelectorAll('.sos-code-row').forEach(r => {
+        if (involvedTokens.has(Number(r.dataset.idx))) {
+          r.classList.add('sos-hl');
+          r.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+      });
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
-      // Replay button (inside modal, not available at IIFE-exec time)
-      var _sosBtn = document.getElementById('sosReplayBtn');
-      if (_sosBtn) {
-        _sosBtn.addEventListener('click', function () {
+      var btn = document.getElementById('sosReplayBtn');
+      if (btn) {
+        btn.addEventListener('click', function () {
           if (_tokens.length && hasCodes()) runAnimation(_tokens, _codes);
         });
       }
 
-      var infoBtn   = document.getElementById('sosBitsInfoBtn');
-      var overlay   = document.getElementById('sosBitsModal');
-      var closeBtn  = document.getElementById('sosBitsModalClose');
-      var mBody     = document.getElementById('sosBitsModalBody');
-      var prevBtn   = document.getElementById('wizPrev');
-      var nextBtn   = document.getElementById('wizNext');
-      var dotsWrap  = document.getElementById('wizDots');
-      var barEl     = document.getElementById('wizBar');
-      var sNumEl    = document.getElementById('wizStepNum');
-      var sTitleEl  = document.getElementById('wizStepTitle');
-      var sTextEl   = document.getElementById('wizStepText');
-      if (!infoBtn || !overlay || !mBody) return;
-
-      var cur = 0, autoTmr = null, pending = [], paused = false;
-      var pauseBtn  = document.getElementById('wizPause');
-
-      /* ── helpers ───────────────────────────────────────────────── */
-      function cancelPending() {
-        pending.forEach(clearTimeout); pending = [];
-        document.querySelectorAll('.sos-code-row').forEach(function (r) {
-          r.classList.remove('sos-row-active', 'wiz-hl');
-        });
-      }
-
-      // Returns row indices of the 3 DC tokens (first token of each channel block).
-      // Structure: [Y DC, ...Y ACs, Y EOB, Cb DC, ...Cb ACs, Cb EOB, Cr DC, ...Cr ACs, Cr EOB]
-      function dcRowIndices() {
-        var idx = [];
-        if (!_tokens.length) return idx;
-        idx.push(0); // Y DC is always first
-        for (var i = 0; i < _tokens.length; i++) {
-          if (_tokens[i].value === 'EOB' && i + 1 < _tokens.length) {
-            idx.push(i + 1); // token right after an EOB is the next channel's DC
-          }
-        }
-        return idx;
-      }
-
-      function hasCodes() {
-        return _codes && (_codes.dcLuma || _codes.acLuma) && Object.keys(_codes.dcLuma || {}).length + Object.keys(_codes.acLuma || {}).length > 0;
-      }
-
-      function populateComplete() {
-        var buf = document.getElementById('sosBitBuffer');
-        var str = document.getElementById('sosByteStream');
-        if (!buf || !str || !_tokens.length || !hasCodes()) return;
-        buf.innerHTML = ''; str.innerHTML = '';
-        var res = packBits(_tokens, _codes);
-        var gPos = 0;
-        res.tokenDetails.forEach(function (td) {
-          var allBits = td.fullBits;
-          var huffLen = td.huffCode.length;
-          for (var j = 0; j < allBits.length; j++) {
-            if (gPos > 0 && gPos % 8 === 0) {
-              var d = document.createElement('div');
-              d.className = 'sos-byte-boundary'; buf.appendChild(d);
-            }
-            var cell = document.createElement('div');
-            var isRaw = j >= huffLen;
-            cell.className = 'sos-bit' + (isRaw ? ' bit-raw' : ' bit-huff');
-            cell.textContent = allBits[j]; buf.appendChild(cell);
-            gPos++;
-          }
-        });
-        res.rawBytes.forEach(function (b) {
-          var bx = document.createElement('div');
-          bx.className = 'sos-hex-byte' + (b === 0xFF ? ' byte-ff' : '');
-          bx.textContent = toHex(b); str.appendChild(bx);
-          if (b === 0xFF) {
-            var sb = document.createElement('div');
-            sb.className = 'sos-hex-byte byte-stuff'; sb.textContent = '00';
-            str.appendChild(sb);
-          }
-        });
-      }
-
-      function animatePartial(maxT) {
-        var buf = document.getElementById('sosBitBuffer');
-        var str = document.getElementById('sosByteStream');
-        if (!buf || !_tokens.length || !hasCodes()) return;
-        buf.innerHTML = ''; if (str) str.innerHTML = '';
-        var lim = Math.min(maxT, _tokens.length);
-        var msOff = 0, gBit = 0;
-        for (var i = 0; i < lim; i++) {
-          (function (idx, tStart, bitStart) {
-            var t = _tokens[idx];
-            var td = tokenBits(t, _codes);
-            var allBits = td.fullBits;
-            var huffLen = td.huffCode.length;
-            if (!allBits) return;
-            pending.push(setTimeout(function () {
-              document.querySelectorAll('.sos-code-row').forEach(function (r) { r.classList.remove('sos-row-active'); });
-              var row = document.querySelector('.sos-code-row[data-idx="' + idx + '"]');
-              if (row) { row.classList.add('sos-row-active'); row.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
-            }, tStart));
-            allBits.split('').forEach(function (bit, bIdx) {
-              var pos = bitStart + bIdx;
-              var isRaw = bIdx >= huffLen;
-              pending.push(setTimeout(function () {
-                if (pos > 0 && pos % 8 === 0) {
-                  var d = document.createElement('div');
-                  d.className = 'sos-byte-boundary'; buf.appendChild(d);
-                }
-                var c = document.createElement('div');
-                c.className = 'sos-bit bit-new' + (isRaw ? ' bit-raw' : ' bit-huff');
-                c.textContent = bit;
-                buf.appendChild(c);
-                pending.push(setTimeout(function () { c.classList.remove('bit-new'); }, 350));
-              }, tStart + 120 + bIdx * 50));
-            });
-          })(i, msOff, gBit);
-          var tk = _tokens[i];
-          var td2 = tokenBits(tk, _codes);
-          msOff += 120 + td2.fullBits.length * 50 + 120;
-          gBit += td2.fullBits.length;
-        }
-      }
-
-      function applyFocus(litArr) {
-        mBody.classList.add('wiz-focus');
-        mBody.querySelectorAll('.sos-packer-layout > .sos-panel').forEach(function (p, i) {
-          p.classList.toggle('wiz-lit', litArr.indexOf(i) !== -1);
-        });
-        var stats = mBody.querySelector('.sos-stats-row');
-        var ctrls = mBody.querySelector('.dct-controls');
-        if (stats) stats.classList.toggle('wiz-lit', litArr.indexOf('stats') !== -1);
-        if (ctrls) ctrls.classList.toggle('wiz-lit', litArr.indexOf('controls') !== -1);
-      }
-
-      function removeFocus() {
-        mBody.classList.remove('wiz-focus');
-        mBody.querySelectorAll('.wiz-lit').forEach(function (el) { el.classList.remove('wiz-lit'); });
-      }
-
-      /* ── step definitions ─────────────────────────────────────── */
-      var STEPS = [
-        {
-          title: 'The Huffman Codebook',
-          text: 'Each <strong>(run, category)</strong> symbol is mapped to a variable-length Huffman code (<span style="color:#2563eb">blue</span>). The actual coefficient value is then appended as <strong>raw bits</strong> (<span style="color:#d97706">amber</span>) — not Huffman coded. The codebook covers all three channels: <strong>Y</strong>, <strong>Cb</strong>, <strong>Cr</strong>, interleaved in that order.',
-          lit: [0], dur: 12000,
-          enter: function () { renderCodeList(_tokens, _codes); clearPanels(); setStats(false); }
-        },
-        {
-          title: 'DC Tokens — One Per Channel',
-          text: 'Each channel opens with a <strong>DC token</strong>. JPEG Huffman-encodes only the <strong>category</strong> (how many bits the DPCM difference needs), then appends the difference as raw bits. Y uses the <strong>DC-luma</strong> table, Cb/Cr use the <strong>DC-chroma</strong> table.',
-          lit: [0], dur: 12000,
-          enter: function () {
-            renderCodeList(_tokens, _codes); clearPanels(); setStats(false);
-            dcRowIndices().forEach(function (i) {
-              var row = document.querySelector('.sos-code-row[data-idx="' + i + '"]');
-              if (row) row.classList.add('wiz-hl');
-            });
-          }
-        },
-        {
-          title: 'AC Tokens — Details & Texture',
-          text: 'After each DC token come the <strong>AC coefficients</strong>. Each is encoded as <strong>(run, category)</strong> via the AC Huffman table (<span style="color:#2563eb">blue</span>), followed by the actual coefficient value in raw bits (<span style="color:#d97706">amber</span>). <strong>EOB</strong> marks the end of each channel\u2019s block. Y uses the <strong>AC-luma</strong> table, Cb/Cr use the <strong>AC-chroma</strong> table.',
-          lit: [0], dur: 12000,
-          enter: function () {
-            renderCodeList(_tokens, _codes); clearPanels(); setStats(false);
-            var dcIdx = dcRowIndices();
-            document.querySelectorAll('.sos-code-row').forEach(function (r, i) {
-              if (dcIdx.indexOf(i) === -1) r.classList.add('wiz-hl'); // highlight all non-DC rows
-            });
-          }
-        },
-        {
-          title: 'Packing Bits into the Buffer',
-          text: 'Each token emits its <span style="color:#2563eb"><strong>Huffman code</strong></span> followed by <span style="color:#d97706"><strong>raw value bits</strong></span>, written into a continuous buffer. The thin dividers mark byte boundaries (every 8 bits). Notice how the two parts pack tightly together.',
-          lit: [0, 1], dur: 14000,
-          enter: function () { renderCodeList(_tokens, _codes); setStats(false); animatePartial(3); }
-        },
-        {
-          title: 'Byte Assembly & Byte Stuffing',
-          text: 'Every 8 bits form one <strong>byte</strong> (shown in hex). If a byte equals <strong>0xFF</strong>, an extra <strong>0x00</strong> \u201Cstuff byte\u201D is inserted — preventing confusion with JPEG marker bytes.',
-          lit: [1, 2], dur: 12000,
-          enter: function () { renderCodeList(_tokens, _codes); setStats(false); populateComplete(); }
-        },
-        {
-          title: 'The Complete Bitstream',
-          text: 'This two-part encoding (<span style="color:#2563eb">Huffman prefix</span> + <span style="color:#d97706">raw value</span>) repeats for every token across all channels (<strong>Y, Cb, Cr</strong>) in each MCU — producing the final JPEG scan data. Four separate Huffman tables are used: DC-luma, DC-chroma, AC-luma, AC-chroma. Press <strong>\u25B6 Replay</strong> to watch the full animation.',
-          lit: [0, 1, 2, 'stats', 'controls'], dur: 14000,
-          enter: function () {
-            renderCodeList(_tokens, _codes); populateComplete();
-            if (_tokens.length && hasCodes()) {
-              var r = packBits(_tokens, _codes);
-              setStats(true, r.bitstring.length, r.bytes.length, r.stuffCount);
-            }
-            var btn = document.getElementById('sosReplayBtn');
-            if (btn) { btn.disabled = !(_tokens.length && hasCodes()); }
-          }
-        }
-      ];
-
-      // Build dot indicators
-      STEPS.forEach(function (_, i) {
-        var dot = document.createElement('button');
-        dot.className = 'wiz-dot'; dot.title = 'Step ' + (i + 1);
-        dot.addEventListener('click', function () { goToStep(i); });
-        dotsWrap.appendChild(dot);
+      const card = document.getElementById('sosPackerCard');
+      if (!card) return;
+      let _lastHoverId = null;
+      card.addEventListener('mouseover', function (e) {
+        const codeRow = e.target.closest('.sos-code-row');
+        const bit     = e.target.closest('.sos-bit[data-token]');
+        const hexByte = e.target.closest('.sos-hex-byte[data-byte-idx]');
+        let id = null;
+        if (codeRow) id = 'row-' + codeRow.dataset.idx;
+        else if (bit) id = 'tok-' + bit.dataset.token;
+        else if (hexByte) id = 'byt-' + hexByte.dataset.byteIdx;
+        if (id === _lastHoverId) return;
+        _lastHoverId = id;
+        clearHoverHL();
+        if (codeRow) applyHoverForToken(Number(codeRow.dataset.idx));
+        else if (bit) applyHoverForToken(Number(bit.dataset.token));
+        else if (hexByte) applyHoverForByte(Number(hexByte.dataset.byteIdx));
       });
-
-      /* ── navigation ───────────────────────────────────────────── */
-      function updateUI() {
-        var s = STEPS[cur];
-        if (sNumEl)   sNumEl.textContent  = 'Step ' + (cur + 1) + ' of ' + STEPS.length;
-        if (sTitleEl) sTitleEl.textContent = s.title;
-        if (sTextEl)  sTextEl.innerHTML    = s.text;
-        dotsWrap.querySelectorAll('.wiz-dot').forEach(function (d, i) {
-          d.className = 'wiz-dot' + (i < cur ? ' wiz-past' : '') + (i === cur ? ' wiz-cur' : '');
-        });
-        if (prevBtn) prevBtn.disabled = (cur === 0);
-        if (nextBtn) nextBtn.textContent = (cur === STEPS.length - 1) ? 'Done \u2713' : 'Next \u2192';
-      }
-
-      function freezeBar() {
-        if (!barEl) return;
-        var w  = barEl.getBoundingClientRect().width;
-        var pw = barEl.parentElement ? barEl.parentElement.getBoundingClientRect().width : 0;
-        barEl.style.transition = 'none';
-        barEl.style.width = (pw > 0 ? (w / pw * 100).toFixed(1) : '0') + '%';
-      }
-
-      function syncPauseBtn() {
-        if (!pauseBtn) return;
-        pauseBtn.textContent = paused ? '\u25B6 Play' : '\u23F8 Pause';
-        pauseBtn.classList.toggle('is-play', paused);
-      }
-
-      function startAutoTimer() {
-        clearTimeout(autoTmr);
-        if (barEl) {
-          barEl.style.transition = 'none';
-          barEl.style.width = '0%';
-          void barEl.offsetHeight;
-        }
-        if (paused) return;
-        var s = STEPS[cur];
-        if (barEl) {
-          barEl.style.transition = 'width ' + s.dur + 'ms linear';
-          barEl.style.width = '100%';
-        }
-        if (cur < STEPS.length - 1) {
-          autoTmr = setTimeout(function () { goToStep(cur + 1); }, s.dur);
-        }
-      }
-
-      function goToStep(idx) {
-        if (idx < 0 || idx >= STEPS.length) return;
-        cancelPending();
-        cur = idx;
-        updateUI();
-        applyFocus(STEPS[cur].lit);
-        STEPS[cur].enter();
-        startAutoTimer();
-      }
-
-      function setPaused(val) {
-        paused = val;
-        syncPauseBtn();
-        if (paused) { clearTimeout(autoTmr); freezeBar(); }
-        else startAutoTimer();
-      }
-
-      function openModal() {
-        paused = false;
-        syncPauseBtn();
-        overlay.classList.add('open');
-        document.body.classList.add('scroll-locked');
-        goToStep(0);
-      }
-
-      function closeModal() {
-        clearTimeout(autoTmr);
-        cancelPending();
-        removeFocus();
-        overlay.classList.remove('open');
-        document.body.classList.remove('scroll-locked');
-      }
-
-      infoBtn.addEventListener('click', openModal);
-      if (closeBtn) closeBtn.addEventListener('click', closeModal);
-      if (pauseBtn) pauseBtn.addEventListener('click', function () { setPaused(!paused); });
-      overlay.addEventListener('click', function (e) { if (e.target === overlay) closeModal(); });
-      document.addEventListener('keydown', function (e) {
-        if (!overlay.classList.contains('open')) return;
-        if (e.key === 'Escape') closeModal();
-        if (e.key === 'ArrowRight') {
-          e.preventDefault();
-          paused = true; syncPauseBtn();
-          if (cur === STEPS.length - 1) closeModal(); else goToStep(cur + 1);
-        }
-        if (e.key === 'ArrowLeft') {
-          e.preventDefault();
-          paused = true; syncPauseBtn();
-          goToStep(cur - 1);
-        }
-      });
-      if (prevBtn) prevBtn.addEventListener('click', function () {
-        paused = true; syncPauseBtn(); goToStep(cur - 1);
-      });
-      if (nextBtn) nextBtn.addEventListener('click', function () {
-        if (cur === STEPS.length - 1) { closeModal(); return; }
-        paused = true; syncPauseBtn(); goToStep(cur + 1);
+      card.addEventListener('mouseleave', function () {
+        _lastHoverId = null;
+        clearHoverHL();
       });
     });
+
+
 
   }());
 
@@ -13222,54 +13202,5 @@ Cr =  0.500 × R  −  0.419 × G  −  0.081 × B  +  128</code></pre>
 
 </script>
 
-<!-- Bitstream Wizard Modal -->
-<div class="sos-modal-overlay" id="sosBitsModal" role="dialog" aria-modal="true">
-  <div class="sos-modal-box">
-    <div class="sos-modal-header">
-      <span class="sos-modal-title">How the Bitstream is Built</span>
-      <div class="wiz-dots" id="wizDots"></div>
-      <button class="sos-modal-close-btn" id="sosBitsModalClose" aria-label="Close">✕</button>
-    </div>
-    <div class="wiz-explain" id="wizExplain">
-      <div class="wiz-step-num" id="wizStepNum"></div>
-      <h3 class="wiz-step-title" id="wizStepTitle"></h3>
-      <p class="wiz-step-text" id="wizStepText"></p>
-    </div>
-    <div class="sos-modal-body" id="sosBitsModalBody">
-      <div class="sos-packer-layout">
-        <div class="sos-panel">
-          <p class="matrix-panel-label">Codebook <span class="sos-panel-sub">(DC first, AC by length)</span></p>
-          <div class="sos-code-list" id="sosCodeList"></div>
-          <p class="section-placeholder" id="sosPlaceholder" style="margin:0">Upload a photo to begin</p>
-        </div>
-        <div class="sos-panel">
-          <p class="matrix-panel-label">Bit buffer (groups of 8 → 1 byte)</p>
-          <div class="sos-bit-buffer" id="sosBitBuffer"></div>
-        </div>
-        <div class="sos-panel">
-          <p class="matrix-panel-label">Byte stream (hex)</p>
-          <div class="sos-byte-stream" id="sosByteStream"></div>
-          <div class="sos-stuffing-note" id="sosStuffNote" style="display:none">
-            <strong>Byte stuffing:</strong> 0xFF in scan data must be followed by 0x00 to avoid confusion with JPEG markers.
-          </div>
-        </div>
-      </div>
-      <div class="sos-stats-row" id="sosStats" style="display:none">
-        <span>Total bits: <strong id="sosTotalBits">—</strong></span>
-        <span>Packed bytes: <strong id="sosPackedBytes">—</strong></span>
-        <span>Stuffed 0x00s: <strong id="sosStuffCount">—</strong></span>
-      </div>
-      <div class="dct-controls" style="justify-content:flex-start;gap:8px;margin-top:16px">
-        <button class="btn-animate" id="sosReplayBtn" disabled>▶ Animate packing</button>
-      </div>
-    </div>
-    <div class="wiz-nav">
-      <button class="wiz-btn" id="wizPrev" disabled>← Previous</button>
-      <button class="wiz-btn wiz-btn--pause" id="wizPause">⏸ Pause</button>
-      <div class="wiz-progress"><div class="wiz-progress-fill" id="wizBar"></div></div>
-      <button class="wiz-btn wiz-btn--pri" id="wizNext">Next →</button>
-    </div>
-  </div>
-</div>
 </body>
 </html>
